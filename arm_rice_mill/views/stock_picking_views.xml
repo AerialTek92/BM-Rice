@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_arm_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.arm.rice</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+
+            <!-- 1. Add Smart Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+
+                <button name="action_view_purchase_order" type="object"
+                    class="oe_stat_button" icon="fa-truck"
+                    invisible="not purchase_id" groups="base.group_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Purchase Order</span>
+                    </div>
+                </button>
+
+                <button name="action_view_sales_contract" type="object"
+                    class="oe_stat_button" icon="fa-file-contract"
+                    invisible="not rice_sales_contract_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Sales Contract</span>
+                    </div>
+                </button>
+
+                <button name="action_view_inspection" type="object"
+                    class="oe_stat_button" icon="fa-check-square-o"
+                    invisible="not grn_inspection_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Inspection</span>
+                    </div>
+                </button>
+
+                <button name="action_view_gate_pass" type="object"
+                    class="oe_stat_button" icon="fa-id-card-o"
+                    invisible="not gate_pass_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Gate Pass</span>
+                    </div>
+                </button>
+
+                <button name="action_view_weighbridge" type="object"
+                    class="oe_stat_button" icon="fa-balance-scale"
+                    invisible="not weighbridge_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Weighbridge</span>
+                    </div>
+                </button>
+
+            </xpath>
+
+            <!--
+                Protocol 1.5 (Explicit Context):
+                FIX: Target the specific location_id that has the 'options' attribute.
+                This avoids the multi-match error in Odoo 19 and cleanly appends our condition.
+            -->
+            <xpath expr="//sheet//group//field[@name='location_id' and @options]" position="attributes">
+                <attribute name="invisible">picking_type_code == 'incoming' or picking_type_code == 'internal'</attribute>
+            </xpath>
+
+            <!-- Protocol 1.5: Show all source locations as tags ONLY on Internal Transfers -->
+            <xpath expr="//sheet//group//field[@name='location_id' and @options]" position="after">
+                <field name="multi_source_location_ids" widget="many2many_tags" readonly="1" invisible="picking_type_code != 'internal'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='picking_type_id']" position="attributes">
+                <attribute name="readonly">grn_inspection_id != False or weighbridge_id != False</attribute>
+            </xpath>
+
+            <xpath expr="//header" position="inside">
+                <button name="action_delete_grn" string="Delete GRN" type="object" class="btn-danger"
+                        confirm="Are you sure? This will reverse the stock and TLS for this GRN and permanently delete the record."
+                        invisible="picking_type_code != 'incoming' or state != 'done'"/>
+            </xpath>
+
+                        <!-- FIX: Force Demand (product_uom_qty) to be visible on Receipts and Internal Transfers -->
+            <xpath expr="//page[@name='operations']//list//field[@name='product_uom_qty']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='origin']" position="after">
+                <!-- Restrict price_unit to Receipts only -->
+                <field name="price_unit" invisible="picking_type_code != 'incoming'" />
+            </xpath>
+
+            <!-- Restrict Destination Location to Internal usage only (Header Field) -->
+            <xpath expr="//sheet//group//field[@name='location_dest_id'][1]" position="attributes">
+                <attribute name="domain">[('usage', '=', 'internal')]</attribute>
+            </xpath>
+
+            <!-- Restrict Destination Location to Internal usage only (Operations Tab Lines) -->
+            <xpath expr="//page[@name='operations']//list//field[@name='location_dest_id']" position="attributes">
+                <attribute name="domain">[('usage', '=', 'internal')]</attribute>
+            </xpath>
+
+            <!-- 2. Inject the GRN Details layout before the 'extra' page -->
+            <xpath expr="//page[@name='extra']" position="before">
+                <page string="GRN Details" name="grn_details"
+                    invisible="picking_type_code != 'incoming'">
+
+                    <!-- Invisible field for view evaluation -->
+                    <field name="has_payment_cert" invisible="1"/>
+
+                    <!-- Top Section: GRN Info & Weights -->
+                    <group>
+                        <group string="GRN Information">
+                            <field name="grn_date" readonly="has_payment_cert"/>
+                            <field name="partner_id" string="Company / Vendor"/>
+                            <field name="buyer_id"/>
+                            <field name="product_id"/>
+                            <field name="bags"/>
+                            <field name="filling_bags" readonly="has_payment_cert"/>
+                            <field name="deduction" readonly="has_payment_cert"/>
+                        </group>
+                        <group string="Weights">
+                            <!-- Locked if Third Party OR Payment Certificate is confirmed -->
+                            <field name="gross_weight" readonly="not is_third_party or has_payment_cert" />
+                            <field name="tare_weight" readonly="not is_third_party or has_payment_cert" />
+                            <field name="net_weight" readonly="not is_third_party or has_payment_cert" />
+                            <field name="bilty_weight" readonly="not is_third_party or has_payment_cert" />
+                        </group>
+                    </group>
+
+                    <!-- Middle Section: Vehicle/Bilty & Document References -->
+                    <group>
+                        <group string="Vehicle &amp; Bilty Details">
+                            <field name="vehicle_number" />
+                            <field name="driver_name" />
+                            <field name="transporter_id" />
+                            <field name="truck_type" />
+                            <field name="bilty_no" />
+                        </group>
+                        <group string="Document References">
+                            <field name="grn_inspection_id" />
+                            <field name="gate_pass_id" />
+                            <field name="weighbridge_id" />
+                            <field name="rice_sales_contract_id" />
+                        </group>
+                    </group>
+
+                    <!-- Bottom Section: SPLIT Analysis Reports -->
+                    <group string="Initial QC Report (Gate)">
+                        <group>
+                            <field name="initial_sample_no" />
+                            <field name="initial_moisture_percent" />
+                            <field name="initial_broken_percent" />
+                            <field name="initial_b1_percent" />
+                            <field name="initial_damage_yellow_shriveled_percent" />
+                            <field name="initial_chalky_immature_percent" />
+                            <field name="initial_foreign_grain_percent" />
+                            <field name="initial_fungus_grain_percent" />
+                            <field name="initial_red_rice_percent" />
+                        </group>
+                        <group>
+                            <field name="initial_foreign_matter_percent" />
+                            <field name="initial_paddy_grain_percent" />
+                            <field name="initial_damage_grain_percent" />
+                            <field name="initial_inspection_status" />
+                        </group>
+                    </group>
+
+                    <group string="Final QC Report (Lab)">
+                        <group>
+                            <field name="final_sample_no" />
+                            <field name="actual_moisture" />
+                            <field name="actual_broken" />
+                            <field name="final_b1_percent" />
+                            <field name="final_damage_yellow_shriveled_percent" />
+                            <field name="final_chalky_immature_percent" />
+                            <field name="final_foreign_grain_percent" />
+                            <field name="final_fungus_grain_percent" />
+                            <field name="final_red_rice_percent" />
+                        </group>
+                        <group>
+                            <field name="final_foreign_matter_percent" />
+                            <field name="final_paddy_grain_percent" />
+                            <field name="final_damage_grain_percent" />
+                            <field name="final_inspection_status" />
+                        </group>
+
+                        <group string="Remarks History (RSC to Weighbridge)">
+                            <field name="remarks" nolabel="1" colspan="2" readonly="1" />
+                        </group>
+                    </group>
+
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Receipts-specific list: unconditional TLS columns (purchase flow data only) -->
+<!--    <record id="view_picking_tree_rice_receipts" model="ir.ui.view">-->
+<!--        <field name="name">stock.picking.tree.rice.receipts</field>-->
+<!--        <field name="model">stock.picking</field>-->
+<!--        <field name="mode">primary</field>-->
+<!--        <field name="inherit_id" ref="stock.vpicktree"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='partner_id']" position="after">-->
+<!--                <field name="po_no_of_trucks" optional="show"/>-->
+<!--                <field name="vehicle_number" optional="show"/>-->
+<!--                <field name="po_original_tls" string="Orig. TLS" optional="show"/>-->
+<!--                <field name="po_total_tls" string="Recv. TLS" optional="show"/>-->
+<!--                <field name="po_remaining_tls" string="Rem. TLS" optional="show"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- Force the Receipts action to use it (lowest sequence wins for list mode) -->
+    <record id="action_picking_tree_incoming_view_list_rice" model="ir.actions.act_window.view">
+        <field name="sequence" eval="0"/>
+        <field name="view_mode">list</field>
+        <field name="act_window_id" ref="stock.action_picking_tree_incoming"/>
+        <field name="view_id" ref="view_picking_tree_rice_receipts"/>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- SEARCH VIEW INHERITANCE                   -->
+    <!-- ========================================== -->
+    <record id="stock_picking_search_arm_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.search.arm.rice</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='available']" position="after">
+                <separator />
+                <filter string="Third Party / Outsider" name="filter_third_party_grn"
+                    domain="[('is_third_party', '=', True)]" />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

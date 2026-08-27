@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. Landscape Paper Format -->
+    <record id="paperformat_final_inspection_landscape" model="report.paperformat">
+        <field name="name">Final Inspection Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- 2. Report Action -->
+    <record id="action_report_final_inspection_report" model="ir.actions.report">
+        <field name="name">Final Inspection Report</field>
+        <field name="model">final.inspection.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">arm_rice_manufacturing.report_final_inspection_document</field>
+        <field name="report_file">arm_rice_manufacturing.report_final_inspection_document</field>
+        <field name="binding_model_id" ref="model_final_inspection_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_final_inspection_landscape"/>
+    </record>
+
+    <!-- 3. Report Template -->
+    <template id="report_final_inspection_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 13px; font-family: Arial, sans-serif; color: black;">
+
+                        <h2 class="text-center mt-2 mb-4">
+                            <strong>FINAL INSPECTION REPORT</strong>
+                        </h2>
+
+                        <!-- Top Section -->
+                        <div class="row mt-4 mb-3">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width:40%;"><strong>Plant:</strong></td>
+                                        <td><span t-field="o.plant"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Name of Operator:</strong></td>
+                                        <td><span t-field="o.operator_name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Customer Name:</strong></td>
+                                        <td><span t-field="o.customer_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Brand Name:</strong></td>
+                                        <td><span t-field="o.brand_name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width:30%;"><strong>Date:</strong></td>
+                                        <td><span t-field="o.date"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Day:</strong></td>
+                                        <td><span t-field="o.day"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Shift:</strong></td>
+                                        <td><span t-field="o.shift"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Job Order No:</strong></td>
+                                        <td><span t-field="o.job_order_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quality Parameters Table (Standard & Observed Rows) -->
+                        <table class="table table-sm table-bordered text-center mt-3">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:10%;">Hours / Type</th>
+                                    <th style="width:8%;">Sample (kg)</th>
+                                    <th style="width:7%;">Broken</th>
+                                    <th style="width:9%;">Damage / Yellow</th>
+                                    <th style="width:7%;">Moisture</th>
+                                    <th style="width:8%;">Foreign Grains</th>
+                                    <th style="width:8%;">Foreign Matter</th>
+                                    <th style="width:8%;">Paddy Grain</th>
+                                    <th style="width:10%;">Under Milled</th>
+                                    <th style="width:8%;">Kett Whitnes</th>
+                                    <th style="width:10%;">Packaging Material</th>
+                                    <th style="width:17%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.report_line_ids" t-as="line">
+                                    <!-- Standard Row -->
+                                    <tr style="background-color: #f9f9f9;">
+                                        <td><strong>Standard</strong></td>
+                                        <td><span t-field="line.std_sample_kg"/></td>
+                                        <td><span t-field="line.std_broken"/></td>
+                                        <td><span t-field="line.std_damage_yellow"/></td>
+                                        <td><span t-field="line.std_moisture"/></td>
+                                        <td><span t-field="line.std_foreign_grains"/></td>
+                                        <td><span t-field="line.std_foreign_matter"/></td>
+                                        <td><span t-field="line.std_paddy_grain"/></td>
+                                        <td><span t-field="line.std_under_milled_choba"/></td>
+                                        <td><span t-field="line.std_kett_whitnes"/></td>
+                                        <td><span t-field="line.std_packaging_material"/></td>
+                                        <td><span t-field="line.std_remarks"/></td>
+                                    </tr>
+                                    <!-- Observed Row -->
+                                    <tr>
+                                        <td><strong>Observed</strong></td>
+                                        <td><span t-field="line.sample_kg"/></td>
+                                        <td><span t-field="line.broken"/></td>
+                                        <td><span t-field="line.damage_yellow"/></td>
+                                        <td><span t-field="line.moisture"/></td>
+                                        <td><span t-field="line.foreign_grains"/></td>
+                                        <td><span t-field="line.foreign_matter"/></td>
+                                        <td><span t-field="line.paddy_grain"/></td>
+                                        <td><span t-field="line.under_milled_choba"/></td>
+                                        <td><span t-field="line.kett_whitnes"/></td>
+                                        <td><span t-field="line.packaging_material"/></td>
+                                        <td><span t-field="line.remarks"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Sign-off Section -->
+                        <div class="row mt-5">
+                            <div class="col-6 text-center">
+                                <div style="border-top: 1px solid black; margin: 0 40px; padding-top: 5px;">
+                                    <strong>Shift Supervisor</strong><br/>
+                                    <span t-field="o.shift_supervisor"/>
+                                </div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div style="border-top: 1px solid black; margin: 0 40px; padding-top: 5px;">
+                                    <strong>Production Head</strong><br/>
+                                    <span t-field="o.production_head"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

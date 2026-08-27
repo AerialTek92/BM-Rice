@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="weighbridge_ticket_view_form_mfg_inherit" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.view.form.mfg.inherit</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="inherit_id" ref="arm_rice_mill.weighbridge_ticket_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Add Dedicated Buttons in Header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_confirm_manufacturing" string="Confirm &amp; View Internal Transfer" type="object" class="btn-success"
+                        invisible="weighbridge_type != 'manufacturing' or state != 'unloading' or tare_weight == 0 or is_finished_weighbridge == True"/>
+
+                <button name="action_confirm_finished_weighbridge" string="Confirm Finished Weight" type="object" class="btn-success"
+                        invisible="weighbridge_type != 'manufacturing' or state != 'unloading' or tare_weight == 0 or is_finished_weighbridge == False"/>
+            </xpath>
+
+            <!-- 2. Add Issue Material / Log Sheet Logic -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <!-- Existing Manufacturing Partner (Hide if Finished WB) -->
+                <field name="mfg_partner_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == True"/>
+
+                <!-- NEW: Log Sheet Partner 1 -->
+                <field name="mfg_partner_1_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False"/>
+                <!-- NEW: Log Sheet Partner 2 -->
+                <field name="mfg_partner_2_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False or mfg_partner_2_id == False"/>
+            </xpath>
+
+            <xpath expr="//field[@name='rice_sales_contract_id']" position="after">
+                <!-- NEW: Checkmark placed right on top of Issue Material / Log Sheet Ref -->
+                <field name="is_finished_weighbridge"
+                       invisible="weighbridge_type != 'manufacturing'"
+                       string="Finished / Bi-Products"/>
+
+                <!-- Existing Issue Material (Hide if Finished WB) -->
+                <field name="issue_material_id" readonly="state != 'draft'" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == True"/>
+                <field name="mfg_job_order_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == True"/>
+                <field name="mfg_prs_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == True"/>
+
+                <!-- NEW: Log Sheet Ref -->
+                <field name="log_sheet_id" readonly="state != 'draft'" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False"/>
+                <!-- NEW: BJO 1 & 2 -->
+                <field name="mfg_bjo_1_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False"/>
+                <field name="mfg_bjo_2_id" readonly="1" force_save="1" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False or mfg_bjo_2_id == False"/>
+            </xpath>
+
+            <!-- 3. Update Allocation Separator Text Dynamically -->
+            <xpath expr="//separator[@name='allocation_separator']" position="after">
+                <separator name="allocation_separator_mfg" string="Allocate Weight by Issue Material" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == True"/>
+                <separator name="allocation_separator_finished" string="Allocate Weight by Log Sheet" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False"/>
+            </xpath>
+
+            <!-- 4. Update Line Fields -->
+            <xpath expr="//field[@name='line_ids']//list//field[@name='purchase_order_line_id']" position="after">
+                <!-- Existing (Hide if Finished WB) -->
+                <field name="issue_material_id" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'manufacturing' or parent.is_finished_weighbridge == True"/>
+                <field name="issue_material_line_id" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'manufacturing' or parent.is_finished_weighbridge == True"/>
+
+                <!-- NEW: BJO Line (Hide if not Finished WB) -->
+                <field name="bjo_id" string="Brand Job Order" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'manufacturing' or parent.is_finished_weighbridge == False"/>
+            </xpath>
+
+            <!-- 5. Add Bi-Product Tab (Target the 2nd page in the notebook which is Remarks) -->
+            <xpath expr="//notebook/page[2]" position="before">
+                <page string="Bi-Product" invisible="weighbridge_type != 'manufacturing' or is_finished_weighbridge == False">
+                    <field name="wb_byproduct_line_ids">
+                        <list editable="bottom">
+                            <field name="product_id" string="Item" domain="[('is_by_product', '=', True)]"/>
+                            <field name="bags"/>
+                            <field name="size"/>
+                            <field name="weight"/>
+                            <field name="percent"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

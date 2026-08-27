@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="grn_inspection_view_form" model="ir.ui.view">
+        <field name="name">grn.inspection.view.form</field>
+        <field name="model">grn.inspection</field>
+        <field name="arch" type="xml">
+            <form string="Quality Control">
+                <header>
+                    <button name="action_validate_initial_qc" string="Validate Initial QC" type="object" class="btn-success"
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_gate_pass" string="Create Gate Pass" type="object" class="btn-primary"
+                            invisible="state != 'initial_pass'"/>
+                    <button name="action_fail_initial" string="Fail Initial QC" type="object" class="btn-danger"
+                            invisible="state != 'draft'"/>
+
+                    <!-- FIX: Single button routing to Return Weighbridge -->
+                    <button name="action_create_return_weighbridge" string="Return to Supplier (Weighbridge)"
+                            type="object"
+                            class="btn-danger" invisible="state not in ('initial_fail', 'final_fail')"/>
+
+                    <button name="action_start_final_qc" string="Proceed to Final QC" type="object" class="btn-primary"
+                            invisible="state != 'initial_pass'"/>
+                    <button name="action_pass_final" string="Pass Final QC" type="object" class="btn-success"
+                            invisible="state != 'final_qc'"/>
+                    <button name="action_fail_final" string="Fail Final QC" type="object" class="btn-danger"
+                            invisible="state != 'final_qc'"/>
+
+                    <!-- Cancel & Reset Flow -->
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('draft', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state != 'cancel'"/>
+                    <button name="action_mark_returned" string="Return to Supplier" type="object" class="btn-danger"
+                            invisible="state not in ('draft', 'initial_fail', 'final_qc', 'final_fail')"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,initial_pass,final_qc,final_pass"/>
+                </header>
+                <!-- FIX: Lock the entire sheet when Final QC is Passed -->
+                <sheet readonly="state == 'final_pass'">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_purchase_order" type="object" class="oe_stat_button" icon="fa-truck"
+                                string="Purchase Order"/>
+                        <button name="action_view_sales_contract" type="object" class="oe_stat_button"
+                                icon="fa-file-contract" string="Sales Contract" invisible="not rice_sales_contract_id"/>
+                        <button name="action_view_gate_passes" type="object" class="oe_stat_button" icon="fa-id-card-o">
+                            <field name="gate_pass_count" string="Gate Passes" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="partner_id" readonly="state == 'final_pass'"/>
+                            <!-- FIX: Added approval_status = approved to domain -->
+                            <field name="purchase_order_id"
+                                   domain="[('partner_id', '=', partner_id), ('state', 'in', ('purchase', 'done')), ('total_available_tls', '>', 0), ('approval_status', '=', 'approved')]"
+                                   context="{'show_po_product_and_price': 1}"
+                                   readonly="state == 'final_pass'"/>
+                            <field name="ref_po_no" readonly="1"/>
+                            <field name="rice_sales_contract_id" readonly="state == 'final_pass'"/>
+                            <field name="broker_id" readonly="state == 'final_pass'"/>
+                            <field name="buyer_id" readonly="state == 'final_pass'"/>
+                        </group>
+                        <group>
+                            <field name="inspection_date" readonly="state == 'final_pass'"/>
+                            <field name="is_third_party" readonly="state == 'final_pass'"/>
+                            <!-- Destination Location mapped to GRN -->
+                            <field name="location_dest_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- TAB 1: Logistical Lines -->
+                        <page string="Inspection Lines">
+                            <field name="inspection_line_ids">
+                                <list editable="bottom">
+                                    <!-- FIX: Added approval_status = approved to domain -->
+                                    <field name="purchase_order_id" required="1"
+                                           domain="[('partner_id', '=', parent.partner_id), ('state', 'in', ('purchase', 'done')), ('total_available_tls', '>', 0), ('approval_status', '=', 'approved')]"
+                                           readonly="parent.state == 'final_pass'"/>
+                                    <field name="purchase_order_line_id" domain="[('order_id', '=', purchase_order_id)]"
+                                           string="PO Line (Auto-Fill)" readonly="parent.state == 'final_pass'"/>
+                                    <field name="product_id" required="1" string="Item Name"
+                                           readonly="parent.state == 'final_pass'"/>
+                                    <field name="base_qty_received" invisible="1"/>
+                                    <field name="total_qty_remaining" readonly="parent.state == 'final_pass'"/>
+                                    <field name="crop" readonly="parent.state == 'final_pass'"/>
+                                    <field name="truck_no" readonly="parent.state == 'final_pass'"/>
+                                    <field name="bilty_no" readonly="parent.state == 'final_pass'"/>
+                                    <field name="bilty_weight" readonly="parent.state == 'final_pass'"/>
+                                    <field name="bags" readonly="parent.state == 'final_pass'"/>
+                                    <field name="bardana" readonly="parent.state == 'final_pass'"/>
+                                    <field name="destination" readonly="parent.state == 'final_pass'"/>
+                                    <field name="unit_price" readonly="parent.state == 'final_pass'"/>
+                                    <field name="po_tls" readonly="1"/>
+                                    <field name="grn_insp_tls" readonly="parent.state == 'final_pass'"/>
+                                    <field name="truck_type" readonly="parent.state == 'final_pass'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- TAB 2: Initial QC Analysis (Editable only in Draft) -->
+                        <page string="Initial QC Analysis" invisible="state == 'final_qc'">
+                            <group readonly="state != 'draft'">
+                                <group>
+                                    <field name="sample_no"/>
+                                    <field name="moisture_percent"/>
+                                    <field name="broken_percent"/>
+                                    <field name="b1_percent"/>
+                                    <field name="damage_yellow_shriveled_percent"/>
+                                    <field name="chalky_immature_percent"/>
+                                    <field name="other_variety_percent"/>
+                                    <field name="foreign_grain_percent"/>
+                                    <field name="fungus_grain_percent"/>
+                                    <field name="red_rice_percent"/>
+                                    <field name="aflatoxin_percent"/>
+                                </group>
+                                <group>
+                                    <field name="short_grain_percent"/>
+                                    <field name="foreign_matter_percent"/>
+                                    <field name="paddy_grain_percent"/>
+                                    <field name="under_milled_percent"/>
+                                    <field name="polish_percent"/>
+                                    <field name="average_length"/>
+                                    <field name="damage_grain_percent"/>
+                                    <field name="green_rice_percent"/>
+                                    <field name="cooking"/>
+                                    <field name="inspection_status"/>
+                                    <field name="kett_whitness_percent"/>
+                                </group>
+                            </group>
+                            <group string="QC Remarks" readonly="state != 'draft'">
+                                <field name="qc_remarks" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+
+                        <!-- TAB 3: Final QC Analysis (Editable only in Final QC) -->
+                        <page string="Final QC Analysis"
+                              invisible="state not in ('final_qc', 'final_pass', 'final_fail')">
+                            <group string="Initial QC Snapshot (Readonly)">
+                                <group>
+                                    <field name="initial_sample_no" readonly="1"/>
+                                    <field name="initial_moisture_percent" readonly="1"/>
+                                    <field name="initial_broken_percent" readonly="1"/>
+                                    <field name="initial_b1_percent" readonly="1"/>
+                                    <field name="initial_damage_yellow_shriveled_percent" readonly="1"/>
+                                    <field name="initial_chalky_immature_percent" readonly="1"/>
+                                    <field name="initial_other_variety_percent" readonly="1"/>
+                                    <field name="initial_foreign_grain_percent" readonly="1"/>
+                                    <field name="initial_fungus_grain_percent" readonly="1"/>
+                                    <field name="initial_red_rice_percent" readonly="1"/>
+                                    <field name="initial_aflatoxin_percent" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="initial_short_grain_percent" readonly="1"/>
+                                    <field name="initial_foreign_matter_percent" readonly="1"/>
+                                    <field name="initial_paddy_grain_percent" readonly="1"/>
+                                    <field name="initial_under_milled_percent" readonly="1"/>
+                                    <field name="initial_polish_percent" readonly="1"/>
+                                    <field name="initial_average_length" readonly="1"/>
+                                    <field name="initial_damage_grain_percent" readonly="1"/>
+                                    <field name="initial_green_rice_percent" readonly="1"/>
+                                    <field name="initial_cooking" readonly="1"/>
+                                    <field name="initial_inspection_status" readonly="1"/>
+                                    <field name="initial_kett_whitness_percent" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <group string="Final Lab Results" readonly="state != 'final_qc'">
+                                <group>
+                                    <field name="sample_no"/>
+                                    <field name="moisture_percent"/>
+                                    <field name="broken_percent"/>
+                                    <field name="b1_percent"/>
+                                    <field name="damage_yellow_shriveled_percent"/>
+                                    <field name="chalky_immature_percent"/>
+                                    <field name="other_variety_percent"/>
+                                    <field name="foreign_grain_percent"/>
+                                    <field name="fungus_grain_percent"/>
+                                    <field name="red_rice_percent"/>
+                                    <field name="aflatoxin_percent"/>
+                                </group>
+                                <group>
+                                    <field name="short_grain_percent"/>
+                                    <field name="foreign_matter_percent"/>
+                                    <field name="paddy_grain_percent"/>
+                                    <field name="under_milled_percent"/>
+                                    <field name="polish_percent"/>
+                                    <field name="average_length"/>
+                                    <field name="damage_grain_percent"/>
+                                    <field name="green_rice_percent"/>
+                                    <field name="cooking"/>
+                                    <field name="inspection_status"/>
+                                    <field name="kett_whitness_percent"/>
+                                </group>
+                            </group>
+
+                            <group string="Final QC Remarks" readonly="state != 'final_qc'">
+                                <field name="qc_remarks" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+
+                        <page string="General Remarks">
+                            <!-- 1. PO Remarks (Readonly) -->
+                            <div invisible="not po_remarks" style="margin-bottom: 10px;">
+                                <strong style="font-size: 15px;">Purchase Order Remarks:</strong>
+                                <field name="po_remarks" nolabel="1" readonly="1"/>
+                            </div>
+
+                            <hr invisible="not po_remarks"/>
+
+                            <!-- 2. GRN Inspection Remarks (Pakki Heading) -->
+                            <div style="margin-top: 10px;">
+                                <strong style="font-size: 15px;">GRN Inspection Remarks:</strong>
+                                <!-- Nolabel="1" lagane se 'Inspection Remarks' wala default label gayab ho jayega -->
+                                <field name="remarks" nolabel="1" readonly="state == 'final_pass'"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="grn_inspection_view_tree" model="ir.ui.view">
+        <field name="name">grn.inspection.view.tree</field>
+        <field name="model">grn.inspection</field>
+        <field name="arch" type="xml">
+            <list string="Quality Controls" decoration-success="state in ('initial_pass', 'final_pass')"
+                  decoration-danger="state in ('initial_fail', 'final_fail', 'return_pending')"
+                  decoration-info="state == 'final_qc'" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="inspection_date"/>
+                <field name="purchase_order_id" optional="show"/>
+                <field name="partner_id"/>
+                <field name="truck_type"/>
+                <field name="bags"/>
+                <field name="total_qty_remaining"/>
+                <field name="bilty_weight"/>
+                <field name="broker_id" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state in ('initial_pass', 'final_pass')"
+                       decoration-danger="state in ('initial_fail', 'final_fail', 'return_pending')"
+                       decoration-info="state == 'final_qc'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_grn_inspection" model="ir.actions.act_window">
+        <field name="name">Quality Controls</field>
+        <field name="res_model">grn.inspection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_arm_rice_operations_root" name="Rice Operations" sequence="10"/>
+
+    <menuitem id="menu_grn_inspection" name="Quality Controls"
+              parent="menu_arm_rice_operations_root"
+              action="action_grn_inspection" sequence="15"/>
+</odoo>

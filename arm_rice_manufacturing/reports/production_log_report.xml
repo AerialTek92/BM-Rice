@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. REPORT ACTION -->
+    <record id="action_report_production_log_sheet" model="ir.actions.report">
+        <field name="name">Production Log Sheet</field>
+        <field name="model">production.log.sheet</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_manufacturing.report_production_log_sheet_document</field>
+        <field name="report_file">arm_rice_manufacturing.report_production_log_sheet_document</field>
+        <field name="print_report_name">'Production Log Sheet - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_production_log_sheet"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- 2. REPORT TEMPLATE -->
+    <template id="report_production_log_sheet_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 10px;">
+
+                    <style>
+                        .footer, .o_layout_footer {
+                            display: none !important;
+                        }
+                        table.log-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 10px;
+                        }
+                        table.log-table th, table.log-table td {
+                            border: 1px solid black;
+                            padding: 4px 6px;
+                            vertical-align: middle;
+                        }
+                        table.log-table thead th {
+                            background-color: #f2f2f2;
+                            text-align: center;
+                            font-weight: bold;
+                        }
+                        .o_label {
+                            background-color: #f2f2f2;
+                            font-weight: bold;
+                            text-align: center;
+                            width: 12%;
+                        }
+                        .text-end { text-align: right; }
+                        .text-center { text-align: center; }
+                        .sign-box {
+                            border-top: 1px solid black;
+                            margin-top: 40px;
+                            padding-top: 5px;
+                            text-align: center;
+                            font-weight: bold;
+                            font-size: 10px;
+                        }
+                    </style>
+
+                    <!-- Header Title -->
+                    <h4 style="text-align: center; margin: 0 0 15px 0; font-weight: bold; text-transform: uppercase;">
+                        Production Log Sheet
+                    </h4>
+
+                    <!-- Top Info Grid -->
+                    <table class="log-table">
+                        <tr>
+                            <td class="o_label">Log No</td>
+                            <td colspan="2"><span t-field="doc.name"/></td>
+                            <td class="o_label">Date</td>
+                            <td><span t-field="doc.date" t-options='{"widget": "date"}'/></td>
+                            <td class="o_label">Shift</td>
+                            <td><span t-field="doc.shift"/></td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">Day</td>
+                            <td><span t-field="doc.day"/></td>
+                            <td class="o_label">Operator</td>
+                            <td colspan="3"><span t-field="doc.operator_name"/></td>
+                            <td class="o_label">Plant</td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">1st Customer</td>
+                            <td colspan="2"><span t-field="doc.customer_1_id"/></td>
+                            <td class="o_label">1st Job Order</td>
+                            <td colspan="2"><span t-field="doc.job_order_1_id"/></td>
+                            <td rowspan="2" class="text-center">
+                                <span t-field="doc.bm1_plant"/><br/>
+                                <span t-field="doc.bm2_plant"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">2nd Customer</td>
+                            <td colspan="2"><span t-field="doc.customer_2_id"/></td>
+                            <td class="o_label">2nd Job Order</td>
+                            <td colspan="2"><span t-field="doc.job_order_2_id"/></td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">1st Stack Loc</td>
+                            <td colspan="2"><span t-field="doc.first_finish_lot_location_id"/></td>
+                            <td class="o_label">2nd Stack Loc</td>
+                            <td colspan="3"><span t-field="doc.second_finish_lot_location_id"/></td>
+                        </tr>
+                    </table>
+
+                    <!-- Running Time Table -->
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th colspan="5" style="text-align: left;">Running Time</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 30%;">Item</th>
+                                <th style="width: 15%;">Start Time</th>
+                                <th style="width: 15%;">Stop Time</th>
+                                <th style="width: 15%;">Actual Time</th>
+                                <th style="width: 25%;">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="doc.running_line_ids" t-as="line">
+                                <td><span t-field="line.product_id"/></td>
+                                <td class="text-center"><span t-field="line.start_time"/></td>
+                                <td class="text-center"><span t-field="line.stop_time"/></td>
+                                <td class="text-center"><span t-field="line.actual_time"/></td>
+                                <td><span t-field="line.remarks"/></td>
+                            </tr>
+                            <!-- Filler rows for manual entry if needed -->
+                            <tr t-if="not doc.running_line_ids">
+                                <td>&#160;</td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total Running Time:</strong></td>
+                                <td class="text-center"><strong><span t-field="doc.total_running_time"/></strong></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Stop Time Table -->
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th colspan="4" style="text-align: left;">Stop Time</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 15%;">Stop Time</th>
+                                <th style="width: 15%;">Start Time</th>
+                                <th style="width: 15%;">Down Time</th>
+                                <th style="width: 55%;">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="doc.stop_line_ids" t-as="line">
+                                <td class="text-center"><span t-field="line.stop_time"/></td>
+                                <td class="text-center"><span t-field="line.start_time"/></td>
+                                <td class="text-center"><span t-field="line.down_time"/></td>
+                                <td><span t-field="line.remarks"/></td>
+                            </tr>
+                            <tr t-if="not doc.stop_line_ids">
+                                <td>&#160;</td><td></td><td></td><td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-end"><strong>Total Down Time:</strong></td>
+                                <td class="text-center"><strong><span t-field="doc.total_down_time"/></strong></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Final Product Packing Table -->
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th colspan="6" style="text-align: left;">Final Product Packing</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 20%;">Brand</th>
+                                <th style="width: 20%;">Variety</th>
+                                <th style="width: 10%;">No. Bags</th>
+                                <th style="width: 15%;">Packing Size</th>
+                                <th style="width: 15%;">T. Wt</th>
+                                <th style="width: 10%;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="doc.packing_line_ids" t-as="line">
+                                <!-- FIX: Changed from line.brand to line.product_id -->
+                                <td><span t-field="line.product_id"/></td>
+                                <td><span t-field="line.variety"/></td>
+                                <td class="text-center"><span t-field="line.no_of_bags"/></td>
+                                <td class="text-center"><span t-field="line.packing_size"/></td>
+                                <td class="text-center"><span t-field="line.total_weight"/></td>
+                                <td class="text-center"><span t-field="line.percent"/></td>
+                            </tr>
+                            <tr t-if="not doc.packing_line_ids">
+                                <td>&#160;</td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- By-Product Summary Table -->
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th colspan="5" style="text-align: left;">By-Product Summary</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 30%;">Item</th>
+                                <th style="width: 15%;">Bags</th>
+                                <th style="width: 15%;">Size</th>
+                                <th style="width: 15%;">Weight</th>
+                                <th style="width: 15%;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="doc.byproduct_line_ids" t-as="line">
+                                <td><span t-field="line.product_id"/></td>
+                                <td class="text-center"><span t-field="line.bags"/></td>
+                                <td class="text-center"><span t-field="line.size"/></td>
+                                <td class="text-center"><span t-field="line.weight"/></td>
+                                <td class="text-center"><span t-field="line.percent"/></td>
+                            </tr>
+                            <tr t-if="not doc.byproduct_line_ids">
+                                <td>&#160;</td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Remarks Section -->
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="min-height: 40px; height: 40px;">
+                                    <span t-field="doc.remarks"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Sign-off Section -->
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                        <div style="width: 30%;">
+                            <div class="sign-box">
+                                Prepared By<br/>
+                                <span t-field="doc.prepared_by"/>
+                            </div>
+                        </div>
+                        <div style="width: 30%;">
+                            <div class="sign-box">
+                                Production Supervisor<br/>
+                                <span t-field="doc.supervisor"/>
+                            </div>
+                        </div>
+                        <div style="width: 30%;">
+                            <div class="sign-box">
+                                Production Head<br/>
+                                <span t-field="doc.production_head"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

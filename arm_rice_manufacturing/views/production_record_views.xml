@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="production_record_view_form" model="ir.ui.view">
+        <field name="name">production.record.view.form</field>
+        <field name="model">production.record</field>
+        <field name="arch" type="xml">
+            <form string="Production">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_receive_from_mill" string="Receive from Mill" type="object" class="btn-success" invisible="state != 'confirmed'"/>
+                    <button name="action_create_issue_material_from_production" string="Create Issue Material" type="object" class="btn-warning" invisible="state != 'done' or issue_material_id"/>
+                    <button name="%(arm_rice_manufacturing.action_report_rice_recovery)d" string="Print Recovery Report" type="action" class="oe_highlight" invisible="state != 'done'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('draft', 'cancel', 'done')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_picking" type="object" class="oe_stat_button" icon="fa-truck" invisible="not picking_id">
+                            <span class="o_stat_text">Transfer</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <!-- Section 1: Reference & Locations -->
+                    <group string="Reference &amp; Locations">
+                        <group>
+                            <field name="production_date" readonly="state != 'draft'"/>
+                            <!-- FIX: Added context to trigger custom display name -->
+                            <field name="job_order_id" readonly="state != 'draft'" context="{'production_record_job_view': True}"/>
+                            <field name="issue_material_id"/>
+                            <!-- FIX: Reworking Checkbox in Form View -->
+                            <field name="is_reworking" readonly="state != 'draft'"/>
+                            <field name="process_rice_qty"/>
+                            <field name="product_id"/>
+                        </group>
+                        <group>
+                            <!-- FIX: Changed to Many2many tags -->
+                            <field name="source_location_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                            <field name="dest_location_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <!-- Section 2: Weights & Yield -->
+                    <group string="Weights &amp; Yield">
+                        <group>
+                            <field name="raw_material_weight"/>
+                            <!-- NEW: Link to Finished Weighbridge -->
+                            <field name="finished_wb_ticket_id" readonly="state != 'draft'"/>
+                            <field name="finished_material_weight" readonly="state == 'done'"/>
+                            <field name="byproduct_weight"/>
+                        </group>
+                        <group>
+                            <field name="recovery_pct"/>
+                        </group>
+                    </group>
+
+                    <!-- Section 3: Bags & Quality -->
+                    <group string="Bags &amp; Quality">
+                        <group>
+                            <field name="finished_bags" readonly="state == 'done'"/>
+                            <field name="empty_bag_weight" readonly="state == 'done'"/>
+                        </group>
+                        <group>
+                            <field name="moisture"/>
+                            <field name="agl"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Bi-Products">
+                            <field name="byproduct_line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="location_id"/>
+                                    <field name="qty"/>
+                                    <field name="bags"/>
+                                    <field name="coverage_ratio"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Remarks">
+                            <field name="remarks" nolabel="1" colspan="2"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="production_record_view_tree" model="ir.ui.view">
+        <field name="name">production.record.view.tree</field>
+        <field name="model">production.record</field>
+        <field name="arch" type="xml">
+            <list string="Production Records">
+                <field name="name"/>
+                <field name="production_date"/>
+                <field name="job_order_id"/>
+                <field name="is_reworking" readonly="state != 'draft'"/>
+                <field name="finished_material_weight"/>
+                <field name="recovery_pct"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_production_record" model="ir.actions.act_window">
+        <field name="name">Production Records</field>
+        <field name="res_model">production.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_production_record"
+              name="Production Records"
+              parent="menu_arm_rice_manufacturing"
+              action="action_production_record"
+              sequence="40"/>
+</odoo>

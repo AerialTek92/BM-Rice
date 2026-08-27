@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="weighbridge_ticket_view_form" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.view.form</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="arch" type="xml">
+            <form string="Weighbridge Ticket">
+                <header>
+                    <!-- FIX: First Weight visible in draft/unloading, but hidden once captured -->
+                    <button name="action_capture_gross_weight" string="First Weight" type="object" class="btn-primary"
+                            invisible="state not in ('draft', 'unloading') or gross_weight > 0"/>
+
+                    <button name="action_create_return_weighbridge" string="Return to Supplier" type="object" class="btn-danger"
+                            invisible="state != 'draft' or pass_type == 'return'"/>
+
+                    <!-- FIX: Start Unloading only for Procurement and Manufacturing -->
+                    <button name="action_start_unloading" string="Start Unloading" type="object" class="btn-primary"
+                            invisible="state != 'draft' or gross_weight == 0 or weighbridge_type == 'outbound'"/>
+
+                    <button name="action_proceed_final_qc" string="Proceed to Final QC" type="object" class="btn-warning"
+                            invisible="state != 'unloading' or pass_type == 'return' or weighbridge_type != 'procurement'"/>
+
+                    <!-- FIX: Second Weight visible only in 'unloading' state, after QC (for procurement) -->
+                    <button name="action_capture_tare_weight" string="Second Weight" type="object" class="btn-primary"
+                            invisible="state != 'unloading' or (weighbridge_type == 'procurement' and inspection_state != 'final_pass') or pass_type == 'return'"/>
+
+                    <!-- FIX: Confirm & View GRN only for Procurement -->
+                    <button name="action_confirm" string="Confirm &amp; View GRN" type="object" class="btn-success"
+                            invisible="weighbridge_type != 'procurement' or inspection_state != 'final_pass' or tare_weight == 0 or state in ('done', 'cancel', 'confirmed') or pass_type == 'return'"/>
+
+                    <button name="action_create_return_gate_pass" string="Create Return Gate Pass" type="object" class="btn-danger"
+                            invisible="pass_type != 'return' or tare_weight == 0 or state in ('done', 'cancel', 'confirmed')"/>
+
+                    <!-- FIX: Cancel visible in draft and unloading, hidden in confirmed/done -->
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('cancel', 'done')"/>
+
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,unloading,confirmed"/>
+                    <field name="inspection_state" invisible="1"/>
+                    <field name="pass_type" invisible="1"/>
+                </header>
+                <sheet readonly="state == 'confirmed'">
+                    <group string="Operation Type">
+                        <group>
+                            <field name="weighbridge_type" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_gate_pass" type="object" class="oe_stat_button" icon="fa-id-card-o" invisible="not gate_pass_id">
+                            <span class="o_stat_text">Gate Pass</span>
+                        </button>
+                        <button name="action_view_inspection" type="object" class="oe_stat_button" icon="fa-check-square-o" invisible="not grn_inspection_id">
+                            <span class="o_stat_text">Inspection</span>
+                        </button>
+                        <button name="action_view_sales_contract" type="object" class="oe_stat_button" icon="fa-file-contract" invisible="not rice_sales_contract_id">
+                            <span class="o_stat_text">Contract</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state == 'confirmed'"/>
+                            <field name="time" readonly="state == 'confirmed'"/>
+                            <field name="vehicle_number" readonly="state == 'confirmed'"/>
+                            <field name="partner_id" readonly="1" force_save="1" invisible="weighbridge_type != 'procurement'"/>
+                            <field name="packing_size" readonly="state == 'confirmed'"/>
+                            <field name="consignee_id" readonly="state == 'confirmed'" invisible="weighbridge_type != 'procurement'"/>
+                            <field name="driver_selection" widget="radio" options="{'horizontal': true}" readonly="state == 'confirmed'"/>
+                        </group>
+                        <group>
+                            <field name="rice_sales_contract_id" readonly="1" force_save="1" invisible="weighbridge_type != 'procurement'"/>
+                            <field name="grn_inspection_id" readonly="1" force_save="1" invisible="weighbridge_type != 'procurement'"/>
+                            <field name="inspection_date" readonly="1" force_save="1" invisible="weighbridge_type != 'procurement'"/>
+                            <field name="gate_pass_id" readonly="1" force_save="1" invisible="weighbridge_type == 'manufacturing'"/>
+                            <field name="gate_pass_date" readonly="1" force_save="1" invisible="weighbridge_type == 'manufacturing'"/>
+                            <field name="truck_type" readonly="state == 'confirmed'"/>
+                            <field name="weighbridge_charges" readonly="state == 'confirmed'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Weight Allocation">
+                            <group string="Truck Weights">
+                                <group>
+                                    <label for="gross_weight" string="First Weight (Kg)"/>
+                                    <h2><field name="gross_weight" nolabel="1" placeholder="0.00" readonly="state == 'confirmed'"/></h2>
+                                    <label for="tare_weight" string="Second Weight (Kg)"/>
+                                    <h2><field name="tare_weight" nolabel="1" placeholder="0.00" readonly="state == 'confirmed'"/></h2>
+                                </group>
+                                <group>
+                                    <label for="net_weight" string="Net Wt (Kg)"/>
+                                    <h2><field name="net_weight" nolabel="1" readonly="1" placeholder="0.00" class="text-success"/></h2>
+                                    <label for="total_allocated_weight" string="Total Allocated (Kg)"/>
+                                    <h2><field name="total_allocated_weight" nolabel="1" readonly="1" placeholder="0.00" class="text-warning"/></h2>
+                                </group>
+                            </group>
+                            <separator name="allocation_separator" string="Allocate Weight by Purchase Order" invisible="weighbridge_type != 'procurement'"/>
+                            <div class="oe_button_box" name="allocation_buttons">
+                                <button name="action_auto_distribute_weight" string="Auto Distribute Net Weight" type="object" class="btn-secondary oe_highlight" invisible="state != 'unloading' or net_weight == 0"/>
+                            </div>
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="purchase_order_id" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'procurement'"/>
+                                    <field name="purchase_order_line_id" domain="[('order_id', '=', purchase_order_id)]" string="PO Line / Product" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'procurement'"/>
+                                    <field name="product_id" readonly="parent.state == 'confirmed'"/>
+                                    <field name="bags" readonly="parent.state == 'confirmed'"/>
+                                    <field name="allocated_weight" readonly="parent.state == 'confirmed'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Remarks">
+                            <div invisible="not inspection_remarks" style="margin-bottom: 15px;">
+                                <strong style="font-size: 15px;">GRN Inspection Remarks:</strong>
+                                <field name="inspection_remarks" nolabel="1" readonly="1"/>
+                            </div>
+                            <hr invisible="not inspection_remarks" style="border-top: 1px solid #ccc;"/>
+                            <div invisible="not gate_pass_remarks" style="margin-bottom: 15px;">
+                                <strong style="font-size: 15px;">Gate Pass Remarks:</strong>
+                                <field name="gate_pass_remarks" nolabel="1" readonly="1"/>
+                            </div>
+                            <hr invisible="not gate_pass_remarks" style="border-top: 1px solid #ccc;"/>
+                            <div style="margin-top: 10px;">
+                                <strong style="font-size: 15px;">Weighbridge Remarks:</strong>
+                                <field name="remarks" nolabel="1" readonly="state == 'confirmed'"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="weighbridge_ticket_view_tree" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.view.tree</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="arch" type="xml">
+            <list string="Weighbridge Tickets" decoration-info="state == 'unloading'" decoration-success="state == 'confirmed'" decoration-danger="state == 'return_pending'" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="vehicle_number"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="gross_weight" sum="Total Gross" optional="show"/>
+                <field name="tare_weight" sum="Total Tare" optional="hide"/>
+                <field name="net_weight" sum="Total Net Weight" decoration-bf="1"/>
+                <field name="state" widget="badge" decoration-info="state == 'unloading'" decoration-success="state == 'confirmed'" decoration-muted="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_weighbridge_ticket" model="ir.actions.act_window">
+        <field name="name">Weighbridge</field>
+        <field name="res_model">weighbridge.ticket</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_weighbridge" name="Weighbridge" parent="menu_arm_rice_operations_root" action="action_weighbridge_ticket" sequence="25"/>
+</odoo>

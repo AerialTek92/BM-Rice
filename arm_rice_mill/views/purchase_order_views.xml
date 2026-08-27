@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- FORM VIEW INHERITANCE                     -->
+    <!-- ========================================== -->
+    <record id="purchase_order_form_arm_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.form.arm.rice</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Merge readonly conditions: Lock if GRN Complete OR if user cannot edit RFQ -->
+            <xpath expr="//sheet" position="attributes">
+                <attribute name="readonly">state_display == 'GRN Complete' or not can_edit_rfq</attribute>
+            </xpath>
+
+            <!-- FIX: Explicitly lock standard header fields for Approvers -->
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">state in ('purchase', 'done', 'cancel') or not can_edit_rfq</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+            <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+            <xpath expr="//field[@name='currency_id']" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+
+            <!-- FIX: Hide "Receipts" smart button until Approved -->
+            <xpath expr="//div[@name='button_box']//button[contains(@name, 'picking')]" position="attributes">
+                <attribute name="invisible">state not in ('purchase', 'done') or approval_status != 'approved'</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <!-- FIX: Applied strict domain for Procurement contracts -->
+                <field name="rice_sales_contract_id" string="Rice Sales Contract"
+                       readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+                <!-- NEW: Readonly Contract Type -->
+                <field name="contract_type" string="Contract Type" readonly="1" widget="badge" decoration-warning="contract_type == 'procurement'"/>
+                <field name="broker_id" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+                <!-- NEW: Buyer field placed directly under Broker -->
+                <field name="buyer_id" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+            </xpath>
+
+            <!-- FIX: Force date_order to always be visible and rename it -->
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="string">Purchase Order Date</attribute>
+                <attribute name="invisible">0</attribute>
+                <!-- FIX: Added approval lock -->
+                <attribute name="readonly">state in ('purchase', 'done') or not can_edit_rfq</attribute>
+            </xpath>
+
+            <!-- FIX: Hide the native 'date_approve' (Confirmation Date) so it doesn't replace date_order -->
+            <xpath expr="//field[@name='date_approve']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- FIX: Hide "Receive Products" header button until Approved -->
+            <xpath expr="//header//button[contains(@name, 'picking')]" position="attributes">
+                <attribute name="invisible">state not in ('purchase', 'done') or approval_status != 'approved'</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_order']" position="after">
+                <!-- NEW: Ref PO No added above Date From -->
+                <field name="ref_po_no" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+                <field name="delivery_date_from" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+                <field name="delivery_date_to" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']" position="after">
+                <group string="Remarks">
+                    <field name="remarks" nolabel="1" colspan="2" readonly="state_display == 'GRN Complete' or not can_edit_rfq"/>
+                </group>
+            </xpath>
+
+            <!-- FIX: Rename standard product_qty label to Qty (Kgs) -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_qty']"
+                position="attributes">
+                <attribute name="string">Qty (Kgs)</attribute>
+            </xpath>
+
+            <!-- FIX: Explicitly add readonly to custom line fields to enforce lock when GRN Complete. -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_qty']"
+                position="before">
+                <field name="no_of_trucks" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="available_tls" column_invisible="1" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="no_of_bags" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="crop_year" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="broken_percent" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="moisture_percent" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="transaction_type" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+                <field name="credit_days" readonly="parent.state_display == 'GRN Complete' or not parent.can_edit_rfq"/>
+            </xpath>
+
+            <!-- NEW: Reorder columns — Amount moves to Credit Days' old spot, Credit Days moves after Billed -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='credit_days']" position="before">
+                <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']" position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//list//field[@name='qty_invoiced']" position="after">
+                <xpath expr="//field[@name='order_line']//list//field[@name='credit_days']" position="move"/>
+            </xpath>
+
+            <!-- Smart Buttons in button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_grn_inspections" type="object" class="oe_stat_button"
+                    icon="fa-check-square-o" invisible="state in ('draft', 'sent', 'cancel')">
+                    <field name="grn_inspection_count" string="Inspections" widget="statinfo" />
+                </button>
+            </xpath>
+
+            <!-- Action Buttons strictly in Header -->
+            <xpath expr="//header" position="inside">
+                <button name="%(arm_rice_mill.report_purchase_order_arm)d" string="Print PO"
+                    type="action" class="oe_highlight" invisible="state not in ('purchase', 'done')" />
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- LIST VIEW INHERITANCE (RFQ & PO)          -->
+    <!-- ========================================== -->
+    <record id="purchase_order_tree_arm_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.tree.arm.rice</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_tree" />
+        <field name="arch" type="xml">
+
+            <!-- 1. Completely Hide Buyer (user_id) -->
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+            </xpath>
+
+            <!-- NEW: Add Approval Status before the Reference (name) field -->
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="approval_status" widget="badge"
+                       decoration-info="approval_status == 'prepared'"
+                       decoration-warning="approval_status == 'verified'"
+                       decoration-success="approval_status == 'approved'"
+                       decoration-danger="approval_status == 'refused'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="po_original_tls" string="PO. TLS" />
+                <field name="po_total_tls" string="Recv. TLS" />
+                <field name="po_remaining_tls" string="Rem. TLS" />
+            </xpath>
+
+            <!-- Add Product, Trucks, Qty, Rate, and Received columns before the hidden user_id -->
+            <xpath expr="//field[@name='user_id']" position="before">
+                <field name="product_id" string="Product" />
+                <field name="total_trucks" string="Trucks" />
+                <field name="total_available_tls" string="Avail. TLS" column_invisible="1"/>
+                <field name="unit_price" string="Rate" />
+                <field name="total_qty_ordered" string="Qty" />
+                <field name="total_qty_received" string="Received" />
+                <field name="total_qty_remaining" string="Remaining Qty" />
+            </xpath>
+
+            <!-- 2. Completely Hide Order Deadline (date_order) -->
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Add Delivery Dates after the hidden date_order -->
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="date_order" string="PO Date" invisible="0" />
+                <field name="delivery_date_from" string="Date From" />
+                <field name="delivery_date_to" string="Due Date" />
+            </xpath>
+
+            <!-- NEW: Replace native state with dynamic GRN Complete status -->
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="state_display" string="Status" widget="badge"
+                    decoration-success="state_display == 'GRN Completed + PO Completed'"
+                    decoration-info="state_display == 'GRN Coming'"
+                    decoration-muted="state_display == 'Cancelled'"
+                    decoration-warning="state_display == 'Purchase Order'" />
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- SEARCH VIEW INHERITANCE (PURCHASE ORDERS) -->
+    <!-- ========================================== -->
+    <record id="purchase_order_search_arm_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.search.arm.rice</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='invoiced']" position="after">
+                <separator />
+                <filter string="Third Party / Outsider" name="filter_third_party_po"
+                    domain="[('is_third_party_po', '=', True)]" />
+
+                <!-- NEW: Approval Status Filters -->
+                <separator />
+                <filter string="Pending Approval (Prepared/Verified)" name="filter_pending_approval"
+                    domain="['|', ('approval_status', '=', 'prepared'), ('approval_status', '=', 'verified')]" />
+                <filter string="Approved" name="filter_approved"
+                    domain="[('approval_status', '=', 'approved')]" />
+                <filter string="Refused" name="filter_refused"
+                    domain="[('approval_status', '=', 'refused')]" />
+            </xpath>
+        </field>
+    </record>
+
+        <!-- ========================================== -->
+    <!-- ACTION INHERITANCE (FORCE SEARCH VIEW)    -->
+    <!-- ========================================== -->
+    <!-- Explicitly tell the RFQ action to use our custom search view -->
+    <record id="purchase.purchase_rfq" model="ir.actions.act_window">
+        <field name="search_view_id" ref="purchase_order_search_arm_inherit"/>
+    </record>
+
+    <!-- Explicitly tell the Purchase Order action to use our custom search view -->
+    <record id="purchase.purchase_form_action" model="ir.actions.act_window">
+        <field name="search_view_id" ref="purchase_order_search_arm_inherit"/>
+    </record>
+
+</odoo>

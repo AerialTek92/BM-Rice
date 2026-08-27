@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Process Rice Specification -->
+        <record id="seq_process_rice_spec" model="ir.sequence">
+            <field name="name">Process Rice Specification</field>
+            <field name="code">process.rice.spec</field>
+            <field name="prefix">PRS/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Sequence for Brand Job Order -->
+        <record id="seq_brand_job_order" model="ir.sequence">
+            <field name="name">Brand Job Order</field>
+            <field name="code">brand.job.order</field>
+            <field name="prefix">BJO/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_production_planning" model="ir.sequence">
+            <field name="name">Production Planning</field>
+            <field name="code">production.planning</field>
+            <field name="prefix">PPS/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_planning_schedule" model="ir.sequence">
+            <field name="name">Planning Schedule</field>
+            <field name="code">planning.schedule</field>
+            <field name="prefix">SCH/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- NEW: Sequence for Production Log Sheet -->
+        <record id="seq_production_log_sheet" model="ir.sequence">
+            <field name="name">Production Log Sheet</field>
+            <field name="code">production.log.sheet</field>
+            <field name="prefix">PLS/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- NEW: Sequence for Production Quality Control -->
+        <record id="seq_production_quality_control" model="ir.sequence">
+            <field name="name">Production Quality Control</field>
+            <field name="code">production.quality.control</field>
+            <field name="prefix">PQC/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+                <record id="seq_issue_material_rework" model="ir.sequence">
+            <field name="name">Issue Material (Rework)</field>
+            <field name="code">issue.material.rework</field>
+            <field name="prefix">RWK/ISS/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_production_log_sheet_rework" model="ir.sequence">
+            <field name="name">Production Log Sheet (Rework)</field>
+            <field name="code">production.log.sheet.rework</field>
+            <field name="prefix">RWK/PLS/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_production_quality_control_rework" model="ir.sequence">
+            <field name="name">Production Quality Control (Rework)</field>
+            <field name="code">production.quality.control.rework</field>
+            <field name="prefix">RWK/PQC/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_production_record_rework" model="ir.sequence">
+            <field name="name">Production Record (Rework)</field>
+            <field name="code">production.record.rework</field>
+            <field name="prefix">RWK/PRD/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_final_inspection_report" model="ir.sequence">
+            <field name="name">Final Inspection Report</field>
+            <field name="code">final.inspection.report</field>
+            <field name="prefix">FIR/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+
+    </data>
+</odoo>

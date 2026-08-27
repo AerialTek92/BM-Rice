@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ========================================== -->
+        <!-- SECURITY GROUPS                            -->
+        <!-- ========================================== -->
+
+        <!-- BM-1 / IRRI Group -->
+        <record id="group_bm1_irri" model="res.groups">
+            <field name="name">BM-1 / IRRI Users</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- BM-2 / Basmati Group -->
+        <record id="group_bm2_basmati" model="res.groups">
+            <field name="name">BM-2 / Basmati Users</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- ========================================== -->
+        <!-- RECORD RULES FOR SEGREGATION               -->
+        <!-- ========================================== -->
+
+        <!-- 1. BRAND JOB ORDER -->
+        <record id="rule_bjo_bm1_irri" model="ir.rule">
+            <field name="name">Brand Job Order: BM-1 sees only IRRI</field>
+            <field name="model_id" ref="model_brand_job_order"/>
+            <field name="domain_force">[('rice_type', '=', 'irri')]</field>
+            <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="rule_bjo_bm2_basmati" model="ir.rule">
+            <field name="name">Brand Job Order: BM-2 sees only Basmati</field>
+            <field name="model_id" ref="model_brand_job_order"/>
+            <field name="domain_force">[('rice_type', '=', 'basmati')]</field>
+            <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- 2. PROCESS RICE SPEC -->
+        <record id="rule_prs_bm1_irri" model="ir.rule">
+            <field name="name">Process Rice Spec: BM-1 sees only IRRI</field>
+            <field name="model_id" ref="model_process_rice_spec"/>
+            <field name="domain_force">[('rice_type', '=', 'irri')]</field>
+            <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+        </record>
+
+        <record id="rule_prs_bm2_basmati" model="ir.rule">
+            <field name="name">Process Rice Spec: BM-2 sees only Basmati</field>
+            <field name="model_id" ref="model_process_rice_spec"/>
+            <field name="domain_force">[('rice_type', '=', 'basmati')]</field>
+            <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+        </record>
+
+        <!-- 3. ISSUE MATERIAL -->
+        <record id="rule_im_bm1_irri" model="ir.rule">
+            <field name="name">Issue Material: BM-1 sees only IRRI</field>
+            <field name="model_id" ref="model_issue_material"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'irri')]</field>
+            <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+        </record>
+
+        <record id="rule_im_bm2_basmati" model="ir.rule">
+            <field name="name">Issue Material: BM-2 sees only Basmati</field>
+            <field name="model_id" ref="model_issue_material"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'basmati')]</field>
+            <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+        </record>
+
+        <!-- 4. PRODUCTION RECORD -->
+        <record id="rule_pr_bm1_irri" model="ir.rule">
+            <field name="name">Production Record: BM-1 sees only IRRI</field>
+            <field name="model_id" ref="model_production_record"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'irri')]</field>
+            <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+        </record>
+
+        <record id="rule_pr_bm2_basmati" model="ir.rule">
+            <field name="name">Production Record: BM-2 sees only Basmati</field>
+            <field name="model_id" ref="model_production_record"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'basmati')]</field>
+            <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+        </record>
+
+        <!-- 5. PRODUCTION QUALITY CONTROL -->
+        <record id="rule_pqc_bm1_irri" model="ir.rule">
+            <field name="name">Production QC: BM-1 sees only IRRI</field>
+            <field name="model_id" ref="model_production_quality_control"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'irri')]</field>
+            <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+        </record>
+
+        <record id="rule_pqc_bm2_basmati" model="ir.rule">
+            <field name="name">Production QC: BM-2 sees only Basmati</field>
+            <field name="model_id" ref="model_production_quality_control"/>
+            <field name="domain_force">[('job_order_id.rice_type', '=', 'basmati')]</field>
+            <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+        </record>
+    </data>
+</odoo>

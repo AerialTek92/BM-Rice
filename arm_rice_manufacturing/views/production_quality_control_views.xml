@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. Form View -->
+    <record id="production_quality_control_view_form" model="ir.ui.view">
+        <field name="name">production.quality.control.view.form</field>
+        <field name="model">production.quality.control</field>
+        <field name="arch" type="xml">
+            <form string="Production Quality Control">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                        invisible="state != 'draft'" />
+                    <!-- NEW: Print Button -->
+                    <button name="%(action_report_production_quality_control)d"
+                        string="Print QC Report"
+                        type="action" class="oe_highlight" />
+                    <button name="action_cancel" string="Cancel" type="object"
+                        invisible="state in ('draft', 'cancel')" />
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                        class="btn-secondary"
+                        invisible="state != 'cancel'" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+
+                    <!-- NEW: Add invisible field so UI can react to it -->
+                    <field name="is_brown_rice" invisible="1" />
+
+                    <!-- NEW: Plant Radio Buttons -->
+                    <group string="Plant Selection">
+                        <group>
+                            <field name="show_bm1" string="BM 1"/>
+                            <field name="bm1_plant" widget="radio" options="{'horizontal': true}" invisible="not show_bm1" />
+                        </group>
+                        <group>
+                            <field name="show_bm2" string="BM 2"/>
+                            <field name="bm2_plant" widget="radio" options="{'horizontal': true}" invisible="not show_bm2" />
+                        </group>
+                    </group>
+
+                    <!-- Top Section: Operator, Customer, Job Order -->
+                    <group>
+                        <group>
+                            <!-- NEW: Issue Material Link -->
+                            <field name="issue_material_id" options="{'no_create': True}" />
+                            <!-- FIX: Reworking Checkbox in Form View -->
+                            <field name="is_reworking" readonly="state != 'draft'" />
+                            <field name="operator_name" />
+                            <field name="customer_id" />
+                            <!-- FIX: Brand Name is a Char field now -->
+                            <field name="brand_name" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="customer_contract_no" />
+                            <field name="job_order_id" />
+                        </group>
+                    </group>
+
+                    <!-- Date, Day, Shift -->
+                    <group>
+                        <group>
+                            <field name="date" />
+                            <field name="milling_date" readonly="state != 'draft'" />
+                            <field name="day" />
+                        </group>
+                        <group>
+                            <field name="shift" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- TAB 1: Standard (Auto-mapped from PRS) -->
+                        <page string="Standard">
+                            <field name="standard_line_ids" readonly="state != 'draft'">
+                                <!-- Simplified List View (Clicking opens popup) -->
+                                <list string="Standard Specification Lines">
+                                    <field name="product_id" />
+                                    <field name="is_brown_rice" column_invisible="1" />
+                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
+                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                </list>
+                                
+                                <!-- Pop-up Form View (Appears when a user clicks on a line) -->
+                                <form string="Standard Specification">
+                                    <sheet>
+                                        <group>
+                                            <group string="Product Details">
+                                                <field name="product_id" readonly="1" />
+                                                <field name="is_brown_rice" invisible="1" />
+                                            </group>
+                                        </group>
+                                        <notebook>
+                                            <!-- Tab 1: Normal Product Specs -->
+                                            <page string="Normal Product Specs" invisible="is_brown_rice == True">
+                                                <group>
+                                                    <group string="Basic Parameters">
+                                                        <field name="moisture_percent" readonly="1" />
+                                                        <field name="broken_percent" readonly="1" />
+                                                        <field name="damaged_discolor_percent" readonly="1" />
+                                                    </group>
+                                                    <group string="Matter $ Grains">
+                                                        <field name="foreign_matter_percent" readonly="1" />
+                                                        <field name="paddy_percent" readonly="1" />
+                                                        <field name="red_percent" readonly="1" />
+                                                        <field name="chalky_percent" readonly="1" />
+                                                        <field name="under_milled_grains" readonly="1" />
+                                                        <field name="kett_whiteness" readonly="1" />
+                                                    </group>
+                                                </group>
+                                            </page>
+
+                                            <!-- Tab 2: Brown Rice Specs -->
+                                            <page string="Brown Rice Specs" invisible="is_brown_rice == False">
+                                                <group>
+                                                    <group string="Grain Quality">
+                                                        <field name="br_purity" readonly="1" />
+                                                        <field name="br_broken" readonly="1" />
+                                                        <field name="br_green_grains" readonly="1" />
+                                                        <field name="br_chalky_grains" readonly="1" />
+                                                        <field name="br_ddkg" readonly="1" />
+                                                        <field name="br_immature_grains" readonly="1" />
+                                                    </group>
+                                                    <group string="Defects $ Foreign Matter">
+                                                        <field name="br_paddy_grains" readonly="1" />
+                                                        <field name="br_red_grains" readonly="1" />
+                                                        <field name="br_other_rices" readonly="1" />
+                                                        <field name="br_moisture" readonly="1" />
+                                                        <field name="br_foreign_matter" readonly="1" />
+                                                    </group>
+                                                    <group string="Physical Properties">
+                                                        <field name="br_avg_length" readonly="1" />
+                                                        <field name="br_head_yield" readonly="1" />
+                                                    </group>
+                                                    <group string="Safety $ Health Standards">
+                                                        <field name="br_yellow_amber" readonly="1" />
+                                                        <field name="br_foreign_odours" readonly="1" />
+                                                        <field name="br_chemical_residues" readonly="1" />
+                                                        <field name="br_aflatoxinsA" readonly="1" />
+                                                        <field name="br_aflatoxins" readonly="1" />
+                                                        <field name="br_living_insects" readonly="1" />
+                                                        <field name="br_Animals_birds" readonly="1" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+
+                        <!-- TAB 2: Observed Values (Manual Entry) -->
+                        <page string="Observed Values">
+                            <!-- FIX: Pass default_is_brown_rice in context so new lines know what columns to show -->
+                            <field name="qc_line_ids" readonly="state != 'draft'" context="{'default_is_brown_rice': is_brown_rice}">
+                                <!-- Simplified List View (Clicking opens popup) -->
+                                <list string="Observed Specification Lines">
+                                    <field name="name" string="Hours / Type" />
+                                    <field name="product_id" />
+                                    <field name="is_brown_rice" column_invisible="1" />
+                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
+                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                </list>
+
+                                <!-- Pop-up Form View (Appears when a user clicks on a line) -->
+                                <form string="Observed Specification">
+                                    <sheet>
+                                        <group>
+                                            <group string="Log Info">
+                                                <field name="name" string="Hours / Type" />
+                                                <field name="product_id" readonly="1" />
+                                                <field name="is_brown_rice" invisible="1" />
+                                            </group>
+                                        </group>
+                                        <notebook>
+                                            <!-- Tab 1: Normal Product Specs -->
+                                            <page string="Normal Product Specs" invisible="is_brown_rice == True">
+                                                <group>
+                                                    <group string="Basic Parameters">
+                                                        <field name="moisture_percent" />
+                                                        <field name="broken_percent" />
+                                                        <field name="damaged_discolor_percent" />
+                                                    </group>
+                                                    <group string="Matter $ Grains">
+                                                        <field name="foreign_matter_percent" />
+                                                        <field name="paddy_percent" />
+                                                        <field name="red_percent" />
+                                                        <field name="chalky_percent" />
+                                                        <field name="under_milled_grains" />
+                                                        <field name="kett_whiteness" />
+                                                    </group>
+                                                </group>
+                                            </page>
+
+                                            <!-- Tab 2: Brown Rice Specs -->
+                                            <page string="Brown Rice Specs" invisible="is_brown_rice == False">
+                                                <group>
+                                                    <group string="Grain Quality">
+                                                        <field name="br_purity" />
+                                                        <field name="br_broken" />
+                                                        <field name="br_green_grains" />
+                                                        <field name="br_chalky_grains" />
+                                                        <field name="br_ddkg" />
+                                                        <field name="br_immature_grains" />
+                                                    </group>
+                                                    <group string="Defects $ Foreign Matter">
+                                                        <field name="br_paddy_grains" />
+                                                        <field name="br_red_grains" />
+                                                        <field name="br_other_rices" />
+                                                        <field name="br_moisture" />
+                                                        <field name="br_foreign_matter" />
+                                                    </group>
+                                                    <group string="Physical Properties">
+                                                        <field name="br_avg_length" />
+                                                        <field name="br_head_yield" />
+                                                    </group>
+                                                    <group string="Safety $ Health Standards">
+                                                        <field name="br_yellow_amber" />
+                                                        <field name="br_foreign_odours" />
+                                                        <field name="br_chemical_residues" />
+                                                        <field name="br_aflatoxinsA" />
+                                                        <field name="br_aflatoxins" />
+                                                        <field name="br_living_insects" />
+                                                        <field name="br_Animals_birds" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <!-- Sign-off Section -->
+                    <group>
+                        <group>
+                            <field name="shift_supervisor" />
+                        </group>
+                        <group>
+                            <field name="production_head" />
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. List View -->
+    <record id="production_quality_control_view_tree" model="ir.ui.view">
+        <field name="name">production.quality.control.view.tree</field>
+        <field name="model">production.quality.control</field>
+        <field name="arch" type="xml">
+            <list string="Production Quality Controls" decoration-info="state == 'confirmed'"
+                decoration-muted="state == 'cancel'">
+                <field name="name" />
+                <field name="issue_material_id" />
+                <field name="is_reworking" readonly="state != 'draft'" />
+                <field name="date" />
+                <field name="shift" />
+                <field name="operator_name" />
+                <field name="customer_id" />
+                <field name="brand_name" />
+                <field name="job_order_id" />
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'"
+                    decoration-muted="state == 'cancel'" />
+            </list>
+        </field>
+    </record>
+
+    <!-- 3. Action -->
+    <record id="action_production_quality_control" model="ir.actions.act_window">
+        <field name="name">Production Quality Control</field>
+        <field name="res_model">production.quality.control</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 4. Menu Item (Below Production Log Sheet) -->
+    <menuitem id="menu_production_quality_control"
+        name="Production Quality Control"
+        parent="menu_arm_rice_manufacturing"
+        action="action_production_quality_control"
+        sequence="55" />
+
+</odoo>

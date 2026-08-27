@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Override native Odoo sale order sequence to SM -->
+        <record id="sale.seq_sale_order" model="ir.sequence">
+            <field name="prefix">SM%(y)s/</field>
+        </record>
+    </data>
+</odoo>

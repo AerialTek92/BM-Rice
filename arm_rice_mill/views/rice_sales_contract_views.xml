@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rice_sales_contract_view_form" model="ir.ui.view">
+        <field name="name">rice.sales.contract.view.form</field>
+        <field name="model">rice.sales.contract</field>
+        <field name="arch" type="xml">
+            <form string="Rice Sales Contract">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                        invisible="state != 'draft'" />
+                    <button name="action_complete" string="Mark as Done" type="object"
+                        class="btn-success"
+                        invisible="state != 'confirmed'" />
+                    <!-- FIX: Allow Cancel from Confirmed OR Done. Allow Reset only from Cancel -->
+                    <button name="action_cancel" string="Cancel" type="object"
+                        invisible="state in ('draft', 'cancel')" />
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                        invisible="state != 'cancel'" />
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,confirmed,done" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Show DO button ONLY if Export -->
+                        <button name="action_view_delivery_orders" type="object" class="oe_stat_button" icon="fa-truck"
+                                invisible="contract_type != 'export'">
+                            <field name="delivery_order_count" string="Delivery Orders" widget="statinfo" />
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" />
+                            <field name="contract_date" />
+                            <field name="contract_type" />
+                            <field name="quality_description" />
+                            <field name="contract_term" />
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" />
+                            <field name="currency_id" />
+                            <field name="external_contract_no" />
+                            <field name="total_quantity" string="Qty (MTons)" readonly="1"
+                                force_save="1" />
+                            <field name="header_unit_price" string="Rate (MTons)" readonly="1"
+                                force_save="1" />
+                            <field name="total_amount" string="Amount" readonly="1" force_save="1"
+                                widget="monetary" />
+                        </group>
+                    </group>
+                    <group>
+                        <field name="shipment_period_display" />
+                    </group>
+                    <notebook>
+                        <!-- TAB 1: Product & Quality Specifications -->
+                        <page string="Product &amp; Quality Specifications">
+                            <field name="contract_line_ids">
+                                <list>
+                                    <field name="product_id" />
+                                    <field name="is_brown_rice" column_invisible="True" />
+                                    <field name="crop_year" />
+                                    <field name="quantity" string="Qty (MTons)" />
+                                    <field name="unit_price" string="Rate (MTons)" />
+                                    <field name="uom_id" groups="uom.group_uom" />
+                                    <field name="subtotal" widget="monetary" />
+                                </list>
+
+                                <form string="Contract Line">
+                                    <sheet>
+                                        <group>
+                                            <group string="Product Details">
+                                                <field name="product_id" />
+                                                <field name="is_brown_rice" />
+                                                <field name="crop_year" />
+                                            </group>
+                                            <group string="Quantity &amp; Pricing">
+                                                <field name="quantity" string="Qty (MTons)" />
+                                                <field name="unit_price" string="Rate (MTons)" />
+                                                <field name="uom_id" groups="uom.group_uom" />
+                                                <field name="subtotal" widget="monetary" />
+                                            </group>
+                                        </group>
+
+                                        <notebook>
+                                            <page string="Normal Product Specs" invisible="is_brown_rice == True">
+                                                <group>
+                                                    <group string="Moisture &amp; Broken">
+                                                        <field name="moisture_percent_max" />
+                                                        <field name="broken_percent_max" />
+                                                    </group>
+                                                    <group string="Damage &amp; Foreign Matter">
+                                                        <field name="damaged_discolor_percent_max" />
+                                                        <field name="foreign_matter_percent_max" />
+                                                        <field name="paddy_percent_max" />
+                                                        <field name="red_chalky_percent_max" />
+                                                    </group>
+                                                </group>
+                                            </page>
+
+                                            <page string="Brown Rice Specs" invisible="is_brown_rice == False">
+                                                <group>
+                                                    <group string="Grain Quality">
+                                                        <field name="br_purity" />
+                                                        <field name="br_broken" />
+                                                        <field name="br_green_grains" />
+                                                        <field name="br_chalky_grains" />
+                                                        <field name="br_immature_grains" />
+                                                    </group>
+                                                    <group string="Defects &amp; Foreign Matter">
+                                                        <field name="br_ddkg" />
+                                                        <field name="br_paddy_grains" />
+                                                        <field name="br_red_grains" />
+                                                        <field name="br_other_rices" />
+                                                        <field name="br_foreign_matter" />
+                                                    </group>
+                                                    <group string="Physical Properties">
+                                                        <field name="br_moisture" />
+                                                        <field name="br_avg_length" />
+                                                        <field name="br_head_yield" />
+                                                    </group>
+                                                    <group string="Safety &amp; Health Standards">
+                                                        <field name="br_yellow_amber" />
+                                                        <field name="br_foreign_odours" />
+                                                        <field name="br_chemical_residues" />
+                                                        <field name="br_aflatoxinsA" />
+                                                        <field name="br_aflatoxins" />
+                                                        <field name="br_living_insects" />
+                                                        <field name="br_Animals_birds" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                            <group>
+                                <group>
+                                    <field name="remarks" nolabel="1" placeholder="Remarks..." />
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- TAB 2: Shipment Schedule -->
+                        <page string="Shipment Schedule" name="shipment_schedule">
+                            <field name="shipment_schedule_ids">
+                                <list editable="bottom">
+                                    <field name="quantity" />
+                                    <field name="rate" />
+                                    <field name="date_from" />
+                                    <field name="date_to" />
+                                    <field name="loading_port" />
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- TAB 3: Commercial Terms -->
+                        <page string="Commercial Terms">
+                            <group>
+                                <field name="payment_term_id" />
+                            </group>
+                        </page>
+
+                        <!-- TAB 4: Logistics & Delivery -->
+                        <page string="Logistics &amp; Delivery">
+                            <group>
+                                <group>
+                                    <field name="incoterm_id" />
+                                    <field name="port_of_loading" />
+                                    <field name="port_of_discharge" />
+                                    <field name="destination_country_id" />
+                                </group>
+                                <group>
+                                    <label for="delivery_date_from" string="Shipping Period" />
+                                    <div class="o_row">
+                                        <field name="delivery_date_from" />
+                                        <span class="fa fa-long-arrow-right" style="margin: 0 5px;" />
+                                        <field name="delivery_date_to" />
+                                    </div>
+                                    <field name="packing_details" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- TAB 5: Other Requirements -->
+                        <page string="Other Requirements">
+                            <group>
+                                <field name="inspection_agency" />
+                                <field name="insurance" />
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="rice_sales_contract_view_tree" model="ir.ui.view">
+        <field name="name">rice.sales.contract.view.tree</field>
+        <field name="model">rice.sales.contract</field>
+        <field name="arch" type="xml">
+            <list string="Rice Sales Contracts">
+                <field name="name" />
+                <field name="partner_id" />
+                <field name="contract_date" />
+                <field name="contract_type" widget="badge" decoration-success="contract_type == 'export'" />
+                <field name="total_quantity" string="Qty (MTons)" sum="Total Qty" />
+                <field name="header_unit_price" string="Rate (MTons)" />
+                <field name="total_amount" string="Amount" sum="Total Amount" widget="monetary" />
+                <field name="state" widget="badge" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_rice_sales_contract" model="ir.actions.act_window">
+        <field name="name">Rice Sales Contracts</field>
+        <field name="res_model">rice.sales.contract</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_rice_sales_contract_root"
+        name="Sales Contracts"
+        parent="sale.sale_menu_root"
+        sequence="5" />
+
+    <menuitem
+        id="menu_rice_sales_contract"
+        name="Rice Contracts"
+        parent="menu_rice_sales_contract_root"
+        action="action_rice_sales_contract"
+        sequence="10" />
+</odoo>

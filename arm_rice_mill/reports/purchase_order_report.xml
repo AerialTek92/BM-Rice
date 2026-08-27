@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- Report Action -->
+    <record id="report_purchase_order_arm" model="ir.actions.report">
+        <field name="name">Purchase Order</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_mill.report_purchase_order_document</field>
+        <field name="report_file">arm_rice_mill.report_purchase_order_document</field>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_purchase_order_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <!-- Added style to enforce single page compactness -->
+                    <div class="page" style="font-size: 13px; line-height: 1.3;">
+                        <h4 class="text-center mt-2 mb-2">PURCHASE ORDER</h4>
+
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td style="width:35%">
+                                            <strong>ORDER NO.</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>DATE</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.date_order" t-options="{'format': 'dd-MMM-yyyy'}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>SUPPLIER</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.partner_id"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>BROKER</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.broker_id"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <tr>
+                                            <td>
+                                                <strong>BUYER</strong>
+                                            </td>
+                                            <td>:
+                                                <span t-field="doc.buyer_id"/>
+                                            </td>
+                                        </tr>
+                                        <td>
+                                            <strong>ORDER TYPE</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.order_line[:1].transaction_type"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td style="width:35%">
+                                            <strong>CROP YEAR</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.order_line[:1].crop_year"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>PAYMENT TERM</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.payment_term_id"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>DELIVERY PERIOD</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="doc.delivery_date_from"
+                                                  t-options="{'format': 'dd-MMM-yyyy'}"/>
+                                            To
+                                            <span t-field="doc.delivery_date_to" t-options="{'format': 'dd-MMM-yyyy'}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>MOISTURE</strong>
+                                        </td>
+                                        <td>:<span t-field="doc.order_line[:1].moisture_percent"/>%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>BROKEN</strong>
+                                        </td>
+                                        <td>:<span t-field="doc.order_line[:1].broken_percent"/>%
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered mb-2">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Quantity (KGS) &amp; No. of Vehicles</th>
+                                    <th class="text-right">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.order_line" t-as="line">
+                                    <td>
+                                        <span t-field="line.product_id"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-field="line.product_qty"/>
+                                        KGS
+                                        <span t-field="line.no_of_trucks"/>
+                                        TLS
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="line.price_unit"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="mb-2">
+                            <p class="mb-1">
+                                <strong>OTHER TERMS:</strong>
+                            </p>
+                            <ol style="padding-left: 20px; margin-bottom: 0;">
+                                <li>BILTY MUST SHOWS ORDER NO</li>
+                                <li>WEIGHMENT ONLY ACCEPTABLE FROM PQ</li>
+                                <li>BILLS MUST BE SUBMITTED AS PER THE CONTRACT ALONG WITH NTN NO. OR CNIC COPY</li>
+                                <li>PAYMENT WILL BE MADE UPON SUBMISSION OF ORIGINAL BILL, ARRIVAL SLIP, WEIGHT SLIP AND
+                                    ORIGINAL BILTY
+                                </li>
+                                <li>BILTY WOULD NOT BE TRANSFERRED TO ANY OTHER BROKER OF SELLER.</li>
+                                <li>PAYMENT WILL BE MADE BY CROSSED CHEQUE</li>
+                                <li>SHOULD THE SELLER BE UNABLE TO SUPPLY WHOLE QUANTITY BEFORE THE EXPIRY DATE, THE
+                                    BUYER RESERVES THE RIGHT TO PURCHASE BALANCE QUANTITY FROM OPEN MARKET AND DEBIT THE
+                                    DIFFERENCE IN PRICE TO SELLER ACCOUNT
+                                </li>
+                            </ol>
+                        </div>
+                        <!-- Signatures -->
+                        <div style="width: 100%; margin-top: 100px; font-weight: bold; font-size: 12px;">
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">Prepared By</div>
+                            </div>
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">Verified By</div>
+                            </div>
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">Approved By</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

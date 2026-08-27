@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- REPORT 1: PRODUCTION PLANNING (PRD-4-003) -->
+    <!-- ========================================== -->
+    <record id="action_report_production_planning" model="ir.actions.report">
+        <field name="name">Production Planning (PRD-4-003)</field>
+        <field name="model">production.planning</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_manufacturing.report_production_planning_template</field>
+        <field name="report_file">arm_rice_manufacturing.report_production_planning_template</field>
+    </record>
+
+    <template id="report_production_planning_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page"
+                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
+                            PLANNING SHEET</h4>
+
+                        <table class="table table-sm table-borderless"
+                            style="width:100%; margin-bottom:20px;">
+                            <tr>
+                                <td style="width:25%;">
+                                    <strong>Date:</strong>
+                                </td>
+                                <td style="width:25%;">
+                                    <span t-field="o.date" />
+                                </td>
+                                <td style="width:25%;">
+                                    <strong>Commodity:</strong>
+                                </td>
+                                <td style="width:25%;">
+                                    <span t-field="o.commodity" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Job Order No.:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.name" />
+                                </td>
+                                <td>
+                                    <strong>Rice Variety:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.rice_variety" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Customer Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.customer_id.name" />
+                                </td>
+                                <td>
+                                    <strong>Milling Date:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.milling_date" t-options='{"widget": "date"}' />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Brand:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.brand" />
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-bordered" style="width:100%; margin-bottom:20px;">
+                            <thead>
+                                <tr style="background-color:#f2f2f2;">
+                                    <th style="width:5%;">S.No.</th>
+                                    <th style="width:45%;">Parameters</th>
+                                    <th style="width:15%;">UoM</th>
+                                    <th style="width:35%;">Values in Job Order</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- FIX: Loop directly through the Planning Lines -->
+                                <tr t-foreach="o.planning_line_ids" t-as="line">
+                                    <td>
+                                        <span t-field="line.sequence" />
+                                    </td>
+                                    <td>
+                                        <span t-field="line.parameter" />
+                                    </td>
+                                    <td>
+                                        <span t-field="line.uom" />
+                                    </td>
+                                    <td>
+                                        <span t-field="line.value" />
+                                    </td>
+                                </tr>
+                                <tr t-if="not o.planning_line_ids">
+                                    <td colspan="4" class="text-center">No Parameters Added</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-sm table-borderless"
+                            style="width:100%; margin-top:20px;">
+                            <tr>
+                                <td style="width:25%;">
+                                    <strong>No of Bags:</strong>
+                                </td>
+                                <td style="width:25%;">
+                                    <span t-field="o.no_of_bags" />
+                                </td>
+                                <td style="width:25%;">
+                                    <strong>Packing (Material):</strong>
+                                </td>
+                                <td style="width:25%;">
+                                    <span t-field="o.packing_material" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Empty Bag Weight:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.empty_bag_weight" />
+                                </td>
+                                <td>
+                                    <strong>Total Quantity:</strong>
+                                </td>
+                                <td><span t-field="o.total_quantity" /> MT</td>
+                            </tr>
+                        </table>
+
+                        <!-- Signatures -->
+                        <div style="margin-top: 100px; width: 100%;">
+                            <table style="width: 100%; border: none;">
+                                <tr>
+                                    <td
+                                        style="width: 50%; text-align: left; vertical-align: bottom; padding-left: 20px;">
+                                        <div
+                                            style="border-top: 1px solid black; width: 80%; padding-top: 5px; font-weight: bold; font-size: 11px;">
+                                            Prepared By
+                                        </div>
+                                    </td>
+                                    <td
+                                        style="width: 50%; text-align: right; vertical-align: bottom; padding-right: 20px;">
+                                        <div
+                                            style="border-top: 1px solid black; width: 80%; margin-left: auto; padding-top: 5px; font-weight: bold; font-size: 11px;">
+                                            Approved By
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- REPORT 2: RICE RECOVERY REPORT (PRD-4-001) -->
+    <!-- ========================================== -->
+    <record id="action_report_rice_recovery" model="ir.actions.report">
+        <field name="name">Rice Recovery Report (PRD-4-001)</field>
+        <field name="model">production.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">arm_rice_manufacturing.report_rice_recovery_template</field>
+        <field name="report_file">arm_rice_manufacturing.report_rice_recovery_template</field>
+    </record>
+
+    <template id="report_rice_recovery_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page"
+                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">RICE
+                            RECOVERY REPORT</h4>
+
+                        <table class="table table-sm table-borderless"
+                            style="width:100%; margin-bottom:20px;">
+                            <tr>
+                                <td style="width:20%;">
+                                    <strong>Production Period:</strong>
+                                </td>
+                                <td style="width:30%;">
+                                    <span t-field="o.production_date" />
+                                </td>
+                                <td style="width:20%;">
+                                    <strong>2nd Job Order No:</strong>
+                                </td>
+                                <td style="width:30%;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>1st Job Order No:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.name" />
+                                </td>
+                                <td>
+                                    <strong>2nd Customer Name:</strong>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>1st Customer Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.partner_id.name" />
+                                </td>
+                                <td>
+                                    <strong>Brand Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.product_id.name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Input Quantity (Mton):</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.raw_material_weight" />
+                                </td>
+                                <td>
+                                    <strong>Recovery:</strong>
+                                </td>
+                                <td><span t-field="o.recovery_pct" /> %</td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-bordered" style="width:100%; margin-top:20px;">
+                            <thead>
+                                <tr style="background-color:#f2f2f2;">
+                                    <th style="width:5%;">S No.</th>
+                                    <th style="width:45%;">Output</th>
+                                    <th style="width:20%;">Quantity (Mton)</th>
+                                    <th style="width:15%;">No. of Bags</th>
+                                    <th style="width:15%;">Recovery (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.byproduct_line_ids" t-as="line">
+                                    <tr>
+                                        <td>
+                                            <span t-esc="line_index + 1" />
+                                        </td>
+                                        <td>
+                                            <span t-field="line.product_id.name" />
+                                        </td>
+                                        <td>
+                                            <span t-field="line.qty" />
+                                        </td>
+                                        <td>
+                                            <span t-field="line.bags" />
+                                        </td>
+                                        <td>
+                                            <span t-if="o.raw_material_weight &gt; 0"
+                                                t-esc="((line.qty / o.raw_material_weight) * 100.0)"
+                                                t-options='{"widget": "float", "precision": 2}' /> % </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div
+                            style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>Prepared By: ___________________</strong>
+                            </div>
+                            <div>
+                                <strong>Production Head: ___________________</strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- REPORT 3: PRODUCTION QUALITY (QA-4-002)    -->
+    <!-- ========================================== -->
+    <record id="action_report_production_quality" model="ir.actions.report">
+        <field name="name">Production Quality Report (QA-4-002)</field>
+        <field name="model">production.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">arm_rice_manufacturing.report_production_quality_template</field>
+        <field name="report_file">arm_rice_manufacturing.report_production_quality_template</field>
+    </record>
+
+    <template id="report_production_quality_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page"
+                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
+                            QUALITY REPORT</h4>
+
+                        <table class="table table-sm table-borderless"
+                            style="width:100%; margin-bottom:20px;">
+                            <tr>
+                                <td style="width:25%;">
+                                    <strong>Name of Operator:</strong>
+                                </td>
+                                <td style="width:25%;">
+                                    <span t-field="o.operator_name" />
+                                </td>
+                                <td style="width:25%;">
+                                    <strong>Customer Contract No:</strong>
+                                </td>
+                                <td style="width:25%;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Customer Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.partner_id.name" />
+                                </td>
+                                <td>
+                                    <strong>Specifications:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.process_rice_spec_id.name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Brand Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.product_id.name" />
+                                </td>
+                                <td>
+                                    <strong>JOB ORDER NO:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>DATE:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.production_date" />
+                                </td>
+                                <td>
+                                    <strong>DAY:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.day" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>SHIFT:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.shift" />
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-bordered" style="width:100%; margin-top:20px;">
+                            <thead>
+                                <tr style="background-color:#f2f2f2;">
+                                    <th>Hours</th>
+                                    <th>Sample (kg)</th>
+                                    <th>Broken</th>
+                                    <th>Damage / Yellow</th>
+                                    <th>Moisture</th>
+                                    <th>Foreign Food Grains</th>
+                                    <th>Foreign Matter</th>
+                                    <th>Paddy Grain</th>
+                                    <th>Under Milled</th>
+                                    <th>Kett Whitnes</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- FIX: Fetch standard specs from PRS header (n_ fields) -->
+                                <tr>
+                                    <td>Standard</td>
+                                    <td></td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_broken_percent" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_damaged_discolor_percent" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_moisture_percent" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_foreign_food_grains" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_foreign_matter_percent" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_paddy_percent" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_under_milled_grains" />
+                                    </td>
+                                    <td>
+                                        <span
+                                            t-field="o.job_order_id.process_rice_spec_id.n_kett_whiteness" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Observed</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <span t-field="o.moisture" />
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <span t-field="o.agl" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr t-foreach="range(1, 6)" t-as="i">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div
+                            style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>Shift Supervisor: ___________________</strong>
+                            </div>
+                            <div>
+                                <strong>Production Head: ___________________</strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- REPORT 4: PRODUCTION LOG SHEET (PRD-4-002) -->
+    <!-- ========================================== -->
+    <record id="action_report_production_log_sheet" model="ir.actions.report">
+        <field name="name">Production Log Sheet (PRD-4-002)</field>
+        <field name="model">production.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">arm_rice_manufacturing.report_production_log_sheet_template</field>
+        <field name="report_file">arm_rice_manufacturing.report_production_log_sheet_template</field>
+    </record>
+
+    <template id="report_production_log_sheet_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page"
+                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
+                            LOG SHEET</h4>
+
+                        <table class="table table-sm table-borderless"
+                            style="width:100%; margin-bottom:20px;">
+                            <tr>
+                                <td style="width:20%;">
+                                    <strong>Date:</strong>
+                                </td>
+                                <td style="width:30%;">
+                                    <span t-field="o.production_date" />
+                                </td>
+                                <td style="width:20%;">
+                                    <strong>Operator Name:</strong>
+                                </td>
+                                <td style="width:30%;">
+                                    <span t-field="o.operator_name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Day:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.day" />
+                                </td>
+                                <td>
+                                    <strong>1st Customer Name:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.partner_id.name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Shift:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.shift" />
+                                </td>
+                                <td>
+                                    <strong>1st Job Order No.:</strong>
+                                </td>
+                                <td>
+                                    <span t-field="o.job_order_id.name" />
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h6 style="font-weight:bold; margin-top:20px;">Running Time</h6>
+                        <table class="table table-bordered" style="width:100%;">
+                            <thead>
+                                <tr style="background-color:#f2f2f2;">
+                                    <th style="width:5%;">S.No</th>
+                                    <th style="width:30%;">Item</th>
+                                    <th style="width:20%;">Start Time</th>
+                                    <th style="width:20%;">Stop Time</th>
+                                    <th style="width:15%;">Actual Time</th>
+                                    <th style="width:10%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="range(1, 8)" t-as="i">
+                                    <td>
+                                        <span t-esc="i" />
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h6 style="font-weight:bold; margin-top:20px;">Stop Time</h6>
+                        <table class="table table-bordered" style="width:100%;">
+                            <thead>
+                                <tr style="background-color:#f2f2f2;">
+                                    <th style="width:5%;">S.No</th>
+                                    <th style="width:30%;">Stop Time</th>
+                                    <th style="width:20%;">Start Time</th>
+                                    <th style="width:20%;">Down Time</th>
+                                    <th style="width:25%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="range(1, 9)" t-as="i">
+                                    <td>
+                                        <span t-esc="i" />
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row" style="margin-top:20px;">
+                            <div class="col-6">
+                                <h6 style="font-weight:bold;">Final Product Packing</h6>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr style="background-color:#f2f2f2;">
+                                            <th>S.No</th>
+                                            <th>Brand</th>
+                                            <th>Variety</th>
+                                            <th>No.Bags</th>
+                                            <th>Packing Size</th>
+                                            <th>T. Wt</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="range(1, 9)" t-as="i">
+                                            <td>
+                                                <span t-esc="i" />
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h6 style="font-weight:bold;">By Product Summary</h6>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr style="background-color:#f2f2f2;">
+                                            <th>S.No</th>
+                                            <th>Item</th>
+                                            <th>Bags</th>
+                                            <th>Size</th>
+                                            <th>Weight</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="o.byproduct_line_ids" t-as="line">
+                                            <td>
+                                                <span t-esc="line_index + 1" />
+                                            </td>
+                                            <td>
+                                                <span t-field="line.product_id.name" />
+                                            </td>
+                                            <td>
+                                                <span t-field="line.bags" />
+                                            </td>
+                                            <td></td>
+                                            <td>
+                                                <span t-field="line.qty" />
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div
+                            style="margin-top: 60px; width: 100%; display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>Prepared By: ___________________</strong>
+                            </div>
+                            <div>
+                                <strong>Production Supervisor: ___________________</strong>
+                            </div>
+                            <div>
+                                <strong>Production Head: ___________________</strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

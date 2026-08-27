@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="gate_pass_view_form" model="ir.ui.view">
+        <field name="name">gate.pass.view.form</field>
+        <field name="model">gate.pass</field>
+        <field name="arch" type="xml">
+            <form string="Gate Pass">
+                <header>
+                    <button name="action_confirm" string="Confirm Entry" type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_mark_exited" string="Mark as Exited" type="object" class="btn-success"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_create_weighbridge" type="object" class="btn-warning"
+                            string="Create Weighbridge" invisible="is_third_party or state != 'confirmed'"/>
+                    <button name="action_create_weighbridge" type="object" class="btn-warning"
+                            string="Proceed to Final QC (Skip Weighbridge)"
+                            invisible="not is_third_party or state != 'confirmed'"/>
+
+                    <!-- NEW: Cancel & Reset Flow -->
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('draft', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state != 'cancel'"/>
+                    <button name="%(action_report_gate_pass_local)d" string="Print Gate Pass" type="action"
+                            class="btn-primary"
+                            invisible="pass_type != 'outbound' or is_export == True or state != 'done'"/>
+                    <button name="%(action_report_dispatch_order_local)d" string="Print Dispatch Order" type="action" class="btn-primary"
+                            invisible="pass_type != 'outbound' or is_export == True or state != 'done'"/>
+                    <button name="%(action_report_delivery_certificate_local)d" string="Print Delivery Certificate" type="action" class="btn-secondary"
+                            invisible="pass_type != 'outbound' or is_export == True or state != 'done'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <!-- FIX: Lock the entire sheet when Confirmed -->
+                <sheet readonly="state == 'confirmed'">
+                    <div class="oe_button_box" name="button_box">
+                        <!-- FIX: Only show Purchase Order smart button for Inbound -->
+                        <button name="action_view_purchase_order" type="object" class="oe_stat_button" icon="fa-truck" string="Purchase Order" invisible="pass_type != 'inbound'"/>
+                        <button name="action_view_inspection" type="object" class="oe_stat_button" icon="fa-check-square-o" string="Inspection" invisible="not grn_inspection_id"/>
+                        <button name="action_view_weighbridges" type="object" class="oe_stat_button" icon="fa-balance-scale">
+                            <field name="weighbridge_count" string="Weighbridges" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- FIX: Restructured Header for Clean UI Balance -->
+                    <group>
+                        <group string="General Info">
+                            <field name="pass_type" widget="radio" options="{'horizontal': true}" readonly="state == 'confirmed'"/>
+                            <field name="date" readonly="state == 'confirmed'"/>
+                            <field name="time" readonly="state == 'confirmed'"/>
+                            <!-- FIX: Made partner_id editable in draft so user can select Customer first -->
+                            <field name="is_export" string="Export" invisible="pass_type != 'outbound'"/>
+                            <field name="partner_id" readonly="state != 'draft'" force_save="1"/>
+                            <field name="vehicle_number" readonly="state == 'confirmed'"/>
+                            <field name="driver_name" readonly="state == 'confirmed'"/>
+                        </group>
+                        <!-- FIX: Escaped ampersand in string -->
+                        <group string="References &amp; Logistics">
+                            <!-- INBOUND FIELDS -->
+                            <field name="grn_inspection_id" invisible="pass_type != 'inbound'" readonly="1" force_save="1"/>
+                            <field name="inspection_date" invisible="pass_type != 'inbound'" readonly="1" force_save="1"/>
+
+                            <!-- OUTBOUND FIELDS -->
+
+                            <!-- LOCAL SALES: Sales Memo fields (Hidden if is_export is True) -->
+                            <!-- XML Domain filters by Customer. Uses -1 to block if no Customer is selected -->
+                            <field name="sale_order_id" invisible="pass_type != 'outbound' or is_export == True"
+                                   domain="[('partner_id', '=', partner_id if partner_id else -1), ('state', 'in', ['sale', 'done'])]"/>
+                            <field name="sale_order_date" invisible="pass_type != 'outbound' or is_export == True"/>
+
+                            <!-- EXPORT SALES: Sales Contract fields (Visible only if is_export is True) -->
+                            <!-- XML Domain filters by Customer and Contract Type, blocks (-1) if no Customer is selected -->
+                            <field name="export_sales_contract_id" string="Sales Contract Ref"
+                                   invisible="pass_type != 'outbound' or is_export == False"
+                                   domain="[('partner_id', '=', partner_id if partner_id else -1), ('state', 'in', ['confirmed', 'done']), ('contract_type', '=', 'export')]"/>
+                            <field name="export_contract_date" invisible="pass_type != 'outbound' or is_export == False"/>
+
+                            <!-- Delivery Order field: Native XML Domain filtering by Customer -->
+                            <!-- Uses -1 to block all results if no Customer is selected yet -->
+                            <field name="delivery_picking_id" invisible="pass_type != 'outbound'" readonly="state == 'confirmed'"
+                                   domain="[
+                                       ('picking_type_code', '=', 'outgoing'),
+                                       ('state', 'not in', ['done', 'cancel']),
+                                       '|',
+                                       ('sale_id', '=', sale_order_id if sale_order_id else -1),
+                                       ('rice_sales_contract_id', '=', export_sales_contract_id if export_sales_contract_id else -1)
+                                   ]"/>
+
+                            <!-- COMMON LOGISTICS FIELDS -->
+                            <field name="transporter_id" readonly="state == 'confirmed'"/>
+                            <field name="truck_type" readonly="state == 'confirmed'"/>
+                            <field name="bilty_no" readonly="state == 'confirmed'"/>
+                            <field name="container_no" readonly="state == 'confirmed'"/>
+                            <field name="seal_no" readonly="state == 'confirmed'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="GatePass Detail">
+                            <field name="gate_pass_line_ids" nolabel="1" colspan="2">
+                                <list editable="bottom">
+                                    <!-- Common Reference Column -->
+                                    <field name="return_reference" readonly="1"/>
+
+                                    <!-- FIX: Using column_invisible to completely hide columns based on Pass Type -->
+
+                                    <!-- INBOUND COLUMNS (Visible on Inbound/Return, Hidden on Outbound) -->
+                                    <field name="purchase_order_id" domain="[('partner_id', '=', parent.partner_id), ('state', '=', 'purchase')]" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type == 'outbound'"/>
+                                    <field name="purchase_order_line_id" domain="[('order_id', '=', purchase_order_id)]" string="PO Line / Product" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type == 'outbound'"/>
+
+                                    <!-- OUTBOUND COLUMNS (Visible only on Outbound) -->
+                                    <!-- FIX: Hidden sale_order_id and sale_line_id in UI, but kept in DB for Weighbridge mapping -->
+                                    <field name="sale_order_id" readonly="parent.state == 'confirmed'" column_invisible="1"/>
+                                    <field name="sale_line_id" domain="[('order_id', '=', sale_order_id)]" readonly="parent.state == 'confirmed'" column_invisible="1"/>
+
+                                    <!-- COMMON COLUMNS -->
+                                    <field name="product_id" readonly="parent.state == 'confirmed'"/>
+
+                                    <!-- OUTBOUND SPECIFIC COLUMNS -->
+                                    <!-- FIX: Added force_save="1" to ensure onchange values are persisted on Save -->
+                                    <field name="do_demand_qty" string="D/O Qty" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
+                                    <field name="location_dest_id" string="Location" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
+                                    <field name="additional_weight" string="Add. Wt" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
+                                    <field name="total_weight" string="Total Wt" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
+
+                                    <!-- NEW: Local Sales Packaging Columns (Only visible if Outbound AND NOT Export) -->
+                                    <field name="pcs" string="PCS" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound' or parent.is_export == True"/>
+                                    <field name="ctn" string="CTN" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound' or parent.is_export == True"/>
+                                    <field name="packing_type" string="Packing Type" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type != 'outbound' or parent.is_export == True"/>
+
+
+                                    <field name="job_no" string="Job No." readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type != 'outbound'"/>
+                                    <field name="batch_no" string="Batch No." readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type != 'outbound'"/>
+
+                                    <!-- INBOUND/RETURN SPECIFIC COLUMNS -->
+                                    <field name="return_qty" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type == 'outbound'"/>
+                                    <field name="balance" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type == 'outbound'"/>
+                                    <field name="carton" readonly="parent.state == 'confirmed'" column_invisible="parent.pass_type == 'outbound'"/>
+
+                                    <!-- COMMON BOTTOM COLUMNS -->
+                                    <field name="bags" readonly="parent.state == 'confirmed'"/>
+                                    <field name="gross" readonly="parent.state == 'confirmed' or parent.pass_type == 'outbound'"/>
+                                    <field name="net" readonly="parent.state == 'confirmed' or parent.pass_type == 'outbound'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- NEW: Quality & Condition Checks Tab (Only for Outbound) -->
+                        <page string="Quality &amp; Condition Checks" invisible="pass_type != 'outbound'">
+                            <group>
+                                <group>
+                                    <field name="check_rice_quality"/>
+                                    <field name="check_packaging_condition"/>
+                                    <field name="check_fumigation"/>
+                                </group>
+                                <group>
+                                    <field name="check_weevils"/>
+                                    <field name="check_vehicle_condition"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Remarks">
+                            <div class="w-100">
+                                <!-- 1. GRN / Inspection Remarks (Locked) -->
+                                <div invisible="not inspection_remarks" style="margin-bottom: 20px; padding: 10px;">
+                                    <strong style="font-size: 15px;">GRN Inspection Remarks:</strong>
+                                    <field name="inspection_remarks" nolabel="1" readonly="1"/>
+                                </div>
+
+                                <!-- Separation Line -->
+                                <hr invisible="not inspection_remarks" style="border-top: 1px solid #dee2e6;"/>
+
+                                <!-- 2. Gate Pass Remarks (Editable) -->
+                                <div style="margin-top: 10px; padding: 10px;">
+                                    <strong style="font-size: 15px;">Gate Pass Remarks:</strong>
+                                    <field name="remarks" nolabel="1" readonly="state == 'confirmed'"/>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="gate_pass_view_tree" model="ir.ui.view">
+        <field name="name">gate.pass.view.tree</field>
+        <field name="model">gate.pass</field>
+        <field name="arch" type="xml">
+            <list string="Gate Passes" decoration-info="state == 'confirmed'" decoration-success="state == 'done'"
+                  decoration-danger="state == 'return_pending'" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="time"/>
+                <field name="transporter_id"/>
+                <field name="truck_type"/>
+                <field name="pass_type" widget="badge" decoration-info="pass_type == 'inbound'"
+                       decoration-danger="pass_type == 'return'" decoration-success="pass_type == 'outbound'"/>
+                <field name="vehicle_number"/>
+                <field name="partner_id" optional="show"/>
+                <field name="net_qty" sum="Total Net Qty"/>
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'"
+                       decoration-success="state == 'done'" decoration-muted="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_gate_pass" model="ir.actions.act_window">
+        <field name="name">Gate Passes</field>
+        <field name="res_model">gate.pass</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_gate_pass" name="Gate Passes"
+              parent="menu_arm_rice_operations_root"
+              action="action_gate_pass" sequence="20"/>
+</odoo>

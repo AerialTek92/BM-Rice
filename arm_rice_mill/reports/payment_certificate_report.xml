@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_payment_certificate_arm" model="ir.actions.report">
+        <field name="name">Payment Certificate</field>
+        <field name="model">payment.certificate</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_mill.report_payment_certificate_document</field>
+        <field name="report_file">arm_rice_mill.report_payment_certificate_document</field>
+        <field name="binding_model_id" ref="model_payment_certificate"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <!-- Report Template -->
+    <template id="report_payment_certificate_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-size: 13px; font-family: sans-serif; color: black; width: 100%;">
+
+                        <!-- Main Title -->
+                        <div class="text-center" style="margin-bottom: 20px; margin-top: 30px">
+                            <h3 style="text-decoration: underline; font-weight: bold;">Payment Certificate</h3>
+                        </div>
+
+                        <!-- Header Section (Split into Left and Right) -->
+                        <div class="row">
+                            <!-- Left Side Info -->
+                            <div class="col-7">
+                                <table class="table table-sm table-borderless" style="width: 100%;">
+                                    <tr>
+                                        <td style="width: 30%;">
+                                            <strong>Broker</strong>
+                                        </td>
+                                        <td>:
+                                            <t t-if="o.purchase_id and o.purchase_id.broker_id">
+                                                <span t-field="o.purchase_id.broker_id.name"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Party</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.partner_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Product</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.product_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Payment Terms</strong>
+                                        </td>
+                                        <td>:</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Right Side Info -->
+                            <div class="col-5">
+                                <table class="table table-sm table-borderless" style="width: 100%;">
+                                    <tr>
+                                        <td style="width: 40%;">
+                                            <strong>Due Date</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>GRN No</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.grn_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>GRN Date</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.grn_date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>P/O No</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.purchase_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>P/O Date</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.purchase_order_date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quantity and Logistics Tables -->
+                        <div class="row mt-3">
+                            <div class="col-7">
+                                <table class="table table-bordered text-center" style="border: 1px solid black;">
+                                    <thead>
+                                        <tr style="background-color: #f2f2f2;">
+                                            <th colspan="4" style="border: 1px solid black;">Quantity Detail (Kgs)</th>
+                                        </tr>
+                                        <tr style="border: 1px solid black;">
+                                            <th style="border: 1px solid black;">Gross</th>
+                                            <th style="border: 1px solid black;">Tare</th>
+                                            <th style="border: 1px solid black;">Net</th>
+                                            <th style="border: 1px solid black;">Bags</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.grn_id.gross_weight"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.grn_id.tare_weight"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.grn_id.net_weight"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.bags"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-5">
+                                <table class="table table-bordered text-center" style="border: 1px solid black;">
+                                    <thead>
+                                        <tr style="background-color: #f2f2f2;">
+                                            <th style="border: 1px solid black;">TLS</th>
+                                            <th style="border: 1px solid black;">Truck No</th>
+                                            <th style="border: 1px solid black;">Billty No</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.grn_id.po_total_tls"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.vehicle_number"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="o.grn_id.bilty_no"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Main Calculation Table -->
+                        <table class="table table-sm mt-3" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid black;">
+                                    <th style="width: 40%;">Description</th>
+                                    <th class="text-center" style="width: 10%;">%</th>
+                                    <th class="text-right" style="width: 15%;">Net Weight</th>
+                                    <th class="text-right" style="width: 15%;">Rate (Rs)</th>
+                                    <th class="text-right" style="width: 20%;">Amount (Rs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Product Weight -->
+                                <tr>
+                                    <td>
+                                        <strong>Product Weight</strong>
+                                    </td>
+                                    <td></td>
+                                    <td class="text-right">
+                                        <span t-field="o.net_weight"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="o.rate"/>
+                                    </td>
+                                    <td class="text-right" style="background-color: #d3d3d3; border: 1px solid black;">
+                                        <strong>
+                                            <span t-field="o.gross_amount"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+
+                                <!-- Less Section -->
+                                <tr><td colspan="5"><strong>Less:</strong></td></tr>
+
+                                <!-- Moisture Deduction -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Moisture</td>
+                                    <td class="text-center"><span t-field="o.moisture_actual"/>%</td>
+                                    <td class="text-right"><span t-field="o.net_weight"/></td>
+                                    <td class="text-right"><span t-field="o.moisture_allowance_rate"/></td>
+                                    <td class="text-right">(<span t-field="o.moisture_deduction"/>)</td>
+                                </tr>
+
+                                <!-- Broken Deduction -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Broken</td>
+                                    <td class="text-center"><span t-field="o.broken_actual"/>%</td>
+                                    <td class="text-right"><span t-field="o.net_weight"/></td>
+                                    <td class="text-right"><span t-field="o.broken_allowance_rate"/></td>
+                                    <td class="text-right">(<span t-field="o.broken_deduction"/>)</td>
+                                </tr>
+
+                                <!-- Filling Bags Deduction -->
+                                <tr style="border-bottom: 1px solid black;">
+                                    <td style="padding-left: 20px;">Filling Bags</td>
+                                    <td class="text-center"><span t-field="o.filling_bags"/></td>
+                                    <td class="text-right"><span t-field="o.net_weight"/></td>
+                                    <td class="text-right"><span t-field="o.filling_bags_allowance_rate"/></td>
+                                    <td class="text-right">(<span t-field="o.filling_bags_deduction"/>)</td>
+                                </tr>
+
+                                <!-- Total Deductions Row -->
+                                <tr>
+                                    <td colspan="4" class="text-right">Total Deductions</td>
+                                    <td class="text-right" style="background-color: #d3d3d3; border: 1px solid black; font-weight: bold;">
+                                        (<span t-field="o.total_deductions"/>)
+                                    </td>
+                                </tr>
+
+                                <!-- Add Section -->
+                                <t t-set="total_addition_calculated"
+                                   t-value="o.add_brokerage + o.add_transportation + o.add_bardana + o.add_labour + o.add_commission + o.add_other"/>
+
+                                <tr><td colspan="5"><strong>Add:</strong></td></tr>
+
+                                <!-- Brokerage -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Brokerage</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_brokerage"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Transportation -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Transportation</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_transportation"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Bardana -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Bardana</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_bardana"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Labour -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Labour</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_labour"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Commission -->
+                                <tr>
+                                    <td style="padding-left: 20px;">Commission</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_commission"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Other -->
+                                <tr style="border-bottom: 1px solid black;">
+                                    <td style="padding-left: 20px;">Other</td>
+                                    <td/>
+                                    <td/>
+                                    <td/>
+                                    <td class="text-right">
+                                        <span t-field="o.add_other"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Total Addition Row -->
+                                <tr style="border-top: 1px solid black;">
+                                    <td colspan="4" class="text-right">
+                                        <strong>Total Addition</strong>
+                                    </td>
+                                    <td class="text-right" style="background-color: #d3d3d3; border: 1px solid black; font-weight: bold;">
+                                        <!-- FIX: Used t-esc instead of t-field for local variables -->
+                                        <span t-esc="total_addition_calculated"/>
+                                    </td>
+                                </tr>
+
+                                <!-- 3. Bill Amount = (Gross Amount - Total Deductions) + Total Additions -->
+                                <t t-set="bill_amount" t-value="(o.gross_amount - o.total_deductions) + total_addition_calculated"/>
+
+                                <!-- Bill Amount Row -->
+                                <tr>
+                                    <td colspan="4" class="text-right" style="padding-top:10px;">
+                                        <strong>Bill Amount</strong>
+                                    </td>
+                                    <td class="text-right" style="padding-top:10px; font-weight: bold;">
+                                        <!-- FIX: Used t-esc instead of t-field for local variables -->
+                                        <span t-esc="bill_amount"/>
+                                    </td>
+                                </tr>
+
+                                <!-- W.H. Tax Row -->
+                                <tr>
+                                    <td colspan="4" class="text-right">Less: W.H.Tax</td>
+                                    <td class="text-right">
+                                        (<span t-field="o.less_wh_tax_brokerage"/>)
+                                    </td>
+                                </tr>
+
+                                <!-- 4. Final Net Amount = Bill Amount - W.H Tax -->
+                                <t t-set="final_net_amount" t-value="bill_amount - o.less_wh_tax_brokerage"/>
+
+                                <!-- Final Net Amount Row -->
+                                <tr style="font-size: 16px; font-weight: bold;">
+                                    <td colspan="4" class="text-right" style="border-top: 2px solid black;">
+                                        Net Amount
+                                    </td>
+                                    <td class="text-right" style="background-color: #d3d3d3; border: 2px solid black;">
+                                        <!-- FIX: Used t-esc instead of t-field for local variables -->
+                                        <span t-esc="final_net_amount"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="mt-2" style="border-top: 2px solid black; padding: 5px;">
+                            <strong>RUPEES:</strong>
+                            <span style="text-transform: uppercase;" t-esc="o.currency_id.amount_to_text(final_net_amount)"/>
+                            <span>ONLY</span>
+                        </div>
+
+                        <div class="mt-3">
+                            <strong>Remarks:</strong>
+                            <div style="width: 100%; height: 20px;"></div>
+                        </div>
+
+                        <!-- Footer Signatures -->
+                        <div class="row mt-5">
+                            <div class="col-3 text-center">
+                                <div style="border-top: 1px solid black;">
+                                    <strong>Prepared By</strong>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div style="border-top: 1px solid black;">
+                                    <strong>Checked By</strong>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div style="border-top: 1px solid black;">
+                                    <strong>Verified By</strong>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div style="border-top: 1px solid black;">
+                                    <strong>Approved By</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
