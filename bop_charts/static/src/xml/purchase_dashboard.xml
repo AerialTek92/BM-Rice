@@ -1,0 +1,51 @@
+<t t-name="bop_charts.PurchaseDashboardMain">
+    <div class="o_purchase_dashboard" style="height: 100%; overflow-y: auto; padding: 20px; background-color: #f8f9fa;">
+        <h2 class="mb-4 text-dark">Purchase &amp; Inventory Dashboard</h2>
+
+        <div class="row">
+            <!-- Row 1 -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Product Stock Balance</h5>
+                    </div>
+                    <div class="card-body" style="height: 300px;">
+                        <canvas t-ref="product_stock"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-danger text-white">
+                        <h5>Vendor Outstanding Payments</h5>
+                    </div>
+                    <div class="card-body" style="height: 300px;">
+                        <canvas t-ref="vendor_outstanding"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-warning">
+                        <h5>Top Purchased Products (Horizontal)</h5>
+                    </div>
+                    <div class="card-body" style="height: 300px;">
+                        <canvas t-ref="top_purchased"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white">
+                        <h5>Monthly Purchase Amount (Area)</h5>
+                    </div>
+                    <div class="card-body" style="height: 300px;">
+                        <canvas t-ref="monthly_amount"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</t>

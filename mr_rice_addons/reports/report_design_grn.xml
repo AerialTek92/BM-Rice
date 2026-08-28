@@ -1,0 +1,163 @@
+<odoo>
+
+    <record id="paperformat_stock_picking" model="report.paperformat">
+        <field name="name">Purchase Order Paper Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- 1. Report Action -->
+    <record id="action_report_stock_picking_detail" model="ir.actions.report">
+        <field name="name">Good Receipt Detail</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_stock_picking_template</field>
+        <field name="report_file">mr_rice_addons.report_stock_picking_template</field>
+        <field name="print_report_name">'Good Receipt Date Wise'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking"/>
+    </record>
+
+    <template id="report_stock_picking_template">
+        <t t-call="web.html_container">
+            <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 10px;">
+
+                <!-- Title Section -->
+                <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Goods Receipt Date Wise</h2>
+                    <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px;">
+                        <span t-esc="date_from"/>
+                        -
+                        <span t-esc="date_to"/>
+                    </p>
+                </div>
+
+                <!-- Main Table -->
+                <table class="table table-bordered"
+                       style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+                    <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                        <tr>
+                            <th style="border: 1px solid black;">GRN No<br/>Date / Location
+                            </th>
+                            <th style="border: 1px solid black;">P/O No<br/>Inspection
+                            </th>
+                            <th style="border: 1px solid black;">Party Name<br/>Broker Name
+                            </th>
+                            <th style="border: 1px solid black;">Product<br/>Name
+                            </th>
+                            <th style="border: 1px solid black;">Broken (%)<br/>Moisture (%)
+                            </th>
+                            <th style="border: 1px solid black;">Truck No<br/>Bilty No
+                            </th>
+                            <th style="border: 1px solid black;">Gross Wt (Kgs)<br/>Net Wt (Kgs)
+                            </th>
+                            <th style="border: 1px solid black;">No of Bags<br/>Fill Bags
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="total_net_wt" t-value="0"/>
+                        <t t-set="total_gross_wt" t-value="0"/>
+                        <t t-set="total_bags" t-value="0"/>
+
+                        <t t-foreach="docs" t-as="o">
+                            <tr style="border-bottom: 1px solid #ccc; height: 45px;">
+                                <!-- Column 1: GRN Info -->
+                                <td style="border-right: 1px solid black; padding: 10px;">
+                                    <span t-field="o.name"/>
+                                    <br/>
+                                    <span t-field="o.grn_date" t-options='{"widget": "date"}'/>
+                                    /
+                                    <span t-field="o.location_dest_id.name"/>
+                                </td>
+
+                                <!-- Column 2: PO/Inspection -->
+                                <td style="border-right: 1px solid black; padding: 10px;">
+                                    <span t-field="o.origin"/>
+                                    <br/>
+                                    <span t-field="o.grn_inspection_id.name"/>
+                                </td>
+
+                                <!-- Column 3: Party/Broker -->
+                                <td style="border-right: 1px solid black; padding: 10px;">
+                                    <strong>
+                                        <span t-field="o.partner_id.name"/>
+                                    </strong>
+                                    <br/>
+                                    <span t-field="o.grn_inspection_id.broker_id.name"/>
+                                </td>
+
+                                <!-- Column 4: Product -->
+                                <td style="border-right: 1px solid black; padding: 10px;">
+                                    <span t-field="o.product_id.name"/>
+                                </td>
+
+                                <!-- Column 5: Quality Info -->
+                                <td style="border-right: 1px solid black; text-align: center;">
+                                    <span t-field="o.actual_broken"/>%
+                                    <br/>
+                                    <span t-field="o.actual_moisture"/>%
+                                </td>
+
+                                <!-- Column 6: Truck/Bilty -->
+                                <td style="border-right: 1px solid black; text-align: center;">
+                                    <span t-field="o.vehicle_number"/>
+                                    <br/>
+                                    <span t-field="o.bilty_no"/>
+                                </td>
+
+                                <!-- Column 7: Weights -->
+                                <td style="border-right: 1px solid black; text-align: right; padding: 10px;">
+                                    <span t-field="o.gross_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                    <br/>
+                                    <strong>
+                                        <span t-field="o.net_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                    </strong>
+                                </td>
+
+                                <!-- Column 8: Bags -->
+                                <td style="text-align: right; padding-right: 5px;">
+                                    <span t-field="o.bags"/>
+                                    <br/>
+                                    <span t-field="o.filling_bags"/>
+                                </td>
+                            </tr>
+
+                            <!-- Calculation for Totals -->
+                            <t t-set="total_gross_wt" t-value="total_gross_wt + o.gross_weight"/>
+                            <t t-set="total_net_wt" t-value="total_net_wt + o.net_weight"/>
+                            <t t-set="total_bags" t-value="total_bags + o.bags"/>
+                        </t>
+                    </tbody>
+
+                    <!-- Footer Totals -->
+                    <tfoot style="font-weight: bold; background-color: #f2f2f2; border-top: 2px solid black;">
+                        <tr style="height: 30px;">
+                            <td colspan="6"
+                                style="text-align: right; padding-right: 15px; border-right: 1px solid black;">TOTALS :
+                            </td>
+                            <td style="text-align: right; padding-right: 5px; border-right: 1px solid black;">
+                                <span t-esc="'{:,}'.format(total_gross_wt)"/>
+                                <br/>
+                                <span t-esc="'{:,}'.format(total_net_wt)"/>
+                            </td>
+                            <td style="text-align: right; padding-right: 5px;">
+                                <span t-esc="'{:,}'.format(total_bags)"/>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- Broker Summary Table -->
+                <!-- TLS skip kar diya hai, jab aap field batayenge tab add kar lenge -->
+
+            </div>
+        </t>
+    </template>
+
+</odoo>

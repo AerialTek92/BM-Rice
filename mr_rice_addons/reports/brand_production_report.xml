@@ -1,0 +1,236 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="margin_top">30</field>
+        <field name="margin_bottom">30</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- Report Action -->
+    <record id="action_report_brand_production" model="ir.actions.report">
+        <field name="name">Brand Production Report</field>
+        <field name="model">production.record</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_brand_production_document</field>
+        <field name="report_file">mr_rice_addons.report_brand_production_document</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_brand_production_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-size: 13px; font-family: sans-serif; color: black; line-height: 1.4;">
+
+                        <!-- Header -->
+                        <div class="text-center" style="margin-bottom: 10px;">
+                            <h4 style="font-weight: bold;">Brand Production Report</h4>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <strong>Date of Production :</strong>
+                                <span t-field="o.production_date"/>
+                            </div>
+                            <div class="col-12 text-center">
+                                <strong>Job Order No :</strong>
+                                <span t-field="o.job_order_id.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Input Quantity Section -->
+                        <div class="mt-2">
+                            <table class="table table-sm table-borderless" style="width: 100%;">
+                                <!-- Column Header Label as per Image -->
+                                <tr>
+                                    <td style="width: 20%;">
+                                        <strong>Raw Rice input :</strong>
+                                    </td>
+                                    <td style="width: 40%;"></td>
+                                    <td style="width: 40%; text-align: right;">
+                                        <strong>Input Quantity</strong>
+                                    </td>
+                                </tr>
+                                <t t-set="total_raw_qty" t-value="0.0"/>
+                                <!-- Fetching raw rice data from issue_material_id lines -->
+                                <t t-if="o.issue_material_id">
+                                    <t t-foreach="o.issue_material_id.issue_line_ids" t-as="line">
+                                        <t t-set="total_raw_qty" t-value="total_raw_qty + line.qty_mt"/>
+                                        <tr>
+                                            <td></td>
+                                            <td>
+                                                <span t-field="line.product_id.name"/>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <span t-field="line.qty_mt"
+                                                      t-options='{"widget": "float", "precision": 2}'/>
+                                                MT
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <!-- Less: Empty Bag Weight Section -->
+                                <tr>
+                                    <td>
+                                        <strong>Less:</strong>
+                                    </td>
+                                    <td>Empty bag weight</td>
+                                    <td style="text-align: right; border-bottom: 1px solid black;">
+                                        <span t-field="o.empty_bag_weight"
+                                              t-options='{"widget": "float", "precision": 2}'/>
+                                        MT
+                                    </td>
+                                </tr>
+                                <!-- Total Input Quantity Calculation -->
+                                <tr>
+                                    <td colspan="2" style="text-align: right;">
+                                        <strong>Total Input Quantity</strong>
+                                    </td>
+                                    <td style="text-align: right; font-weight: bold; border-bottom: 2px solid black;">
+                                        <span t-esc="total_raw_qty - o.empty_bag_weight"
+                                              t-options='{"widget": "float", "precision": 2}'/>
+                                        MT
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Finished Rice Specs Section -->
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <p>
+                                    <strong>Finished Rice packed :</strong>
+                                </p>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td>Recovery %</td>
+                                        <td>:
+                                            <span t-field="o.recovery_pct"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                            %
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>AGL</td>
+                                        <td>:
+                                            <span t-field="o.agl"/>
+                                            mm
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Moisture %</td>
+                                        <td>:
+                                            <span t-field="o.moisture"/>
+                                            %
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless" style="margin-top: 30px;">
+                                    <tr>
+                                        <td style="width: 50%;">
+                                            <strong>Finish Quantity</strong>
+                                        </td>
+                                        <td style="text-align: right; font-weight: bold; border-bottom: 1px solid black;">
+                                            <span t-field="o.finished_material_weight"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                            MT
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Bi-Products Table -->
+                        <div class="mt-4">
+                            <p>Following is the output &amp; recovery rates of different Bi-Products :</p>
+                            <table class="table table-sm table-bordered" style="border: 1px solid black;">
+                                <thead class="text-center" style="background-color: #f2f2f2;">
+                                    <tr>
+                                        <th style="border: 1px solid black;">S.No.</th>
+                                        <th style="border: 1px solid black;">Item Name</th>
+                                        <th style="border: 1px solid black;">Quantity (MT)</th>
+                                        <th style="border: 1px solid black;">Recovery %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="o.byproduct_line_ids" t-as="bl">
+                                        <tr>
+                                            <td class="text-center" style="border: 1px solid black;">
+                                                <span t-esc="bl_index + 1"/>
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-field="bl.product_id.name"/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black;">
+                                                <span t-field="bl.qty" t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black;">
+                                                <span t-field="bl.coverage_ratio"
+                                                      t-options='{"widget": "float", "precision": 2}'/>
+                                                %
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <!-- Total Row for Table -->
+                                    <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                        <td colspan="2" class="text-right">Total</td>
+                                        <td class="text-right">
+                                            <span t-esc="sum(o.byproduct_line_ids.mapped('qty'))"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                        <td class="text-right">100.00 %</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="mt-3">
+                            <p>
+                                <strong>Remarks :</strong>
+                            </p>
+                            <div style="border: 1px solid #ddd; padding: 5px; min-height: 50px;">
+                                <span t-out="o.remarks"/>
+                            </div>
+                        </div>
+
+                        <!-- Footer Signatures -->
+                        <!--                        <div class="mt-5 pt-4">-->
+                        <!--                            <div class="row text-center">-->
+                        <!--                                <div class="col-4">_______________________-->
+                        <!--                                    <br/>-->
+                        <!--                                    <strong>NOMAN ARSHAD</strong>-->
+                        <!--                                </div>-->
+                        <!--                                <div class="col-4">_______________________-->
+                        <!--                                    <br/>-->
+                        <!--                                    <strong>MUHAMMAD KHAN</strong>-->
+                        <!--                                </div>-->
+                        <!--                                <div class="col-4">_______________________-->
+                        <!--                                    <br/>-->
+                        <!--                                    <strong>MUSTUFA</strong>-->
+                        <!--                                </div>-->
+                        <!--                            </div>-->
+                        <!--                            <div class="row text-center mt-5">-->
+                        <!--                                <div class="col-6">_______________________-->
+                        <!--                                    <br/>-->
+                        <!--                                    <strong>MUHAMMAD HARIS</strong>-->
+                        <!--                                </div>-->
+                        <!--                                <div class="col-6">_______________________-->
+                        <!--                                    <br/>-->
+                        <!--                                    <strong>ZAIN UL ABIDEEN</strong>-->
+                        <!--                                </div>-->
+                        <!--                            </div>-->
+                        <!--                        </div>-->
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

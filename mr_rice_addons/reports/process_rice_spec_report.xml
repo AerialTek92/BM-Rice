@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Paper Format (Portrait A4) -->
+    <record id="paperformat_process_rice_spec" model="report.paperformat">
+        <field name="name">Process Rice Spec Portrait</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_process_rice_spec" model="ir.actions.report">
+        <field name="name">Process Rice Specification Report</field>
+        <field name="model">process.rice.spec</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_process_rice_spec_template</field>
+        <field name="report_file">mr_rice_addons.report_process_rice_spec_template</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_process_rice_spec"/>
+    </record>
+
+    <!-- Report Template -->
+    <template id="report_process_rice_spec_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 12px; color: black; line-height: 1.4;">
+
+                    <style>
+                        table.spec-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                        table.spec-table th, table.spec-table td { border: 1px solid black; padding: 5px 8px; vertical-align: middle; }
+                        table.spec-table thead th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+                        .o_label { background-color: #f2f2f2; font-weight: bold; width: 20%; }
+                        .text-center { text-align: center; }
+                        .text-right { text-align: right; }
+                    </style>
+
+                    <!-- Header Title -->
+                    <h4 style="text-align: center; margin: 0 0 20px 0; font-weight: bold; text-transform: uppercase;">
+                        Specification for Branded Rice<br/>
+                        (<span t-field="o.product_id.name"/> Processed)
+                    </h4>
+
+                    <!-- Top Info Grid -->
+                    <table class="spec-table">
+                        <tr>
+                            <td class="o_label">Ref No</td>
+                            <td style="width: 30%;"><span t-field="o.name"/></td>
+                            <td class="o_label">Date</td>
+                            <td style="width: 30%;"><span t-field="o.date" t-options='{"widget": "date"}'/></td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">Raw Rice</td>
+                            <td colspan="3">
+                                <!-- List all raw rice products cleanly -->
+                                <t t-foreach="o.spec_line_ids" t-as="line">
+                                    <span t-field="line.product_id.name"/><t t-if="not line_last">, </t>
+                                </t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">Input Quantity</td>
+                            <td class="text-right">
+                                <span t-esc="sum(o.spec_line_ids.mapped('quantity'))" t-options='{"widget": "float", "precision": 2}'/> MT
+                            </td>
+                            <td class="o_label">Finish Quantity</td>
+                            <td class="text-right">
+                                <span t-field="o.process_rice_qty" t-options='{"widget": "float", "precision": 2}'/> MT
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">Crop</td>
+                            <td>
+                                <t t-if="o.spec_line_ids">
+                                    <span t-field="o.spec_line_ids[0].crop_year.name"/>
+                                </t>
+                            </td>
+                            <td class="o_label">Est. Recovery (%)</td>
+                            <td class="text-right">
+                                <span t-field="o.est_recovery_pct" t-options='{"widget": "float", "precision": 2}'/> %
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="o_label">Production On</td>
+                            <td colspan="3"><span t-field="o.production_on" t-options='{"widget": "date"}'/></td>
+                        </tr>
+                    </table>
+
+                    <p style="font-weight: bold; margin: 10px 0 5px 0;">Following would be the Finished Rice Specs:</p>
+
+                    <!-- Specifications Table -->
+                    <!-- FIX: Pull specs from the first line to avoid duplicating the table for multi-line PRS -->
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60%; text-align: left;">Parameters</th>
+                                <th style="width: 15%;">Unit</th>
+                                <th style="width: 25%;">Limits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="spec_line" t-value="o.spec_line_ids[:1]"/>
+                            <tr>
+                                <td>Polish</td>
+                                <td class="text-center"></td>
+                                <td class="text-center"><span t-field="spec_line.polish"/></td>
+                            </tr>
+                            <tr>
+                                <td>Average Grain length (min)</td>
+                                <td class="text-center">mm</td>
+                                <td class="text-center"><span t-field="spec_line.agl"/></td>
+                            </tr>
+                            <tr>
+                                <td>Broken (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.broken_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Chalky (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.chalky_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Paddy</td>
+                                <td class="text-center">Pc / Kg</td>
+                                <td class="text-center"><span t-field="spec_line.paddy_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Discolored &amp; Yellow grains (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.damaged_discolor_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Under milled grains (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.under_milled_grains"/></td>
+                            </tr>
+                            <tr>
+                                <td>Contrasting Varieties (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.contrasting_varieties"/></td>
+                            </tr>
+                            <tr>
+                                <td>Foreign Matter (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.foreign_matter_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Foreign Food grains (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.foreign_food_grains"/></td>
+                            </tr>
+                            <tr>
+                                <td>Moisture Content (max)</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.moisture_percent"/></td>
+                            </tr>
+                            <tr>
+                                <td>Insect Damage Grain</td>
+                                <td class="text-center">%</td>
+                                <td class="text-center"><span t-field="spec_line.insect_damage_grains"/></td>
+                            </tr>
+                            <tr>
+                                <td>Live Insects and mites</td>
+                                <td class="text-center"></td>
+                                <td class="text-center"><span t-field="spec_line.living_insects_mites"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Footer Section in 2 columns for a compact layout -->
+                    <table class="spec-table" style="border: none; margin-top: 20px;">
+                        <tr style="vertical-align: top;">
+                            <td style="border: none; width: 50%; padding-right: 15px;">
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Details of Packaging</p>
+                                <p style="margin: 0 0 10px 0;">SKU's: 1kg (BOPP), 5kg (BOPP &amp; Cotton), 20kg (PP &amp; Corrugated), 25kg (PP), 40kg (PP) and 50kg (PP).</p>
+
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Storage Conditions</p>
+                                <p style="margin: 0 0 10px 0;">Store in a dry and clean place.</p>
+
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Shelf Life</p>
+                                <p style="margin: 0 0 10px 0;">3 years shelf life from date of production.</p>
+                            </td>
+                            <td style="border: none; width: 50%; padding-left: 15px;">
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Method of Distribution</p>
+                                <p style="margin: 0 0 10px 0;">Distributed as per the customers orders in different types of SKU's packaging through loading vehicles.</p>
+
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Labeling Requirements</p>
+                                <p style="margin: 0 0 10px 0;">Brand name, nutritional facts, rice variant, company name, company address, cooking method, batch number, expiry date and certifications.</p>
+
+                                <p style="font-weight: bold; margin: 0 0 2px 0;">Intended Use</p>
+                                <p style="margin: 0 0 10px 0;">For Human Consumption</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,258 @@
+<odoo>
+    <data>
+
+        <record id="paperformat_initial_inspection" model="report.paperformat">
+            <field name="name">Initial Inspection Format</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+        </record>
+
+        <record id="action_report_initial_inspection" model="ir.actions.report">
+            <field name="name">Initial Inspection Report</field>
+            <field name="model">grn.inspection</field>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">mr_rice_addons.report_initial_inspection_template</field>
+            <field name="report_file">mr_rice_addons.report_initial_inspection_template</field>
+            <field name="paperformat_id" ref="paperformat_initial_inspection"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="report_initial_inspection_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class="page"
+                             style="font-family: Arial, sans-serif; font-size: 12px; color: black; padding: 20px;">
+
+                            <div class="text-center" style="margin-bottom: 15px;">
+                                <h4 style="margin:0; font-weight: bold; letter-spacing: 1px;">ARRIVAL INSPECTION
+                                    REPORT
+                                </h4>
+                            </div>
+
+                            <!-- Top Info Section -->
+                            <div style="width: 100%; border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                <div class="row">
+                                    <!-- Left Column -->
+                                    <div class="col-6">
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr style="height: 25px;">
+                                                <td width="35%" style="font-weight: bold;">REF NO.</td>
+                                                <td>
+                                                    <div style="border: 1px solid black; padding: 2px 10px; display: inline-block; min-width: 120px;">
+                                                        <span t-field="o.name"/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="padding-top: 5px;">PARTY</td>
+                                                <td style="padding-top: 5px; padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;" t-field="o.partner_id.name"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td>BROKER</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;" t-field="o.broker_id.name"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td>PRODUCT</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].product_id.name"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td>CROP</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].crop"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td>MOISTURE</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;" t-field="o.moisture_percent"/>
+                                                    %
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td>TRUCK NO</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].truck_no"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Right Column -->
+                                    <div class="col-6">
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr style="height: 25px;">
+                                                <td width="35%"
+                                                    style="font-weight: bold; text-align: right; padding-right: 10px;">
+                                                    DATE:
+                                                </td>
+                                                <td>
+                                                    <div style="border: 1px solid black; padding: 2px 10px; display: inline-block; min-width: 120px;">
+                                                        <span t-field="o.inspection_date"/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="padding-top: 5px; text-align: right; padding-right: 10px;">
+                                                    DESTINATION
+                                                </td>
+                                                <td style="padding-top: 5px; padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].destination"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="text-align: right; padding-right: 10px;">NO OF BAGS</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].bags"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="text-align: right; padding-right: 10px;">SAMPLE NO</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;" t-field="o.sample_no"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="text-align: right; padding-right: 10px;">BARDANA</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].bardana"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="text-align: right; padding-right: 10px;">POLISH</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;" t-field="o.polish_percent"/>
+                                                </td>
+                                            </tr>
+                                            <tr style="height: 25px;">
+                                                <td style="text-align: right; padding-right: 10px;">BILTY NO</td>
+                                                <td style="padding-left: 10px;">:
+                                                    <span style="margin-left: 10px;"
+                                                          t-field="o.inspection_line_ids[0].bilty_no"
+                                                          t-if="o.inspection_line_ids"/>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Main Results Table -->
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                                <thead class="text-center" style="font-weight: bold; background-color: #f2f2f2;">
+                                    <tr style="height: 30px;">
+                                        <th style="border: 1px solid black;" width="8%">SNO</th>
+                                        <th style="border: 1px solid black;" width="52%">REFRATION</th>
+                                        <th style="border: 1px solid black;" width="20%">STANDARD</th>
+                                        <th style="border: 1px solid black;" width="20%">RESULTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    <t t-set="i" t-value="1"/>
+                                    <!-- Rows (Example for Moisture) -->
+                                    <tr style="height: 25px;">
+                                        <td style="border: 1px solid black;">
+                                            <t t-esc="i"/>
+                                            <t t-set="i" t-value="i+1"/>
+                                        </td>
+                                        <td style="border: 1px solid black; text-align: left; padding-left: 15px;">
+                                            MOISTURE
+                                        </td>
+                                        <td style="border: 1px solid black;"></td>
+                                        <td style="border: 1px solid black;">
+                                            <span t-field="o.moisture_percent"/>
+                                            %
+                                        </td>
+                                    </tr>
+                                    <tr style="height: 25px;">
+                                        <td style="border: 1px solid black;">
+                                            <t t-esc="i"/>
+                                            <t t-set="i" t-value="i+1"/>
+                                        </td>
+                                        <td style="border: 1px solid black; text-align: left; padding-left: 15px;">
+                                            BROKEN
+                                        </td>
+                                        <td style="border: 1px solid black;"></td>
+                                        <td style="border: 1px solid black;">
+                                            <span t-field="o.broken_percent"/>
+                                            %
+                                        </td>
+                                    </tr>
+                                    <!-- ... Baqi rows bhi isi tarah padding-left ke sath ... -->
+                                </tbody>
+                            </table>
+
+                            <!-- Cooking & Accepted Section -->
+                            <div style="margin-top: 15px;">
+                                <div style="display: inline-block; width: 45%;">
+                                    <strong>COOKING :</strong>
+                                    <span style="margin-left: 10px;" t-field="o.cooking"/>
+                                </div>
+                                <div style="display: inline-block; width: 50%; text-align: center;">
+                                    <div style="border: 2px solid black; display: inline-block; padding: 5px 30px; font-weight: bold;">
+                                        <span t-if="o.inspection_status == 'pass'" style="font-size: 18px;">✔</span>
+                                        ACCEPTED
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Remarks Section (Fix for the Line) -->
+                            <div style="margin-top: 25px; width: 100%;">
+                                <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 80px;">
+                                    Remarks :
+                                </div>
+                                <div style="display: inline-block; border-bottom: 1px solid black; width: 85%; min-height: 20px; padding-left: 10px;">
+                                    <span t-field="o.qc_remarks"/>
+                                </div>
+                            </div>
+
+                            <!-- Signatures -->
+                            <div class="row"
+                                 style="margin-top: 80px; text-align: center; font-size: 11px; font-weight: bold;">
+                                <div class="col-4">
+                                    <div style="border-top: 1px solid black; margin: 0 15px; padding-top: 5px;">
+                                        Incharge QA &amp; Ops<br/>PREPARED BY
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div style="border-top: 1px solid black; margin: 0 15px; padding-top: 5px;">
+                                        Production Head<br/>CHECKED BY
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div style="border-top: 1px solid black; margin: 0 15px; padding-top: 5px;">
+                                        Factory Manager<br/>APPROVED BY
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

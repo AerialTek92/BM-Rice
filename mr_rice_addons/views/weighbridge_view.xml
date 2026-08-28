@@ -1,0 +1,87 @@
+<odoo>
+    <!--    Print WEIGHBRIDGE Button-->
+    <record id="view_weighbridge_ticket_form_inherit" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.form.inherit</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="inherit_id" ref="arm_rice_mill.weighbridge_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_report_weighbridge_ticket)d"
+                        string="Print Weighbridge"
+                        type="action"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--    INITIAL QC or FINAL QC Button-->
+    <record id="view_grn_inspection_form_inherit" model="ir.ui.view">
+        <field name="name">grn.inspection.form.inherit</field>
+        <field name="model">grn.inspection</field>
+        <field name="inherit_id" ref="arm_rice_mill.grn_inspection_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <!-- 1. Button for INITIAL Report -->
+                <button name="%(action_report_initial_inspection)d"
+                        string="Print Initial QC"
+                        type="action"
+                        class="oe_highlight"
+                        invisible="state not in ('draft', 'initial_pass', 'initial_fail')"/>
+
+                <!-- 2. Button for FINAL Report -->
+                <button name="%(action_report_grn_inspection)d"
+                        string="Print Final QC"
+                        type="action"
+                        class="btn-primary"
+                        invisible="state in ('draft', 'initial_pass', 'initial_fail')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--    Print GRN Button-->
+    <record id="view_picking_form_inherit_grn_button" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.grn</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_report_grn_note)d"
+                        string="Print GRN"
+                        type="action"
+                        class="oe_highlight"
+                        invisible="state != 'done'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--    Process Rice Specification Button-->
+    <record id="view_process_rice_spec_form_inherit_unique" model="ir.ui.view">
+        <field name="name">process.rice.spec.form.inherit</field>
+        <field name="model">process.rice.spec</field>
+        <field name="inherit_id" ref="arm_rice_manufacturing.process_rice_spec_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_report_process_rice_spec)d"
+                        string="Print Process Rice Specification"
+                        type="action"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="view_production_record_form_inherit_unique" model="ir.ui.view">
+        <field name="name">production.record.form.inherit</field>
+        <field name="model">production.record</field>
+        <field name="inherit_id" ref="arm_rice_manufacturing.production_record_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_report_brand_production)d"
+                        string="Print Brand Production"
+                        type="action"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_stock_picking_date_wizard_form" model="ir.ui.view">
+        <field name="name">stock.picking.date.wizard.form</field>
+        <field name="model">stock.picking.date.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Goods Receipt Date Wise">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_stock_picking_date_wizard" model="ir.actions.act_window">
+        <field name="name">Goods Receipt Date Wise</field>
+        <field name="res_model">stock.picking.date.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item -->
+    <menuitem id="menu_grn_date_wise_report"
+              name="Goods Receipt Date Wise"
+              parent="stock.menu_warehouse_report"
+              action="action_stock_picking_date_wizard"
+              sequence="160"/>
+</odoo>

@@ -1,0 +1,34 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+        <record id="view_po_vs_grn_wizard_form" model="ir.ui.view">
+            <field name="name">po.vs.grn.wizard.form</field>
+            <field name="model">po.vs.grn.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Print PO v/s GRN Comparison">
+                    <group>
+                        <group><field name="date_from"/></group>
+                        <group><field name="date_to"/></group>
+                    </group>
+                    <footer>
+                        <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- 2. Wizard Action -->
+        <record id="action_po_vs_grn_wizard" model="ir.actions.act_window">
+            <field name="name">PO v/s GRN Report</field>
+            <field name="res_model">po.vs.grn.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- 3. Menu Item (Purchase Reporting mein) -->
+        <menuitem id="menu_po_vs_grn_report"
+                  name="PO v/s Goods Receipt"
+                  parent="purchase.purchase_report_main"
+                  action="action_po_vs_grn_wizard"
+                  sequence="120"/>
+</odoo>

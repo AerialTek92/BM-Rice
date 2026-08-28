@@ -1,0 +1,266 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- Report Action -->
+    <record id="action_report_purchase_order_summary" model="ir.actions.report">
+        <field name="name">Purchase Order Summary</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_purchase_summary_template</field>
+        <field name="report_file">mr_rice_addons.report_purchase_summary_template</field>
+        <field name="print_report_name">'PO Summary Report'</field>
+        <field name="binding_type">report</field>
+        <!-- Detail wali report ka paper format reuse kar sakte hain -->
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_purchase_summary_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+
+                    <!-- Main Header -->
+                    <div class="text-center">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Purchase Order Summary</h4>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-4 text-center" style="font-weight: bold; font-size: 18px;">
+                                <u>
+                                    <strong>
+                                        <t t-if="docs and docs[0].order_line">
+                                            <span t-esc="docs[0].order_line[0].product_id.name"/>
+                                        </t>
+                                    </strong>
+                                </u>
+                            </div>
+                            <div class="col-4 text-center" style="font-weight: bold; font-size: 15px;">
+                                From Date:
+                                <span t-esc="date_from"/>
+                                To Date:
+                                <span t-esc="date_to"/>
+                            </div>
+                            <div class="col-4 text-right">
+                                <span t-esc="date_to"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLE 1: PURCHASE ORDER SUMMARY -->
+                    <table class="table table-sm table-bordered"
+                           style="width: 100%; border: 1px solid black; margin-top:15px;">
+                        <thead>
+                            <tr style="background-color: #d3d3d3; text-align: center; border-bottom: 2px solid black;">
+                                <th rowspan="2">S.NO</th>
+                                <th rowspan="2">BROKER NAME</th>
+                                <th rowspan="2">NO OF TRUCKS</th>
+                                <th rowspan="2">WEIGHT (KGS)</th>
+                                <th rowspan="2">AVG RATE (RS)</th>
+                                <th rowspan="2">MOISTURE %</th>
+                                <th rowspan="2">BROKEN %</th>
+                                <th rowspan="2">AMOUNT (RS)</th>
+                                <th rowspan="2">Cancel TLS</th>
+                                <th colspan="2">GOODS RECEIPT</th>
+                                <th colspan="2">BALANCE</th>
+                            </tr>
+                            <tr style="background-color: #d3d3d3; text-align: center;">
+                                <th>TLS</th>
+                                <th>WEIGHT</th>
+                                <th>TLS</th>
+                                <th>WEIGHT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Variables Initialization -->
+                            <t t-set="counter" t-value="0"/>
+                            <t t-set="total_trucks" t-value="0"/>
+                            <t t-set="total_weight" t-value="0"/>
+                            <t t-set="total_amount" t-value="0"/>
+                            <t t-set="total_rates_sum" t-value="0"/> <!-- Naya variable rate jama karne ke liye -->
+                            <t t-set="total_receipt_tls" t-value="0"/>
+                            <t t-set="total_receipt_weight" t-value="0"/>
+
+                            <t t-foreach="docs" t-as="o">
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <t t-set="counter" t-value="counter + 1"/>
+
+                                    <!-- Search Inspection Data -->
+                                    <t t-set="insp_lines" t-value="request.env['grn.inspection.line'].search([
+                                    ('inspection_id.partner_id', '=', o.partner_id.id),
+                                    ('product_id', '=', line.product_id.id)
+                                ])"/>
+
+                                    <t t-set="receipt_tls" t-value="sum(insp_lines.mapped('grn_insp_tls')) or 0.0"/>
+                                    <t t-set="receipt_weight" t-value="sum(insp_lines.mapped('bilty_weight')) or 0.0"/>
+
+                                    <t t-set="bal_tls" t-value="line.no_of_trucks - receipt_tls"/>
+                                    <t t-set="bal_weight" t-value="line.product_qty - receipt_weight"/>
+
+                                    <!-- Accumulating Totals -->
+                                    <t t-set="total_trucks" t-value="total_trucks + line.no_of_trucks"/>
+                                    <t t-set="total_weight" t-value="total_weight + line.product_qty"/>
+                                    <t t-set="total_amount" t-value="total_amount + line.price_subtotal"/>
+                                    <t t-set="total_rates_sum"
+                                       t-value="total_rates_sum + line.price_unit"/> <!-- Rate jama ho raha hai -->
+                                    <t t-set="total_receipt_tls" t-value="total_receipt_tls + receipt_tls"/>
+                                    <t t-set="total_receipt_weight" t-value="total_receipt_weight + receipt_weight"/>
+
+                                    <tr>
+                                        <td class="text-center">
+                                            <span t-esc="counter"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="o.broker_id.name"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="line.no_of_trucks"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.product_qty"
+                                                  t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.price_unit"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="line.moisture_percent"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="line.broken_percent"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.price_subtotal"
+                                                  t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                        <td class="text-center">-</td>
+                                        <td class="text-center">
+                                            <span t-esc="receipt_tls" t-options='{"widget": "float", "precision": 1}'/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="receipt_weight"
+                                                  t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                        <td class="text-center" style="background-color: #f9f9f9;">
+                                            <span t-esc="bal_tls if bal_tls > 0 else 0"/>
+                                        </td>
+                                        <td class="text-right" style="background-color: #f9f9f9;">
+                                            <span t-esc="bal_weight if bal_weight > 0 else 0"
+                                                  t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+
+                            <!-- Totals Row -->
+                            <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                <td colspan="2" class="text-right">TOTAL</td>
+                                <td class="text-center">
+                                    <span t-esc="total_trucks" t-options='{"widget": "float", "precision": 1}'/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="total_weight" t-options='{"widget": "float", "precision": 0}'/>
+                                </td>
+
+                                <!-- AVG Rate Total: Rates ka total / Total Lines (Counter) -->
+                                <td class="text-right">
+                                    <t t-if="counter > 0">
+                                        <span t-esc="total_rates_sum / counter"
+                                              t-options='{"widget": "float", "precision": 2}'/>
+                                    </t>
+                                </td>
+
+                                <td></td>
+                                <td></td>
+                                <td class="text-right">
+                                    <span t-esc="total_amount" t-options='{"widget": "float", "precision": 0}'/>
+                                </td>
+                                <td></td>
+                                <td class="text-center">
+                                    <span t-esc="total_receipt_tls" t-options='{"widget": "float", "precision": 1}'/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="total_receipt_weight" t-options='{"widget": "float", "precision": 0}'/>
+                                </td>
+                                <td class="text-center">
+                                    <span t-esc="total_trucks - total_receipt_tls"
+                                          t-options='{"widget": "float", "precision": 1}'/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="total_weight - total_receipt_weight"
+                                          t-options='{"widget": "float", "precision": 0}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Table 2: Payment Certificate Summary -->
+                    <div style="margin-top: 30px;">
+                        <p style="font-weight: bold; font-size: 11px;">PAYMENT CERTIFICATE FOR THE PERIOD (<span
+                                t-esc="date_from"/>-<span t-esc="date_to"/>)
+                        </p>
+                    </div>
+                    <table class="table table-sm table-bordered" style="width: 100%; border: 1px solid black;">
+                        <thead>
+                            <tr style="background-color: #d3d3d3; text-align: center;">
+                                <th>S.NO</th>
+                                <th>BROKER NAME</th>
+                                <th>DATE</th>
+                                <th>NO OF TRUCKS</th>
+                                <th>WEIGHT (KGS)</th>
+                                <th>AVG RATE (RS)</th>
+                                <th>MOISTURE %</th>
+                                <th>BROKEN %</th>
+                                <th>AMOUNT (RS)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="cert_counter" t-value="0"/>
+                            <t t-set="certs"
+                               t-value="request.env['payment.certificate'].search([('purchase_id', 'in', docs.ids)])"/>
+                            <t t-foreach="certs" t-as="cert">
+                                <t t-set="cert_counter" t-value="cert_counter + 1"/>
+                                <tr>
+                                    <td class="text-center">
+                                        <span t-esc="cert_counter"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="cert.purchase_id.broker_id.name"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-field="cert.date" t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                    </td>
+                                    <td class="text-center">1.0</td>
+                                    <td class="text-right">
+                                        <span t-field="cert.net_weight"
+                                              t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="cert.rate" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-field="cert.moisture_actual"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-field="cert.broken_actual"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="cert.amount" t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    ...
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
