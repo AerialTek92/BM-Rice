@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_weighbridge_ticket_form_outbound_inherit" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.form.outbound.inherit</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="inherit_id" ref="arm_rice_mill.weighbridge_ticket_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Add Outbound Header Fields -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="outbound_partner_id" readonly="1" force_save="1" invisible="weighbridge_type != 'outbound'"/>
+            </xpath>
+            <xpath expr="//field[@name='rice_sales_contract_id']" position="after">
+                <field name="sale_order_id" readonly="state != 'draft'" invisible="weighbridge_type != 'outbound'"
+                       domain="[('company_id', 'in', allowed_company_ids), ('state', 'in', ['sale', 'done'])]"/>
+                <field name="delivery_picking_id" readonly="state != 'draft'" invisible="weighbridge_type != 'outbound'"/>
+            </xpath>
+
+            <!-- 2. Add Outbound Smart Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_sale_order" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="weighbridge_type != 'outbound' or not sale_order_id">
+                    <span class="o_stat_text">Sales Memo</span>
+                </button>
+                <button name="action_view_delivery_picking" type="object" class="oe_stat_button" icon="fa-truck" invisible="weighbridge_type != 'outbound' or not delivery_picking_id">
+                    <span class="o_stat_text">Delivery Order</span>
+                </button>
+            </xpath>
+
+            <!-- 3. Add Outbound Buttons in Header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_start_loading" string="Start Loading" type="object" class="btn-primary"
+                        invisible="weighbridge_type != 'outbound' or state != 'draft' or gross_weight == 0"/>
+                <button name="action_confirm_outbound" string="Confirm" type="object" class="btn-success"
+                        invisible="weighbridge_type != 'outbound' or state != 'unloading' or tare_weight == 0"/>
+            </xpath>
+
+            <!-- 4. Hide the inherited Cancel button for CONFIRMED outbound tickets -->
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">state in ('cancel', 'done') or (weighbridge_type == 'outbound' and state == 'confirmed')</attribute>
+            </xpath>
+
+            <!-- 5. Update Allocation Separator -->
+            <xpath expr="//separator[@name='allocation_separator']" position="after">
+                <separator name="allocation_separator_outbound" string="Allocate Weight by Delivery Order" invisible="weighbridge_type != 'outbound'"/>
+            </xpath>
+
+            <!-- 6. Add Outbound Line Fields (D/O Qty mapped from the Delivery Order, Demand = allocation ceiling) -->
+            <xpath expr="//field[@name='line_ids']//list//field[@name='purchase_order_line_id']" position="after">
+                <field name="delivery_picking_id" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_line_id" domain="[('picking_id', '=', delivery_picking_id)]" string="D/O Line / Product" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_qty" string="D/O Qty" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_demand_qty" string="Demand" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="additional_weight" string="Add. Wt (g)" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="total_weight" string="Total Wt" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

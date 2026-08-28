@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- REPORT 1: SINGLE RECORD (HTML via Button)  -->
+    <!-- ========================================== -->
+    <record id="action_report_delivery_order_single_html" model="ir.actions.report">
+        <field name="name">Delivery Order Detail (Single)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-html</field>
+        <!-- FIX: Shortened report name -->
+        <field name="report_name">arm_sales_management.report_do_single</field>
+        <field name="report_file">arm_sales_management.report_do_single</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- FIX: Updated template id to match -->
+    <template id="report_do_single">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 10px;">
+                    <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+                        <h2 style="margin:0; font-weight: bold;">Delivery Order Detail</h2>
+                    </div>
+                    <table class="table table-bordered" style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+                        <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                            <tr>
+                                <th style="border: 1px solid black;">D/O No.<br/>D/O Date</th>
+                                <th style="border: 1px solid black;">Customer Name</th>
+                                <th style="border: 1px solid black;">Product Name</th>
+                                <th style="border: 1px solid black;">D/O Qty (Kgs)</th>
+                                <th style="border: 1px solid black;">GatePass Qty (Kgs)</th>
+                                <th style="border: 1px solid black;">Balance Qty (Kgs)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="moves" t-value="o.move_ids.filtered(lambda m: m.state != 'cancel')"/>
+                            <t t-foreach="moves" t-as="move">
+                                <t t-set="do_qty" t-value="move.product_uom_qty"/>
+                                <t t-set="gp_qty" t-value="0.0"/>
+                                <t t-set="bal_qty" t-value="do_qty - gp_qty"/>
+
+                                <t t-if="o.gate_pass_id">
+                                    <t t-set="gp_line" t-value="o.gate_pass_id.gate_pass_line_ids.filtered(lambda l: l.product_id == move.product_id)"/>
+                                    <t t-if="gp_line">
+                                        <t t-set="gp_qty" t-value="gp_line[0].net"/>
+                                        <t t-set="bal_qty" t-value="do_qty - gp_qty"/>
+                                    </t>
+                                </t>
+
+                                <tr style="border-bottom: 1px solid #ccc;">
+                                    <td style="border-right: 1px solid black; padding: 5px;">
+                                        <span t-field="o.name"/><br/>
+                                        <span t-field="o.scheduled_date" t-options='{"widget": "date"}'/>
+                                    </td>
+                                    <td style="border-right: 1px solid black; padding: 5px;"><span t-field="o.partner_id.name"/></td>
+                                    <td style="border-right: 1px solid black; padding: 5px;"><span t-field="move.product_id.name"/></td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;"><span t-esc="do_qty"/></td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;"><span t-esc="gp_qty"/></td>
+                                    <td style="text-align: right; padding: 5px;"><span t-esc="bal_qty"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- REPORT 2: MULTIPLE RECORDS (PDF via Wizard) -->
+    <!-- ========================================== -->
+    <record id="action_report_delivery_order_detail_pdf" model="ir.actions.report">
+        <field name="name">Delivery Order Detail (Range)</field>
+        <field name="model">delivery.order.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <!-- FIX: Shortened report name to match AbstractModel -->
+        <field name="report_name">arm_sales_management.report_do_range</field>
+        <field name="report_file">arm_sales_management.report_do_range</field>
+        <field name="print_report_name">'Delivery_Order_Detail_Report'</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- FIX: Updated template id to match -->
+    <template id="report_do_range">
+        <t t-call="web.html_container">
+            <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 10px;">
+
+                <!-- Title Section -->
+                <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Delivery Order Detail</h2>
+                    <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px;">
+                        <span t-esc="date_from"/> - <span t-esc="date_to"/>
+                    </p>
+                </div>
+
+                <!-- Main Table -->
+                <table class="table table-bordered" style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+                    <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                        <tr>
+                            <th style="border: 1px solid black;">D/O No.<br/>D/O Date</th>
+                            <th style="border: 1px solid black;">Customer Name</th>
+                            <th style="border: 1px solid black;">Product Name</th>
+                            <th style="border: 1px solid black;">D/O Qty (Kgs)</th>
+                            <th style="border: 1px solid black;">GatePass Qty (Kgs)</th>
+                            <th style="border: 1px solid black;">Balance Qty (Kgs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="total_do_qty" t-value="0"/>
+                        <t t-set="total_gp_qty" t-value="0"/>
+                        <t t-set="total_bal_qty" t-value="0"/>
+
+                        <t t-foreach="docs" t-as="o">
+                            <t t-set="moves" t-value="o.move_ids.filtered(lambda m: m.state != 'cancel')"/>
+                            <t t-if="moves">
+                                <t t-foreach="moves" t-as="move">
+                                    <t t-set="do_qty" t-value="move.product_uom_qty"/>
+                                    <t t-set="gp_qty" t-value="0.0"/>
+                                    <t t-set="bal_qty" t-value="do_qty - gp_qty"/>
+
+                                    <t t-if="o.gate_pass_id">
+                                        <t t-set="gp_line" t-value="o.gate_pass_id.gate_pass_line_ids.filtered(lambda l: l.product_id == move.product_id)"/>
+                                        <t t-if="gp_line">
+                                            <t t-set="gp_qty" t-value="gp_line[0].net"/>
+                                            <t t-set="bal_qty" t-value="do_qty - gp_qty"/>
+                                        </t>
+                                    </t>
+
+                                    <tr style="border-bottom: 1px solid #ccc;">
+                                        <td style="border-right: 1px solid black; padding: 5px;">
+                                            <span t-field="o.name"/><br/>
+                                            <span t-field="o.scheduled_date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                        <td style="border-right: 1px solid black; padding: 5px;"><span t-field="o.partner_id.name"/></td>
+                                        <td style="border-right: 1px solid black; padding: 5px;"><span t-field="move.product_id.name"/></td>
+                                        <td style="border-right: 1px solid black; text-align: right; padding: 5px;"><span t-esc="do_qty"/></td>
+                                        <td style="border-right: 1px solid black; text-align: right; padding: 5px;"><span t-esc="gp_qty"/></td>
+                                        <td style="text-align: right; padding: 5px;"><span t-esc="bal_qty"/></td>
+                                    </tr>
+                                    <t t-set="total_do_qty" t-value="total_do_qty + do_qty"/>
+                                    <t t-set="total_gp_qty" t-value="total_gp_qty + gp_qty"/>
+                                    <t t-set="total_bal_qty" t-value="total_bal_qty + bal_qty"/>
+                                </t>
+                            </t>
+                        </t>
+                    </tbody>
+                    <tfoot style="font-weight: bold; background-color: #f2f2f2; border-top: 2px solid black;">
+                        <tr style="height: 30px;">
+                            <td colspan="3" style="text-align: right; border: 1px solid black;">TOTALS:</td>
+                            <td style="text-align: right; border: 1px solid black;"><span t-esc="total_do_qty"/></td>
+                            <td style="text-align: right; border: 1px solid black;"><span t-esc="total_gp_qty"/></td>
+                            <td style="text-align: right; border: 1px solid black;"><span t-esc="total_bal_qty"/></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. Rename Menu Item -->
+    <record id="sale.menu_sale_order" model="ir.ui.menu">
+        <field name="name">Sales Memo</field>
+    </record>
+
+    <!-- 2. Rename Window Action -->
+    <record id="sale.action_orders" model="ir.actions.act_window">
+        <field name="name">Sales Memo</field>
+        <field name="domain">[('is_export_hidden', '=', False)]</field>
+    </record>
+
+    <!-- 3. Form View Inheritance -->
+    <record id="view_sale_order_custom_form" model="ir.ui.view">
+        <field name="name">sale.order.custom.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- NEW: Create an additional Delivery Order for the remaining quantity -->
+            <xpath expr="//header" position="inside">
+                <button name="action_create_delivery_order" string="Create Delivery Order" type="object"
+                        class="btn-secondary" invisible="state not in ('sale', 'done')"/>
+            </xpath>
+
+            <!-- Add Broker, Contract, and Type after Customer -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="broker_id" string="Broker"/>
+                <field name="rice_sales_contract_id" string="Rice Sales Contract"
+                       domain="[('partner_id', '=', partner_id), ('state', 'in', ['confirmed', 'done']), ('contract_type', '=', 'export')]"/>
+                <field name="contract_type" string="Contract Type" readonly="1" widget="badge" decoration-info="contract_type == 'local'" decoration-success="contract_type == 'export'"/>
+            </xpath>
+
+            <!-- Rename Quotation Date to Order Date -->
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="string">Order Date</attribute>
+            </xpath>
+
+            <!-- Add Delivery Date and Sales Memo Ref after Order Date -->
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="delivery_date" string="Delivery Date"/>
+                <field name="manual_sales_memo_ref" string="Sales Memo Ref"/>
+            </xpath>
+
+            <!-- Hide Expiration Date -->
+            <xpath expr="//field[@name='validity_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Line Fields Customization -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="after">
+                <field name="pcs" string="PCS" optional="show"/>
+                <field name="ctn" string="CTN" optional="show"/>
+            </xpath>
+
+            <!-- Rename Qty and Rate strings inside the list -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_uom_qty']" position="attributes">
+                <attribute name="string">Qty (Kgs)</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//list//field[@name='price_unit']" position="attributes">
+                <attribute name="string">Rate (Kgs)</attribute>
+            </xpath>
+
+            <!-- NEW: Remaining Qty column right after Qty (Kgs) -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_uom_qty']" position="after">
+                <field name="remaining_qty" string="Rem. Qty" optional="show"/>
+            </xpath>
+
+            <!-- Hide Taxes in Line -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='tax_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Add Discount Amounts and Net Amount inside the list -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']" position="after">
+                <field name="additional_weight" string="Add. Wt (g)" optional="show" readonly="1" force_save="1"/>
+                <field name="total_weight" string="Total Wt" optional="show" readonly="1" force_save="1"/>
+                <field name="discount_amount" string="Disct Amt" optional="show"/>
+                <field name="discount_special" string="Disct Sp." optional="show"/>
+                <field name="net_amount" string="Net Amt" optional="show"/>
+            </xpath>
+
+            <!-- Move Remarks to the footer -->
+            <xpath expr="//sheet//notebook" position="after">
+                <group string="Remarks">
+                    <field name="delivery_remarks" nolabel="1" colspan="2" placeholder="Enter delivery remarks..."/>
+                </group>
+            </xpath>
+
+            <!-- INVOICING GATE -->
+            <xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="before">
+                <field name="is_delivery_complete" invisible="1"/>
+            </xpath>
+            <xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="attributes">
+                <attribute name="invisible">state not in ('sale', 'done') or invoice_status != 'to invoice' or not is_delivery_complete</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

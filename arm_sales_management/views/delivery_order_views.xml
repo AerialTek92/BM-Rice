@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_delivery_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.delivery.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Rename native 'Delivery Address' label to 'Customer' -->
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="string">Customer</attribute>
+            </xpath>
+
+            <!-- 2. Add Sales Memo No, Contract Type and Broker directly after the Customer field -->
+            <xpath expr="//sheet//group//field[@name='partner_id']" position="after">
+                <field name="sale_id" string="Sales Memo No"
+                       domain="[('partner_id', '=', partner_id), ('state', 'in', ['sale', 'done'])]"
+                       readonly="state in ('cancel', 'done')"
+                       invisible="picking_type_code != 'outgoing'"/>
+                <field name="contract_type" string="Contract Type" invisible="picking_type_code != 'outgoing'" widget="badge" decoration-info="contract_type == 'local'" decoration-success="contract_type == 'export'"/>
+                <field name="broker_id" string="Broker" readonly="state in ('cancel', 'done')" invisible="picking_type_code != 'outgoing'"/>
+            </xpath>
+
+            <!-- 3. Add Delivery Info fields on the right side, after Source Document -->
+            <xpath expr="//sheet//group//field[@name='origin']" position="after">
+                <field name="delivery_order_date" string="D/O Date" readonly="state in ('cancel', 'done')" invisible="picking_type_code != 'outgoing'"/>
+                <field name="total_qty" string="Total Qty" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+                <field name="commercial_do_qty" string="Comm. D/O Qty" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+                <field name="notebook_jv" string="Notebook JV" readonly="state in ('cancel', 'done')" invisible="picking_type_code != 'outgoing'"/>
+                <field name="is_commercially_validated" invisible="1"/>
+            </xpath>
+
+            <!-- 4. Move Remarks to the footer ONLY for Delivery Orders -->
+            <xpath expr="//sheet//notebook" position="after">
+                <group string="Delivery Remarks" invisible="picking_type_code != 'outgoing'">
+                    <field name="delivery_remarks" nolabel="1" colspan="2" placeholder="Enter delivery remarks..."/>
+                </group>
+            </xpath>
+
+            <!-- 5. Add Custom Line Fields ONLY for Delivery Orders -->
+            <xpath expr="//field[@name='move_ids']//list//field[@name='product_id']" position="before">
+                <field name="sale_order_id" string="SO No" optional="show" column_invisible="parent.picking_type_code != 'outgoing'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids']//list//field[@name='product_id']" position="after">
+                <field name="pcs" string="PCS" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="ctn" string="CTN" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+            </xpath>
+
+            <!-- Rename Demand (product_uom_qty) to Qty.
+                 HIDDEN on Delivery Orders once Done: reporting reads Comm. D/O Qty instead.
+                 Receipts and Internal Transfers are unaffected. -->
+            <xpath expr="//field[@name='move_ids']//list//field[@name='product_uom_qty']" position="attributes">
+                <attribute name="string">Qty</attribute>
+                <attribute name="column_invisible">parent.picking_type_code == 'outgoing' and parent.state == 'done'</attribute>
+            </xpath>
+
+            <!-- D/O Qty (quantity): hidden once the Delivery Order is Done (only Comm. D/O Qty remains) -->
+            <xpath expr="//field[@name='move_ids']//list//field[@name='quantity']" position="attributes">
+                <attribute name="string">D/O Qty</attribute>
+                <attribute name="column_invisible">parent.picking_type_code != 'outgoing' or parent.state == 'done'</attribute>
+                <attribute name="optional">show</attribute>
+            </xpath>
+
+            <!-- Comm. D/O Qty column (originally approved qty, survives weighbridge sync) -->
+            <xpath expr="//field[@name='move_ids']//list//field[@name='quantity']" position="after">
+                <!-- NEW: SM Qty - total quantity confirmed on the Sales Memo -->
+                <field name="sm_qty" string="SM Qty" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="commercial_quantity" string="Comm. D/O Qty" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="sale_remaining_qty" string="Rem. Qty" optional="show" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="additional_weight" string="Add. Wt (g)" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="total_weight" string="Total Wt" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
+                <field name="balance_qty" string="Balance" optional="show" column_invisible="parent.picking_type_code != 'outgoing'"/>
+            </xpath>
+
+            <!-- FIX: Hide native Validate button if Commercially Validated -->
+            <xpath expr="//header/button[@name='button_validate']" position="attributes">
+                <attribute name="invisible">state not in ('assigned', 'confirmed') or is_commercially_validated == True</attribute>
+            </xpath>
+
+            <!-- FIX: Add dummy button to show status -->
+            <xpath expr="//header" position="inside">
+                <button name="action_dummy" string="Approved - Awaiting Weighbridge" type="object" class="btn-secondary"
+                        invisible="picking_type_code != 'outgoing' or contract_type == 'export' or is_commercially_validated == False or state != 'assigned'"/>
+                <button name="%(arm_sales_management.action_report_delivery_order_single_html)d" string="Print D/O Detail" type="action" class="btn-secondary" invisible="picking_type_code != 'outgoing'"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
