@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_product_issue_wizard_form" model="ir.ui.view">
+        <field name="name">hr.product.issue.wizard.form</field>
+        <field name="model">hr.product.issue.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Batch Issue Products">
+                <group>
+                    <field name="date"/>
+                </group>
+                <field name="employee_ids">
+                    <list>
+                        <field name="name"/>
+                        <field name="job_title"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_create_issues" string="Create Draft Issuances" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_product_issue_wizard" model="ir.actions.act_window">
+        <field name="name">Batch Issue Products</field>
+        <field name="res_model">hr.product.issue.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_hr_product_issue_wizard" name="Batch Issue" parent="menu_hr_product_issue_root" action="action_hr_product_issue_wizard" sequence="2"/>
+</odoo>

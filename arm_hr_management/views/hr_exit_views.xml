@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_hr_exit_list" model="ir.ui.view">
+        <field name="name">hr.exit.list</field>
+        <field name="model">hr.exit</field>
+        <field name="arch" type="xml">
+            <list string="Exit Requests"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="exit_type"/>
+                <field name="last_working_day"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'"
+                       decoration-warning="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_hr_exit_form" model="ir.ui.view">
+        <field name="name">hr.exit.form</field>
+        <field name="model">hr.exit</field>
+        <field name="arch" type="xml">
+            <form string="Exit Request">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_hr_approve" string="HR Approve" type="object" class="oe_highlight"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Mark as Done" type="object" class="oe_highlight"
+                            invisible="state != 'hr_approved'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('done', 'cancel')"/>
+                    <button name="action_draft" string="Set to Draft" type="object" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,hr_approved,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Employee Details">
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <!-- <field name="contract_id" readonly="state != 'draft'"/> -->
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Separation Details">
+                            <field name="exit_type" widget="radio" readonly="state != 'draft'"/>
+                            <field name="resignation_date" readonly="state != 'draft'"/>
+                            <field name="last_working_day" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group string="Notice Period">
+                        <group>
+                            <field name="notice_period_days" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="notice_recovery_amount" widget="monetary" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Reason for Exit" name="reason_for_exit">
+                            <field name="reason" placeholder="Describe the reason for leaving..."
+                                   readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_exit" model="ir.actions.act_window">
+        <field name="name">Exit Requests</field>
+        <field name="res_model">hr.exit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_hr_exit_root" name="Resignations &amp; Exits" parent="hr.menu_hr_root" sequence="20"/>
+    <menuitem id="menu_hr_exit_request" name="Exit Requests" parent="menu_hr_exit_root" action="action_hr_exit"
+              sequence="1"/>
+
+</odoo>

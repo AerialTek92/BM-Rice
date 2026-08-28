@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_hr_final_settlement_list" model="ir.ui.view">
+        <field name="name">hr.final.settlement.list</field>
+        <field name="model">hr.final.settlement</field>
+        <field name="arch" type="xml">
+            <list string="Final Settlements">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="settlement_date"/>
+                <field name="net_payable" widget="monetary"/>
+                <field name="state" widget="badge" decoration-success="state == 'paid'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_hr_final_settlement_form" model="ir.ui.view">
+        <field name="name">hr.final.settlement.form</field>
+        <field name="model">hr.final.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Final Settlement">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object" class="oe_highlight"
+                            invisible="state != 'approved'" groups="account.group_account_user"/>
+                    <button name="action_close" string="Close Settlement" type="object" invisible="state != 'paid'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Employee Info">
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="exit_id" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Settlement Details">
+                            <field name="settlement_date" readonly="state != 'draft'"/>
+                            <field name="last_working_day" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Earnings">
+                            <field name="earning_line_ids" readonly="state not in ['draft', 'confirmed']">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="rate"/>
+                                    <field name="amount" widget="monetary"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_earnings" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Deductions">
+                            <button name="action_fetch_outstanding_dues" string="Fetch Dues" type="object"
+                                    class="btn-secondary mb-2" invisible="state != 'draft'"/>
+                            <field name="deduction_line_ids" readonly="state not in ['draft', 'confirmed']">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="is_recovery" readonly="1"/>
+                                    <field name="amount" widget="monetary"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_deductions" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Gratuity &amp; Encashment">
+                            <group string="Gratuity Calculation">
+                                <field name="gratuity_line_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="joining_date"/>
+                                        <field name="gross_salary"/>
+                                        <field name="years_of_service" readonly="1"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Leave Encashment">
+                                <field name="leave_encashment_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="leave_type_id"/>
+                                        <field name="remaining_days"/>
+                                        <field name="encash_rate"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Provident Fund">
+                            <field name="pf_line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="basic_salary"/>
+                                    <field name="percentage"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="net_payable" class="oe_subtotal_footer_separator" widget="monetary"/>
+                    </group>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_hr_final_settlement" model="ir.actions.act_window">
+        <field name="name">Final Settlements</field>
+        <field name="res_model">hr.final.settlement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_hr_final_settlement" name="Final Settlements" parent="menu_hr_exit_root"
+              action="action_hr_final_settlement" sequence="10"/>
+
+</odoo>

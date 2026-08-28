@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_product_issue_user,hr.product.issue.user,model_hr_product_issue,hr.group_hr_user,1,1,1,1
+access_hr_product_issue_line_user,hr.product.issue.line.user,model_hr_product_issue_line,hr.group_hr_user,1,1,1,1
+access_hr_product_issue_wizard,hr.product.issue.wizard,model_hr_product_issue_wizard,hr.group_hr_user,1,1,1,1
+
+access_hr_exit,hr.exit,model_hr_exit,hr.group_hr_user,1,1,1,1
+access_hr_salary_advance,hr.salary.advance,model_hr_salary_advance,hr.group_hr_user,1,1,1,1
+access_hr_loan_request,hr.loan.request,model_hr_loan_request,hr.group_hr_user,1,1,1,1
+access_hr_loan_line,hr.loan.line,model_hr_loan_line,hr.group_hr_user,1,1,1,1
+
+access_hr_final_settlement_all,hr.final.settlement.all,model_hr_final_settlement,,1,1,1,1
+access_hr_final_earning_line_all,hr.final.earning.line.all,model_hr_final_earning_line,,1,1,1,1
+access_hr_final_deduction_line_all,hr.final.deduction.line.all,model_hr_final_deduction_line,,1,1,1,1
+access_hr_final_gratuity_all,hr.final.gratuity.all,model_hr_final_gratuity,,1,1,1,1
+access_hr_final_leave_encashment_all,hr.final.leave.encashment.all,model_hr_final_leave_encashment,,1,1,1,1
+access_hr_final_pf_all,hr.final.pf.all,model_hr_final_pf,,1,1,1,1

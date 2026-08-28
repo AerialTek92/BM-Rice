@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW (Odoo 19 uses <list>) -->
+    <record id="view_hr_loan_request_list" model="ir.ui.view">
+        <field name="name">hr.loan.request.list</field>
+        <field name="model">hr.loan.request</field>
+        <field name="arch" type="xml">
+            <list string="Loan Requests" sample="1">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="loan_amount" widget="monetary"/>
+                <field name="request_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paid'"
+                       decoration-info="state == 'approved'"
+                       decoration-warning="state == 'submitted'"/>
+                <field name="currency_id" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_hr_loan_request_form" model="ir.ui.view">
+        <field name="name">hr.loan.request.form</field>
+        <field name="model">hr.loan.request</field>
+        <field name="arch" type="xml">
+            <form string="Request for Loan">
+                <header>
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_generate_journal_entry" string="Post to Accounting" type="object"
+                            class="oe_highlight" groups="account.group_account_user" invisible="state != 'approved'"/>
+                    <button name="action_refuse" string="Refuse" type="object" invisible="state != 'submitted'"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,paid"/>
+                </header>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_open_account_move" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not move_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Employee Information">
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="work_location_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Loan Request Details">
+                            <field name="request_date" readonly="state != 'draft'"/>
+                            <field name="payment_start_date" readonly="state != 'draft'"/>
+                            <field name="loan_amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="installment_count" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Installment Schedule" name="installments">
+                            <field name="installment_ids" readonly="1">
+                                <list>
+                                    <field name="payment_date"/>
+                                    <field name="amount" sum="Total Loan Amount"/>
+                                    <field name="is_paid" widget="boolean_toggle"/>
+                                    <field name="payslip_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Accounting Details" name="accounting"
+                              invisible="state not in ('approved', 'paid')">
+                            <group>
+                                <field name="journal_id" options="{'no_create': True}" required="state == 'approved'"
+                                       readonly="state == 'paid'"/>
+                                <field name="emp_account_id" options="{'no_create': True}"
+                                       required="state == 'approved'" readonly="state == 'paid'"/>
+                                <field name="move_id" invisible="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_hr_loan_request" model="ir.actions.act_window">
+        <field name="name">Loan Requests</field>
+        <field name="res_model">hr.loan.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Loan Request
+            </p>
+        </field>
+    </record>
+
+    <!-- MENUS -->
+    <menuitem id="menu_hr_loan_advance_root" name="Loans &amp; Advances" parent="hr.menu_hr_root" sequence="25"/>
+    <menuitem id="menu_hr_loan_request_child" name="Loan Requests" parent="menu_hr_loan_advance_root"
+              action="action_hr_loan_request" sequence="1"/>
+
+</odoo>

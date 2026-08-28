@@ -1,0 +1,1 @@
+from . import hr_product_issue_wizard
