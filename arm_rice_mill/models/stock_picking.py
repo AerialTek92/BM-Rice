@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple
 
 # --- Searchable Constants (Protocol 1.3) ---
 ALLOWANCE_FILL_BAGS: str = 'FILL BAGS'
@@ -58,7 +58,7 @@ class StockPicking(models.Model):
                                  readonly=True)
     bags = fields.Integer(string='Bags', readonly=True)
     truck_type = fields.Many2one('master.truck.type', string='Truck Type', readonly=True)
-    bilty_no = fields.Char(string='Bilty No', readonly=True)
+    bilty_no = fields.Char(string='Bilty No.', readonly=True)
 
     filling_bags = fields.Integer(string='Filling Bags', compute='_compute_filling_bags', store=True, readonly=False)
 
@@ -127,14 +127,13 @@ class StockPicking(models.Model):
     def name_search(self, name='', domain=None, operator='ilike', limit=100):
         """Search strictly by vehicle number if context dictates (Odoo 19 Compatible)."""
         if self.env.context.get('payment_cert_grn_view') and name:
-            # 1. Field ka default domain (incoming + done) ko preserve karein
-            # 2. Aur sirf Truck Number (vehicle_number) ke basis par search karein
+            # 1. Preserve the field's default domain (incoming + done)
+            # 2. And search strictly by Truck Number (vehicle_number)
             domain = (domain or []) + [('vehicle_number', operator, name)]
 
-            # Records ko search karein
             records = self.search(domain, limit=limit)
 
-            # Odoo 19 ko (id, display_name) ki list chahiye hoti hai
+            # Odoo 19 expects a list of (id, display_name)
             return [(rec.id, rec.display_name) for rec in records]
 
         return super().name_search(name, domain=domain, operator=operator, limit=limit)
@@ -163,7 +162,7 @@ class StockPicking(models.Model):
         for picking in self:
             # If the picking is part of the custom Rice Mill flow, lock the operation type context
             if picking.grn_inspection_id or picking.weighbridge_id:
-                if picking.picking_type_code not in ('incoming', 'outgoing'):
+                if picking.picking_type_code not in (PICKING_INCOMING, PICKING_OUTGOING):
                     raise ValidationError(_(
                         "Operation Type for Rice Mill GRNs/Returns must be strictly Incoming or Outgoing. "
                         "You cannot manually change it to an Internal Transfer."
@@ -287,9 +286,18 @@ class StockPicking(models.Model):
         return super().unlink()
 
     def button_validate(self) -> Dict[str, Any]:
-        # FIX: Prevent validation of Delivery Orders until Gate Pass is Marked as Exited (done)
+        # FIX: Gate Pass enforcement is scoped to SALES Delivery Orders (picking has a Sale Order).
+        # Both local and export sales DOs carry sale_id, and in both flows the Gate Pass is
+        # Marked as Exited before validation - so the enforcement is preserved for them.
+        # Purchase returns and the Delete-GRN reversal return have no Sale Order and no Gate
+        # Pass: they must validate freely (this check previously blocked them).
         for picking in self:
-            if picking.picking_type_code == 'outgoing' and picking.state not in ('done', 'cancel'):
+            is_sales_delivery = (
+                picking.picking_type_code == PICKING_OUTGOING
+                and picking.sale_id
+                and picking.state not in ('done', 'cancel')
+            )
+            if is_sales_delivery:
                 if not picking.gate_pass_id or picking.gate_pass_id.state != 'done':
                     raise UserError(_(
                         "You cannot validate this Delivery Order yet. "
@@ -330,7 +338,7 @@ class StockPicking(models.Model):
                     if po_line.exists():
                         po_line.available_tls = max(0.0, po_line.available_tls - tls_used)
 
-            # 2. Standard Return (Outgoing): Restore TLS to PO Line
+            # 2. Supplier Return (Outgoing, no sale): Restore TLS to PO Line
             elif picking.picking_type_code == PICKING_OUTGOING:
                 self._restore_tls_on_return(picking)
 

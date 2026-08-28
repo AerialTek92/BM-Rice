@@ -268,7 +268,7 @@ class GatePassLine(models.Model):
     do_demand_qty = fields.Float(string='D/O Qty')
     location_dest_id = fields.Many2one('stock.location', string='Location')
 
-    additional_weight = fields.Float(string='Add. Wt')
+    additional_weight = fields.Float(string='Add. Wt (g)')
     total_weight = fields.Float(string='Total Wt')
 
     pcs = fields.Float(string='PCS')

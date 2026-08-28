@@ -219,6 +219,31 @@ class PurchaseOrder(models.Model):
         self.ensure_one()
         return self._open_related_records('grn.inspection', 'purchase_order_id', 'GRN Inspection')
 
+    def action_view_picking(self) -> Dict[str, Any]:
+        """Receipts smart button: open with the rice receipts list so the
+        purchase-flow columns (Trucks, Vehicle No., TLS values) are visible.
+
+        The smart button builds its own action around the generic Transfers
+        action with a PO domain - the act_window view attachment on the
+        Receipts menu action never reaches it - so the list mode is pointed
+        at the receipts view here, at the moment the button is clicked."""
+        result = super().action_view_picking()
+
+        # Only restyle the multi-record list result. Native behavior is kept for:
+        # - single receipt: opens the form directly (res_id is set)
+        # - no receipts: closes or opens an empty list (nothing to restyle)
+        is_receipts_list = (
+            result.get('res_model') == 'stock.picking' and not result.get('res_id')
+        )
+        if is_receipts_list:
+            receipts_list_view = self.env.ref('arm_rice_mill.view_picking_tree_rice_receipts')
+            picking_form_view = self.env.ref('stock.view_picking_form')
+            result['views'] = [
+                (receipts_list_view.id, 'list'),
+                (picking_form_view.id, 'form'),
+            ]
+        return result
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'

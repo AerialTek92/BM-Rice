@@ -538,7 +538,7 @@ class WeighbridgeTicketLine(models.Model):
     bags = fields.Integer(string='Bags')
     allocated_weight = fields.Float(string='Allocated Net Weight (Kg)', digits=(16, 3))
 
-    additional_weight = fields.Float(string='Add. Wt', readonly=True)
+    additional_weight = fields.Float(string='Add. Wt (g)', readonly=True)
     total_weight = fields.Float(string='Total Wt', readonly=True)
 
     def _apply_po_line_values(self, po_line: 'purchase.order.line') -> None:

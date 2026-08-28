@@ -126,7 +126,7 @@
                                     <!-- FIX: Added force_save="1" to ensure onchange values are persisted on Save -->
                                     <field name="do_demand_qty" string="D/O Qty" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
                                     <field name="location_dest_id" string="Location" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
-                                    <field name="additional_weight" string="Add. Wt" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
+                                    <field name="additional_weight" string="Add. Wt (g)" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
                                     <field name="total_weight" string="Total Wt" readonly="1" force_save="1" column_invisible="parent.pass_type != 'outbound'"/>
 
                                     <!-- NEW: Local Sales Packaging Columns (Only visible if Outbound AND NOT Export) -->

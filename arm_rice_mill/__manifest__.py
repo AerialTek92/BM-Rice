@@ -1,12 +1,12 @@
 {
     'name': 'ARM Rice Mill Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'End-to-End Rice Mill ERP: Contracts, Procurement, Weighbridge, Quality, and Milling',
     'category': 'Manufacturing',
     'website': '',
     'author': 'Abdur Rehman Muhammad',
     'license': 'LGPL-3',
-    'depends': ['sale', 'sale_stock', 'purchase', 'stock', 'mail', 'account', 'approval_matrix'], # FIX: Added sale_stock
+    'depends': ['sale', 'sale_stock', 'purchase', 'purchase_stock', 'stock', 'mail', 'account', 'approval_matrix'],
     'data': [
         'data/crop_years_data.xml',
         'data/sequence_data.xml',
@@ -22,7 +22,7 @@
         'views/grn_inspection_views.xml',
         'views/gate_pass_views.xml',
         'views/weighbridge_views.xml',
-        # 'views/stock_picking_views.xml',
+        'views/stock_picking_views.xml',
         'views/payment_certificate_views.xml',
         'views/payment_voucher_views.xml',
         'views/master_data_views.xml',
