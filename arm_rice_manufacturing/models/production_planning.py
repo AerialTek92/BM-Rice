@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 from typing import Dict, Any, List
+
 
 class ProductionPlanning(models.Model):
     _name = 'production.planning'
@@ -17,7 +19,23 @@ class ProductionPlanning(models.Model):
     commodity = fields.Char(string='Commodity')
     rice_variety = fields.Char(string='Rice Variety')
     customer_id = fields.Many2one('res.partner', string='Customer Name')
-    milling_date = fields.Date(string='Milling Date', required=True)
+
+    # ==========================================
+    # NEW: Milling Date Range (Client Requirement)
+    # From 25 Apr 2026 to 30 Mar 2027 wala concept
+    # ==========================================
+    milling_date_from = fields.Date(string='Milling Date From', required=True)
+    milling_date_to = fields.Date(string='Milling Date To')
+
+    # Display field — form/list/report par "25 Apr 2026 to 30 Mar 2027"
+    # dikhaata hai. Report ka purana 'milling_date' reference isi se
+    # automatically range print karega.
+    milling_date = fields.Char(
+        string='Milling Date',
+        compute='_compute_milling_date',
+        store=True,
+    )
+
     brand = fields.Char(string='Brand')
 
     # Quality Parameters
@@ -27,7 +45,10 @@ class ProductionPlanning(models.Model):
     no_of_bags = fields.Integer(string='No of Bags')
     packing_material = fields.Selection([
         ('pp_bags', 'PP Bags'),
-        ('jute_bags', 'Jute Bags')
+        ('bo_pp_bags', 'BO PP Bags'),
+        ('jute_bags', 'Jute Bags'),
+        ('laminated', 'Laminated'),
+        ('china_cotton', 'China Cotton')
     ], string='Packing (Material)')
     empty_bag_weight = fields.Float(string='Empty Bag Weight')
     total_quantity = fields.Float(string='Total Quantity (MT)')
@@ -42,6 +63,39 @@ class ProductionPlanning(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('production.planning') or _('New')
         return super().create(vals_list)
+
+    # ==========================================
+    # NEW: Milling Date Range Display + Validation
+    # ==========================================
+    @api.depends('milling_date_from', 'milling_date_to')
+    def _compute_milling_date(self) -> None:
+        for rec in self:
+            frm = rec.milling_date_from
+            to = rec.milling_date_to
+            if frm and to:
+                if frm == to:
+                    # Same date -> sirf ek date dikha do
+                    rec.milling_date = frm.strftime('%d %b %Y')
+                else:
+                    rec.milling_date = f"{frm.strftime('%d %b %Y')} to {to.strftime('%d %b %Y')}"
+            elif frm:
+                rec.milling_date = frm.strftime('%d %b %Y')
+            elif to:
+                rec.milling_date = to.strftime('%d %b %Y')
+            else:
+                rec.milling_date = False
+
+    @api.constrains('milling_date_from', 'milling_date_to')
+    def _check_milling_date_range(self) -> None:
+        for rec in self:
+            if rec.milling_date_from and rec.milling_date_to \
+                    and rec.milling_date_to < rec.milling_date_from:
+                raise UserError(_(
+                    "Milling Date 'To' (%s) cannot be earlier than 'From' (%s)."
+                ) % (
+                    rec.milling_date_to.strftime('%d %b %Y'),
+                    rec.milling_date_from.strftime('%d %b %Y'),
+                ))
 
     @api.onchange('job_order_id')
     def _onchange_job_order_id(self):
@@ -63,9 +117,8 @@ class ProductionPlanning(models.Model):
         self.total_quantity = bjo.quantity_mt
 
         # Populate Quality Parameters Table
-        self.planning_line_ids = [(5, 0, 0)] # Clear existing lines
+        self.planning_line_ids = [(5, 0, 0)]  # Clear existing lines
         if prs:
-            # FIX: Check if product is Brown Rice to fetch correct specs
             if prs.is_brown_rice:
                 params = [
                     ('Purity', '%', prs.br_purity),
@@ -103,7 +156,7 @@ class ProductionPlanning(models.Model):
                     ('Polish Grade', '-', prs.n_polish),
                     ('Polish (Whiteness)', 'Kett', prs.n_kett_whiteness),
                 ]
-            
+
             lines = []
             for i, (param, uom, val) in enumerate(params, start=1):
                 lines.append((0, 0, {
@@ -131,7 +184,8 @@ class ProductionPlanning(models.Model):
             'context': {
                 'default_job_order_id': self.job_order_id.id,
                 'default_issue_date': fields.Date.today(),
-                'default_milling_date': self.milling_date,
+                # FIX: ab From date pass hoti hai (Issue Material ka field Date hai)
+                'default_milling_date': self.milling_date_from,
             }
         }
 

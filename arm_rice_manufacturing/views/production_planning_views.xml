@@ -31,7 +31,12 @@
                         </group>
                         <group>
                             <field name="customer_id" readonly="1" force_save="1"/>
-                            <field name="milling_date" readonly="state != 'draft'"/>
+                            <!-- ==================================================== -->
+                            <!-- NEW: Milling Date Range (From - To)                  -->
+                            <!-- Client requirement: 25 Apr 2026 to 30 Mar 2027        -->
+                            <!-- ==================================================== -->
+                            <field name="milling_date_from" readonly="state != 'draft'"/>
+                            <field name="milling_date_to" readonly="state != 'draft'"/>
                             <field name="brand" readonly="1" force_save="1"/>
                         </group>
                     </group>
@@ -74,6 +79,8 @@
                 <field name="date"/>
                 <field name="job_order_id"/>
                 <field name="customer_id"/>
+                <!-- NEW: Milling Date range display column -->
+                <field name="milling_date" optional="show"/>
                 <field name="state" widget="badge"/>
             </list>
         </field>
@@ -89,5 +96,5 @@
               name="Production Planning"
               parent="menu_arm_rice_manufacturing"
               action="action_production_planning"
-              sequence="15"/>
+              sequence="20"/>
 </odoo>

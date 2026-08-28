@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Brand Job Order">
                 <header>
-                    <!-- NEW: Dynamic Approval Buttons -->
+                    <!-- Dynamic Approval Buttons -->
                     <button name="action_approve" string="Verify" type="object" class="oe_highlight"
                             invisible="not can_user_approve or pending_line_label != 'Verify'"/>
                     <button name="action_approve" string="Approve" type="object" class="oe_highlight"
@@ -17,37 +17,35 @@
                             invisible="not can_user_approve"/>
 
                     <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
-                            invisible="state != 'draft' or (approval_status != 'approved' and not is_admin)"/>
+                        invisible="state != 'draft' or (approval_status != 'approved' and not is_admin)" />
                     <button name="action_create_planning_sheet" string="Create Planning Sheet"
-                            type="object" class="btn-primary" invisible="state != 'confirmed'"/>
+                        type="object" class="btn-primary" invisible="state != 'confirmed'" />
 
                     <!-- PRINT BUTTON -->
                     <button name="%(arm_rice_manufacturing.action_report_brand_job_order)d"
-                            string="Print Job Order"
-                            type="action" class="oe_highlight" invisible="state == 'draft'"/>
+                        string="Print Job Order"
+                        type="action" class="oe_highlight" invisible="state == 'draft'" />
 
                     <button name="action_create_issue_material" string="Create Issue Material"
-                            type="object" class="btn-warning" invisible="1"/>
+                        type="object" class="btn-warning" invisible="1" />
                     <button name="action_create_production_record" string="Create Production Record"
-                            type="object" class="btn-success" invisible="1"/>
-                    <button name="action_done" string="Mark as Done" type="object" class="btn-success"
-                            invisible="state != 'in_progress'"/>
+                        type="object" class="btn-success" invisible="1" />
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('draft', 'cancel')"/>
+                        invisible="state in ('draft', 'cancel')" />
                     <button name="action_reset_to_draft" string="Reset to Draft" type="object"
-                            class="btn-secondary" invisible="state != 'cancel'"/>
+                        class="btn-secondary" invisible="state != 'cancel'" />
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,confirmed,in_progress,done"/>
+                        statusbar_visible="draft,confirmed,in_progress,done" />
                 </header>
                 <sheet>
-                    <!-- NEW: Invisible fields for view evaluation -->
+                    <!-- Invisible fields for view evaluation -->
                     <field name="can_edit_rfq" invisible="1"/>
                     <field name="can_user_approve" invisible="1"/>
                     <field name="approval_status" invisible="1"/>
                     <field name="pending_line_label" invisible="1"/>
                     <field name="is_admin" invisible="1"/>
 
-                    <!-- NEW: Approval Status Banner -->
+                    <!-- Approval Status Banner -->
                     <div class="alert alert-info" role="alert" invisible="approval_status == 'approved' or not approval_line_ids">
                         <strong>Approval Status:</strong> <field name="approval_label" readonly="1"/>
                     </div>
@@ -74,7 +72,6 @@
                     <group>
                         <group>
                             <field name="date" />
-                            <!-- NEW: Rice Type -->
                             <field name="rice_type" readonly="1" />
                             <field name="process_rice_spec_id" />
                             <field name="prs_contract_id" invisible="1" />
@@ -90,13 +87,13 @@
                             <field name="raw_rice_ids" widget="many2many_tags"
                                 readonly="state != 'draft'" />
                             <field name="quantity_mt" />
-                            <field name="packing" />
+                            <!-- FIX #2: 'packing' duplicate tha — ab sirf Packing tab mein hai -->
                             <field name="broken_percent" readonly="1" force_save="1" />
                             <field name="moisture_percent" readonly="1" force_save="1" />
                         </group>
                     </group>
                     <notebook>
-                        <!-- NEW: Approval Matrix Tab -->
+                        <!-- Approval Matrix Tab -->
                         <page string="Approval Matrix" name="approval_matrix_page" invisible="not approval_line_ids">
                             <field name="approval_line_ids" readonly="1">
                                 <list decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'">
@@ -110,19 +107,29 @@
                             </field>
                         </page>
 
-                        <!-- TAB 1: Packaging -->
-                        <page string="Packaging">
-                            <group>
+                        <!-- TAB 1: Packing -->
+                        <!-- FIX #1: <group> notebook ke andar allowed nahi — <page> mein wrap kiya -->
+                        <page string="Packing" name="packing_page">
+                            <group name="packing_group">
                                 <group>
-                                    <field name="empty_bag_weight" />
-                                    <field name="empty_bag_weight_additional" invisible="1" />
-                                    <field name="total_empty_bag_weight" />
+                                    <field name="packing"/>
+                                    <!-- ==================================================== -->
+                                    <!-- UoM ke mutabiq conditional show/hide                  -->
+                                    <!-- Kgs  -> Weight (Kgs) + PP Bags (Kgs) show, Lbs hide   -->
+                                    <!-- Lbs  -> Weight (Lbs) show, Kgs fields hide            -->
+                                    <!-- ==================================================== -->
+                                    <field name="pp_bag_uom"/>
+                                    <field name="pp_bag_kg" invisible="pp_bag_uom != 'kg'"/>
+                                    <field name="pp_bag_lb" invisible="pp_bag_uom != 'lb'"/>
+                                    <field name="pp_bags_kgs" invisible="pp_bag_uom != 'kg'"/>
                                 </group>
                                 <group>
-                                    <field name="no_of_bags" />
-                                    <field name="pp_bags_kgs" />
-                                    <field name="net_weight" />
-                                    <field name="gross_weight" />
+                                    <field name="no_of_bags"/>
+                                    <field name="empty_bag_weight"/>
+                                    <!-- <field name="empty_bag_weight_additional"/> -->
+                                    <field name="total_empty_bag_weight"/>
+                                    <field name="net_weight"/>
+                                    <field name="gross_weight"/>
                                 </group>
                             </group>
                         </page>
@@ -237,7 +244,6 @@
     <!-- CONFIGURATION: INSPECTION AGENCY VIEWS     -->
     <!-- ========================================== -->
 
-    <!-- 1. Inspection Agency Form View -->
     <record id="inspection_agency_view_form" model="ir.ui.view">
         <field name="name">inspection.agency.view.form</field>
         <field name="model">inspection.agency</field>
@@ -252,7 +258,6 @@
         </field>
     </record>
 
-    <!-- 2. Inspection Agency List View -->
     <record id="inspection_agency_view_tree" model="ir.ui.view">
         <field name="name">inspection.agency.view.tree</field>
         <field name="model">inspection.agency</field>
@@ -263,18 +268,16 @@
         </field>
     </record>
 
-    <!-- 3. Inspection Agency Action -->
     <record id="action_inspection_agency" model="ir.actions.act_window">
         <field name="name">Inspection Agencies</field>
         <field name="res_model">inspection.agency</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- 4. Configuration Menu (Sequence 101 will place it right below Fumigation Agencies) -->
     <menuitem id="menu_inspection_agency_contacts"
         name="Inspection Agencies"
         parent="mrp.menu_mrp_configuration"
         action="action_inspection_agency"
-        sequence="101" />
+        sequence="40" />
 
 </odoo>

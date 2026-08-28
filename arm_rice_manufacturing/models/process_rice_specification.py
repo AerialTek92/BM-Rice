@@ -111,7 +111,7 @@ class ProcessRiceSpec(models.Model):
     n_broken_percent = fields.Float(string='Broken (%)')
     n_damaged_discolor_percent = fields.Float(string='Damage/Discolor (%)')
     n_foreign_matter_percent = fields.Float(string='Foreign Matter (%)')
-    n_paddy_percent = fields.Float(string='Paddy (%)')
+    n_paddy_percent = fields.Char(string='Paddy Per Kg')
     n_red_percent = fields.Float(string='Red (%)')
     n_chalky_percent = fields.Float(string='Chalky (%)')
     n_immature = fields.Float(string="Immature")
@@ -178,6 +178,23 @@ class ProcessRiceSpec(models.Model):
             else:
                 rec.est_recovery_pct = 0.0
                 rec.no_of_bags = 0
+
+        # ==========================================
+
+    # NEW: Helper — Bag Weight numeric value
+    # (PRS aur BJO dono yehi use karenge)
+    # ==========================================
+    def _get_bag_weight_value(self) -> float:
+        """Selected UoM (Kgs/Lbs) ke mutabiq bag weight ka numeric value."""
+        self.ensure_one()
+        if self.pp_bag_uom == 'kg':
+            try:
+                return float(self.pp_bag_kg) if self.pp_bag_kg else 0.0
+            except (ValueError, TypeError):
+                return 0.0
+        elif self.pp_bag_uom == 'lb':
+            return self.pp_bag_lb or 0.0
+        return 0.0
 
     @api.onchange('rice_sales_contract_id')
     def _onchange_rice_sales_contract_id(self):
@@ -305,16 +322,6 @@ class ProcessRiceSpec(models.Model):
 
         raw_product_ids = self.spec_line_ids.mapped('product_id').ids
 
-        # FIX: PRS uses Selection for pp_bags_kgs, but BJO uses Float. Convert safely.
-        pp_bags_kgs_val = 0.0
-        if self.pp_bag_uom == 'kg' and self.pp_bag_kg:
-            try:
-                pp_bags_kgs_val = float(self.pp_bag_kg)
-            except ValueError:
-                pp_bags_kgs_val = 0.0
-        elif self.pp_bag_uom == 'lb' and self.pp_bag_lb:
-            pp_bags_kgs_val = self.pp_bag_lb
-
         return {
             'process_rice_spec_id': self.id,
             'rice_sales_contract_id': self.rice_sales_contract_id.id,
@@ -323,13 +330,17 @@ class ProcessRiceSpec(models.Model):
             'raw_rice_ids': [(6, 0, raw_product_ids)],
             'quantity_mt': self.total_quantity,
             'packing': self.packing,
-            'pp_bags_kgs': pp_bags_kgs_val,  # Pass the parsed float value
+            # --- NEW: UoM + Weight (PRS ka structure as-is BJO par) ---
+            'pp_bag_uom': self.pp_bag_uom,
+            'pp_bag_kg': self.pp_bag_kg,
+            'pp_bag_lb': self.pp_bag_lb,
+            'pp_bags_kgs': self._get_bag_weight_value(),
             'process_rice_qty': self.process_rice_qty,
             'remarks': bjo_remarks,
             'date': fields.Date.today(),
             'rice_type': self.rice_type,
-            'broken_percent': self.n_broken_percent,  # Fixed: Read from header
-            'moisture_percent': self.n_moisture_percent,  # Fixed: Read from header
+            'broken_percent': self.n_broken_percent,
+            'moisture_percent': self.n_moisture_percent,
         }
 
     def action_create_job_order(self) -> Dict[str, Any]:

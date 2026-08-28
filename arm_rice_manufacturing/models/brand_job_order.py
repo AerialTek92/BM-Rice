@@ -34,15 +34,15 @@ class BrandJobOrder(models.Model):
     process_rice_qty = fields.Float(string='Process Rice QTY')
     quantity_mt = fields.Float(string='Quantity [MT]')
     packing = fields.Selection([
-        ('pp_bags', 'PP Bags'),
-        ('bo_pp_bags', 'BO PP Bags'),
-        ('jute_bags', 'Jute Bags'),
-        ('laminated', 'Laminated'),
-        ('china_cotton', 'China Cotton')
-    ], string='Packing')
+            ('pp_bags', 'PP Bags'),
+            ('bo_pp_bags', 'BO PP Bags'),
+            ('jute_bags', 'Jute Bags'),
+            ('laminated', 'Laminated'),
+            ('non_woven_bags', 'Non Woven Bags'),   # PRS se match
+            ('china_cotton', 'China Cotton')
+        ], string='Packing')
     contract_date = fields.Date(string='Contract Date')
 
-    # FIX: Changed to Many2one to res.country for dropdown selection
     destination_country = fields.Many2one('res.country', string='Destination Country')
 
     shipment_period = fields.Char(string='Shipment Period')
@@ -51,13 +51,35 @@ class BrandJobOrder(models.Model):
 
     no_of_bags = fields.Integer(string='No of Bags')
     empty_bag_weight = fields.Float(string='Empty Bag Weight (gram)')
-    empty_bag_weight_additional = fields.Float(string='Empty Bag Weight (Additional)')
+    # empty_bag_weight_additional = fields.Float(string='Empty Bag Weight (Additional)')
     total_empty_bag_weight = fields.Float(
         string='Total Empty Bag Weight (grams)',
         compute='_compute_total_empty_bag_weight',
         store=True,
         readonly=True
     )
+
+    # ==========================================
+    # Packing Weight with UoM Logic (PRS ka mirror)
+    # - UoM = Kgs -> Weight (Kgs) + PP Bags (Kgs) use hote hain
+    # - UoM = Lbs -> Weight (Lbs) use hota hai
+    # (Show/Hide view XML mein invisible conditions se hota hai)
+    # ==========================================
+    pp_bag_uom = fields.Selection([
+        ('kg', 'Kgs'),
+        ('lb', 'Lbs')
+    ], string='Unit of Measure', default='kg', required=True)
+
+    pp_bag_kg = fields.Selection([
+        ('5', '5 Kg'),
+        ('20', '20 Kg'),
+        ('22.5', '22.5 Kg'),
+        ('25', '25 Kg'),
+        ('50', '50 Kg')
+    ], string='Weight (Kgs)')
+
+    pp_bag_lb = fields.Float(string='Weight (Lbs)')
+
     pp_bags_kgs = fields.Float(string='PP Bags (Kgs)')
 
     net_weight = fields.Float(string="Net Weight")
@@ -97,7 +119,7 @@ class BrandJobOrder(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list: List[Dict[str, Any]]) -> 'BrandJobOrder':
-        # FIX: Generate sequence number on creation
+        # Generate sequence number on creation
         for vals in vals_list:
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('brand.job.order') or _('New')
@@ -121,8 +143,8 @@ class BrandJobOrder(models.Model):
                     order.approval_line_ids = line_vals
         return orders
 
-    # NEW: Custom display name for Production Record context (Protocol 4.1 DRY)
-    @api.depends('name', 'partner_id.name', 'quantity_mt','product_id.name')
+    # Custom display name for Production Record context
+    @api.depends('name', 'partner_id.name', 'quantity_mt', 'product_id.name')
     def _compute_display_name(self) -> None:
         if self.env.context.get('production_record_job_view'):
             for order in self:
@@ -143,20 +165,41 @@ class BrandJobOrder(models.Model):
         for rec in self:
             rec.production_record_count = counts.get(rec.id, 0)
 
-    @api.depends('empty_bag_weight', 'empty_bag_weight_additional')
-    def _compute_total_empty_bag_weight(self):
-        for rec in self:
-            rec.total_empty_bag_weight = rec.empty_bag_weight + rec.empty_bag_weight_additional
+    # @api.depends('empty_bag_weight', 'empty_bag_weight_additional')
+    # def _compute_total_empty_bag_weight(self):
+    #     for rec in self:
+    #         rec.total_empty_bag_weight = rec.empty_bag_weight + rec.empty_bag_weight_additional
+
+    # ==========================================
+    # UoM switch par: numeric value sync + hidden field clear
+    # ==========================================
+    @api.onchange('pp_bag_uom', 'pp_bag_kg', 'pp_bag_lb')
+    def _onchange_pp_bag_weight(self) -> None:
+        if self.pp_bag_uom == 'kg':
+            # Lbs field hidden hai -> value clear (clean data)
+            self.pp_bag_lb = 0.0
+            try:
+                self.pp_bags_kgs = float(self.pp_bag_kg) if self.pp_bag_kg else 0.0
+            except (ValueError, TypeError):
+                self.pp_bags_kgs = 0.0
+        elif self.pp_bag_uom == 'lb':
+            # Kgs field hidden hai -> value clear (clean data)
+            self.pp_bag_kg = False
+            self.pp_bags_kgs = self.pp_bag_lb or 0.0
+        else:
+            self.pp_bags_kgs = 0.0
 
     @api.onchange('process_rice_spec_id')
     def _onchange_process_rice_spec_id(self) -> None:
         if not self.process_rice_spec_id:
             self.update({
                 'rice_sales_contract_id': False, 'partner_id': False, 'product_id': False,
-                'raw_rice_ids': [(5, 0, 0)],  # Clear the Many2many
+                'raw_rice_ids': [(5, 0, 0)],
                 'quantity_mt': 0.0, 'packing': False, 'contract_date': False,
                 'destination_country': False, 'shipment_period': False, 'broken_percent': 0.0,
-                'moisture_percent': 0.0, 'inspection_agency': False, 'pp_bags_kgs': 0.0, 'remarks': False,
+                'moisture_percent': 0.0, 'inspection_agency': False,
+                'pp_bag_uom': 'kg', 'pp_bag_kg': False, 'pp_bag_lb': 0.0,  # reset
+                'pp_bags_kgs': 0.0, 'remarks': False,
             })
             return
 
@@ -175,9 +218,6 @@ class BrandJobOrder(models.Model):
 
         raw_product_ids = prs.spec_line_ids.mapped('product_id').ids
 
-        raw_product_ids = prs.spec_line_ids.mapped('product_id').ids
-
-        # FIX: Directly map Destination Country from the RSC instead of doing a text search
         destination_country_val = rsc.destination_country_id.id if rsc and rsc.destination_country_id else False
 
         self.update({
@@ -187,13 +227,17 @@ class BrandJobOrder(models.Model):
             'raw_rice_ids': [(6, 0, raw_product_ids)],
             'quantity_mt': sum(prs.spec_line_ids.mapped('quantity')),
             'packing': prs.packing,
-            'pp_bags_kgs': prs.pp_bags_kgs,
+            # UoM + Weight PRS se AS-IS copy + numeric value
+            'pp_bag_uom': prs.pp_bag_uom,
+            'pp_bag_kg': prs.pp_bag_kg,
+            'pp_bag_lb': prs.pp_bag_lb,
+            'pp_bags_kgs': prs._get_bag_weight_value(),
             'process_rice_qty': prs.process_rice_qty,
             'contract_date': rsc.contract_date if rsc else False,
             'destination_country': destination_country_val,
             'shipment_period': shipment_period,
-            'broken_percent': prs.n_broken_percent,  # Updated to read from header
-            'moisture_percent': prs.n_moisture_percent,  # Updated to read from header
+            'broken_percent': prs.n_broken_percent,
+            'moisture_percent': prs.n_moisture_percent,
             'inspection_agency': rsc.inspection_agency if rsc else False,
             'remarks': bjo_remarks,
         })
@@ -220,11 +264,6 @@ class BrandJobOrder(models.Model):
     def action_reset_to_draft(self) -> None:
         for rec in self:
             rec.state = 'draft'
-
-    def action_done(self) -> None:
-        """Protocol 2.1 (SRP): Mark the Job Order as Done."""
-        for rec in self:
-            rec.state = 'done'
 
     def action_create_planning_sheet(self) -> Dict[str, Any]:
         self.ensure_one()
@@ -281,20 +320,20 @@ class BrandJobOrder(models.Model):
     def _apply_default_approval_matrix(self):
         """Fetch the correct matrix based on Product Type / Plant."""
         self.ensure_one()
-        
+
         # 1. Try to find a matrix specifically for this Rice Type (IRRI or Basmati)
         matrix = self.env['approval.matrix'].search([
             ('model_id.model', '=', self._name),
             ('rice_type', '=', self.rice_type)
         ], limit=1)
-        
+
         # 2. Fallback: If no specific matrix is found, use the 'All Types' matrix
         if not matrix:
             matrix = self.env['approval.matrix'].search([
                 ('model_id.model', '=', self._name),
                 ('rice_type', '=', 'all')
             ], limit=1)
-            
+
         return matrix
 
 
@@ -311,4 +350,4 @@ class InspectionAgency(models.Model):
     _description = 'Inspection Agency'
     _order = 'name'
 
-    name = fields.Char(string='Inspection Agency', required=True)
+    name = fields.Char(string='Inspection Agency Name', required=True)
