@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_transporter_setup,transporter.setup,model_transporter_setup,base.group_user,1,1,1,1
+access_product_allowance_type,product.allowance.type,model_product_allowance_type,base.group_user,1,1,1,1
+access_product_allowance_type_line,product.allowance.type.line,model_product_allowance_type_line,base.group_user,1,1,1,1
+access_brown_rice_specification,brown.rice.specification,model_brown_rice_specification,base.group_user,1,1,1,1

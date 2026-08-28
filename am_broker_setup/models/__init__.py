@@ -1,0 +1,1 @@
+from . import res_partner,transporter_setup,product_temp

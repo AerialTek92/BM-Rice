@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Master Setup Form -->
+    <record id="view_product_allowance_type_form" model="ir.ui.view">
+        <field name="name">product.allowance.type.form</field>
+        <field name="model">product.allowance.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="name" />
+                        <field name="code" />
+                    </group>
+                    <separator string="Allowance Lines" />
+                    <field name="template_line_ids">
+                        <list editable="bottom">
+                            <field name="rate_per_kg" />
+                            <field name="from_pct" />
+                            <field name="to_pct" />
+                            <field name="from_date" />
+                            <field name="to_date" />
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Master Setup List -->
+    <record id="view_product_allowance_type_tree" model="ir.ui.view">
+        <field name="name">product.allowance.type.tree</field>
+        <field name="model">product.allowance.type</field>
+        <field name="arch" type="xml">
+            <list string="Allowance Types">
+                <field name="name" />
+                <field name="code" />
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_product_allowance_type" model="ir.actions.act_window">
+        <field name="name">Allowance Setup</field>
+        <field name="res_model">product.allowance.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_product_allowance_type"
+        name="Allowance Setup"
+        parent="stock.menu_stock_config_settings"
+        action="action_product_allowance_type"
+        sequence="90" />
+
+    <!-- Brown Rice Specification Form View (Jo Popup Mein Khulega) -->
+    <record id="view_brown_rice_specification_form" model="ir.ui.view">
+        <field name="name">brown.rice.specification.form</field>
+        <field name="model">brown.rice.specification</field>
+        <field name="arch" type="xml">
+            <form string="Brown Rice Specification">
+                <sheet>
+                    <group>
+                        <field name="name" colspan="2" />
+                    </group>
+                    <group string="Specifications">
+                        <group>
+                            <field name="purity" />
+                            <field name="broken" />
+                            <field name="green_grains" />
+                            <field name="chalky_grains" />
+                            <field name="red_grains" />
+                            <field name="paddy_grains" />
+                            <field name="immature_shriveled" />
+                            <field name="foreign_matter" />
+                            <field name="damaged_yellow" />
+                        </group>
+                        <group>
+                            <field name="insect_damage" />
+                            <field name="filth_extraneous" />
+                            <field name="aflatoxins" />
+                            <field name="mouth_babes" />
+                            <field name="living_insects_mites" />
+                            <field name="moisture" />
+                            <field name="polish" />
+                            <field name="avg_grain_length" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_brown_rice_specification_tree" model="ir.ui.view">
+        <field name="name">brown.rice.specification.tree</field>
+        <field name="model">brown.rice.specification</field>
+        <field name="arch" type="xml">
+            <list string="Brown Rice Specifications">
+                <field name="name" />
+                <field name="moisture" />
+                <field name="broken" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_brown_rice_specification" model="ir.actions.act_window">
+        <field name="name">Brown Rice Specifications</field>
+        <field name="res_model">brown.rice.specification</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_brown_rice_specification"
+        name="Brown Rice Specifications"
+        parent="stock.menu_stock_config_settings"
+        action="action_brown_rice_specification"
+        sequence="91" />
+
+    <!-- Product Form Inherit -->
+    <record id="product_template_form_view_inherit_allowance" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.allowance</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view" />
+        <field name="arch" type="xml">
+
+            <!-- NEW: Add By Product checkbox directly below Product Type -->
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="is_by_product" string="By Product" />
+                <!-- NEW: Packaging Configuration Fields -->
+                <field name="piece_weight" string="Weight/Piece (kg)" />
+                <field name="carton_capacity" string="Pieces/Carton" />
+                <field name="additional_weight" string="Add. Weight (g/kg)" />
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Allowance Setup">
+                    <group>
+                        <field name="allowance_type_ids" widget="many2many_tags"
+                            options="{'no_create': True}" />
+                    </group>
+                </page>
+
+                <page string="Brown Rice" name="brown_rice">
+                    <group>
+                        <field name="is_brown_rice" />
+                        <!-- Is field par options lagaye gaye hain taa ke "Create and Edit" ka popup
+                        khule -->
+                        <field name="brown_rice_spec_id"
+                            string="Brown Rice Specs"
+                            invisible="not is_brown_rice"
+                            options="{'no_create': False, 'no_create_edit': False}" />
+                    </group>
+                </page>
+
+            </xpath>
+        </field>
+    </record>
+</odoo>

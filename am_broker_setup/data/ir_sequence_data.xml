@@ -1,0 +1,35 @@
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Customers -->
+        <record id="seq_partner_customer" model="ir.sequence">
+            <field name="name">Partner Customer</field>
+            <field name="code">res.partner.cust</field>
+            <field name="prefix">CUST-</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- Sequence for Vendors -->
+        <record id="seq_partner_vendor" model="ir.sequence">
+            <field name="name">Partner Vendor</field>
+            <field name="code">res.partner.vend</field>
+            <field name="prefix">VEND-</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- Sequence for Brokers -->
+        <record id="seq_partner_broker" model="ir.sequence">
+            <field name="name">Partner Broker</field>
+            <field name="code">res.partner.brk</field>
+            <field name="prefix">BRK-</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- Sequence for Transporters -->
+        <record id="seq_partner_transporter" model="ir.sequence">
+            <field name="name">Partner Transporter</field>
+            <field name="code">res.partner.trn</field>
+            <field name="prefix">TRN-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>
