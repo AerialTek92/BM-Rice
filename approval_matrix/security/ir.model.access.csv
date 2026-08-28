@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_approval_matrix,approval.matrix,model_approval_matrix,base.group_system,1,1,1,1
+access_approval_matrix_line,approval.matrix.line,model_approval_matrix_line,base.group_system,1,1,1,1
+access_approval_line,approval.line,model_approval_line,base.group_user,1,1,1,1
