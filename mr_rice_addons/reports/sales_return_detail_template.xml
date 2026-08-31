@@ -1,0 +1,132 @@
+<odoo>
+    <!-- Paper Format -->
+    <record id="paperformat_sales_return_landscape" model="report.paperformat">
+        <field name="name">Sales Return Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_sales_return_detail" model="ir.actions.report">
+        <field name="name">Sales Return Detail</field>
+        <field name="model">sales.return.detail.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_sales_return_detail_template</field>
+        <field name="report_file">mr_rice_addons.report_sales_return_detail_template</field>
+        <field name="print_report_name">'Sales_Return_Detail_Report'</field>
+        <field name="paperformat_id" ref="paperformat_sales_return_landscape"/>
+    </record>
+
+    <!-- PDF Template -->
+    <template id="report_sales_return_detail_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 9px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 10px;">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="font-weight: bold;">Sales Return Detail</h5>
+                        <div style="font-weight: bold; font-size: 13px;">
+                            From:
+                            <span t-esc="data['date_from']"/>
+                            To:
+                            <span t-esc="data['date_to']"/>
+                        </div>
+                    </div>
+
+                    <!-- Main Table (Exactly 13 Columns with your Headings) -->
+                    <table class="table table-sm"
+                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
+                                <th style="width: 8%;">S/Ret No</th>
+                                <th style="width: 7%;">Date</th>
+                                <th style="width: 12%;">Customer</th>
+                                <th style="width: 15%;">Item Name</th>
+                                <th style="width: 5%; text-align: right;">Pcs</th>
+                                <th style="width: 5%; text-align: right;">Ctn</th>
+                                <th style="width: 7%; text-align: right;">Qty (Kgs)</th>
+                                <th style="width: 6%; text-align: right;">Rate</th>
+                                <th style="width: 8%; text-align: right;">Amount</th>
+                                <th style="width: 8%; text-align: right;">Sale To</th>
+                                <th style="width: 6%; text-align: right;">Qty</th>
+                                <th style="width: 6%; text-align: right;">Rate</th>
+                                <th style="width: 7%; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="grouped_data" t-as="g">
+                                <tr t-foreach="g['items']" t-as="l" style="border-bottom: 1px solid #ddd;">
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['sret_no']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['date']"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['customer']"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['item_name']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['pcs']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['ctn']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['qty_kgs']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['rate']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['amount']"/>
+                                    </td>
+                                    <!-- Yeh 4 columns khali chalay jayenge -->
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['sale_to']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['qty2']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['rate2']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['amount2']"/>
+                                    </td>
+                                </tr>
+                                <!-- Customer Sub Total (Sirf Qty aur Amount ka total) -->
+                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
+                                    <td colspan="6" style="text-align: right;">Total:</td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="g['total_qty_kgs']"/>
+                                    </td>
+                                    <td colspan="2"></td>
+                                    <td colspan="4"></td>
+                                </tr>
+                            </t>
+                            <!-- Grand Total (Sirf Qty aur Amount ka total) -->
+                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 11px;">
+                                <td colspan="6" style="text-align: right;">GRAND TOTAL:</td>
+                                <td style="text-align: right;">
+                                    <span t-esc="grand_total_qty"/>
+                                </td>
+                                <td colspan="2"></td>
+                                <td colspan="4"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

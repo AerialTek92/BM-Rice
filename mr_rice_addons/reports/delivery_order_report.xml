@@ -1,0 +1,189 @@
+<odoo>
+    <record id="action_report_delivery_order_custom" model="ir.actions.report">
+        <field name="name">Delivery Order</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_delivery_order_custom_template</field>
+        <field name="report_file">mr_rice_addons.report_delivery_order_custom_template</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_delivery_order_custom_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page"
+                         style="font-size: 13px; font-family: sans-serif; color: black; line-height: 1.2; padding: 20px;">
+
+                        <!-- Top Header: Logo and Company Name -->
+                        <div class="row">
+                            <div class="col-3">
+                                <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)"
+                                     style="max-height: 60px;" alt="Logo"/>
+                            </div>
+                            <div class="col-6 text-center">
+                                <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.
+                                </h4>
+                                <h5 style="text-decoration: underline; font-weight: bold; margin-top: 10px;">DELIVERY
+                                    ORDER
+                                </h5>
+                            </div>
+                            <div class="col-3 text-right" style="font-size: 10px;">
+                                OPS/4/006<br/>ISSUE - 1
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-12 text-right">
+                                <strong>
+                                    <u>ORIGINAL</u>
+                                </strong>
+                                <br/>
+                                <strong>DUPLICATE</strong>
+                            </div>
+                        </div>
+
+                        <!-- Info Boxes Section -->
+                        <div class="row mt-1">
+                            <!-- Left Box -->
+                            <div class="col-8">
+                                <table class="table table-sm table-bordered"
+                                       style="border: 1px solid black !important; margin-bottom: 0;">
+                                    <tr>
+                                        <td style="width: 20%; border: 1px solid black !important;">
+                                            <strong>Customer</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;">
+                                            <span t-field="o.partner_id.name"/>
+                                            <br/>
+                                            <small>(OR HIS REPRESENTATIVE)</small>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid black !important;">
+                                            <strong>Ref No</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;">
+                                            <span t-field="o.sale_id"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid black !important;">
+                                            <strong>Broker</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;">
+                                            <span t-field="o.broker_id.name"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <!-- Right Box -->
+                            <div class="col-4">
+                                <table class="table table-sm table-bordered"
+                                       style="border: 1px solid black !important; margin-bottom: 0;">
+                                    <tr>
+                                        <td style="width: 50%; border: 1px solid black !important;" class="text-center">
+                                            <strong>D/O No</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;" class="text-center">
+                                            <span t-field="o.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid black !important;" class="text-center">
+                                            <strong>D/O Date</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;" class="text-center">
+                                            <span t-field="o.delivery_order_date"
+                                                  t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid black !important;" class="text-center">
+                                            <strong>Validity</strong>
+                                        </td>
+                                        <td style="border: 1px solid black !important;" class="text-center">
+                                            <span t-field="o.date_deadline"
+                                                  t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Products Table -->
+                        <table class="table table-bordered mt-3"
+                               style="border: 1px solid black !important; border-collapse: collapse;">
+                            <thead class="text-center">
+                                <tr style="border: 1px solid black !important;">
+                                    <th style="border: 1px solid black !important; width: 70%;">Product Name</th>
+                                    <th style="border: 1px solid black !important; width: 10%;">Pcs</th>
+                                    <th style="border: 1px solid black !important; width: 20%;">Quantity (Kgs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_pcs" t-value="0"/>
+                                <t t-set="total_kgs" t-value="0"/>
+                                <t t-foreach="o.move_ids" t-as="line">
+                                    <t t-set="total_pcs" t-value="total_pcs + line.pcs"/>
+                                    <t t-set="total_kgs" t-value="total_kgs + line.quantity"/>
+                                    <tr>
+                                        <td style="border: 1px solid black !important;">
+                                            <span t-field="line.product_id.name"/>
+                                        </td>
+                                        <td class="text-center" style="border: 1px solid black !important;">
+                                            <span t-field="line.pcs" t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                        <td class="text-right" style="border: 1px solid black !important;">
+                                            <span t-field="line.quantity"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <!-- Total Quantity in Words Row -->
+                                <tr style="border: 1px solid black !important;">
+                                    <td colspan="2" style="border: 1px solid black !important; padding: 10px;">
+                                        <strong>Quantity : -</strong>
+                                        <t t-set="curr" t-value="o.company_id.currency_id"/>
+                                        <t t-set="qty_text"
+                                           t-value="curr.amount_to_text(total_kgs).replace(curr.currency_unit_label or '', '').replace(curr.name, '').replace('Only', '').replace('only', '').strip()"/>
+                                        <span style="text-transform: uppercase;" t-esc="qty_text"/>
+                                        KGS ONLY
+                                    </td>
+                                    <td class="text-right"
+                                        style="border: 1px solid black !important; vertical-align: middle;">
+                                        <strong>
+                                            <span t-esc="total_kgs" t-options='{"widget": "float", "precision": 2}'/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Company Stamp Sign -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-right">
+                                <p style="margin-right: 20px;">
+                                    <strong>for Bulk Management (Pakistan) Pvt. Ltd.</strong>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer Signatures -->
+                        <div class="row mt-5 pt-5">
+                            <div class="col-6 text-center">
+                                <div style="border-top: 1px solid black; width: 200px; margin: 0 auto;"></div>
+                                <strong>Buyer/Broker</strong>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div style="border-top: 1px solid black; width: 200px; margin: 0 auto;"></div>
+                                <strong>Authorised Signature</strong>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

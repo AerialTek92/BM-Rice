@@ -9,3 +9,7 @@ from . import rice_deduction
 from . import good_receipt_inspection
 from . import payment_certificate_date
 from . import grn_date_wise
+from . import delivery_order_report_wizard
+from . import invoice_report_wizard
+from . import sales_product_summary_wizard
+from . import sales_return_detail_wizard

@@ -9,6 +9,10 @@ access_stock_picking_product_wizard,stock.picking.product.wizard,model_stock_pic
 access_rice_allowance_deduction_wizard,rice.allowance.deduction.wizard,model_rice_allowance_deduction_wizard,base.group_user,1,1,1,1
 access_grn_inspection_detail_wizard,grn.inspection.detail.wizard,model_grn_inspection_detail_wizard,base.group_user,1,1,1,1
 access_stock_picking_date_wizard,stock.picking.date.wizard,model_stock_picking_date_wizard,base.group_user,1,1,1,1
+access_delivery_order_date_wizard,delivery.order.date.wizard,model_delivery_order_date_wizard,base.group_user,1,1,1,1
+access_invoice_date_wizard,invoice.date.wizard,model_invoice_date_wizard,base.group_user,1,1,1,1
+access_sales_product_summary_wizard,sales.product.summary.wizard,model_sales_product_summary_wizard,base.group_user,1,1,1,1
+access_sales_return_detail_wizard,sales.return.detail.wizard,model_sales_return_detail_wizard,base.group_user,1,1,1,1
 
 access_payment_certificate_wizard,payment.certificate.wizard,model_payment_certificate_wizard,base.group_user,1,1,1,1
 access_payment_certificate_date_wizard,payment.certificate.date.wizard,model_payment_certificate_date_wizard,base.group_user,1,1,1,1

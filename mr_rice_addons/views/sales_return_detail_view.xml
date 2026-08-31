@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_sales_return_detail_wizard_form" model="ir.ui.view">
+        <field name="name">sales.return.detail.wizard.form</field>
+        <field name="model">sales.return.detail.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sales Return Detail">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_sales_return_detail_wizard" model="ir.actions.act_window">
+        <field name="name">Sales Return Detail</field>
+        <field name="res_model">sales.return.detail.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Sales -> Reporting) -->
+    <menuitem id="menu_sales_return_detail_report"
+              name="Sales Return Detail"
+              parent="sale.menu_sale_report"
+              action="action_sales_return_detail_wizard"
+              sequence="15"/>
+</odoo>
