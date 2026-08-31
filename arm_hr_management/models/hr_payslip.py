@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models
+from odoo import models, fields
 
 
 class HrPayslip(models.Model):
@@ -38,3 +38,11 @@ class HrPayslip(models.Model):
                     'payslip_id': False
                 })
         return res
+
+    class HrEmployee(models.Model):
+        _inherit = 'hr.employee'
+        version_revision = fields.Integer(string='Version Revision Fix', default=0)
+
+    class HrEmployeePublic(models.Model):
+        _inherit = 'hr.employee.public'
+        version_revision = fields.Integer(string='Version Revision Fix', readonly=True)

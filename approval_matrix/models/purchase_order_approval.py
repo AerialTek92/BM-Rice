@@ -117,16 +117,6 @@ from odoo import models, fields, api, _, Command
 from odoo.exceptions import UserError
 
 
-class HrEmployee(models.Model):
-    _inherit = 'hr.employee'
-    version_revision = fields.Integer(string='Version Revision Fix', default=0)
-
-
-class HrEmployeePublic(models.Model):
-    _inherit = 'hr.employee.public'
-    version_revision = fields.Integer(string='Version Revision Fix', readonly=True)
-
-
 class PurchaseOrder(models.Model):
     _inherit = ['purchase.order', 'approval.tracker.mixin']
 
