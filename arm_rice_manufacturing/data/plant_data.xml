@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Seed plants (the old BM-1 hard-coded selection, as records) -->
+        <record id="plant_a" model="master.plant">
+            <field name="name">Plant A</field>
+        </record>
+        <record id="plant_b" model="master.plant">
+            <field name="name">Plant B</field>
+        </record>
+        <record id="plant_c" model="master.plant">
+            <field name="name">Plant C</field>
+        </record>
+    </data>
+</odoo>

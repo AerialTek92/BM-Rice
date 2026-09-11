@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="paperformat_weighbridge_ticket" model="report.paperformat">
+            <field name="name">Weighbridge Ticket Paper Format</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+        </record>
+
+        <!-- 1. Report Action -->
+        <record id="action_report_weighbridge_ticket" model="ir.actions.report">
+            <field name="name">Print Weighbridge</field>
+            <field name="model">weighbridge.ticket</field>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">mr_rice_addons.report_weighbridge_ticket_template</field>
+            <field name="report_file">mr_rice_addons.report_weighbridge_ticket_template</field>
+             <field name="paperformat_id" ref="paperformat_weighbridge_ticket"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 2. Report Design (Template) -->
+        <template id="report_weighbridge_ticket_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page"
+                         style="font-family: 'Courier New', Courier, monospace; color: black; padding: 20px; font-size: 15px;">
+
+                        <!-- Header Section -->
+                        <div style="width: 100%; text-align: center; margin-bottom: 5px;">
+                            <h2 style="margin: 0; font-weight: bold;">Bulk Management (Pakistan) Pvt. Ltd.</h2>
+                            <div style="font-size: 12px; line-height: 1.2;">
+                                Plot no. A-31, NWIZ, Port Qasim. Phone No: 021-34730316
+                                <br/>
+                                FAX NO.: 021-34730315, E-Mail: Mapak@cyber.net.pk
+                                <br/>
+                                ( I N W A R D )
+                            </div>
+                        </div>
+
+                        <hr style="border-top: 1px solid black; margin-bottom: 10px;"/>
+
+                        <!-- Date, Time, Gate Pass Line -->
+                        <div style="width: 100%; margin-bottom: 25px; overflow: hidden; font-weight: bold;">
+                            <div style="width: 30%; float: left;">
+                                DATE :
+                                <span style="font-weight: normal;" t-field="o.date"/>
+                            </div>
+                            <div style="width: 30%; float: left; text-align: center;">
+                                TIME :
+                                <span style="font-weight: normal;" t-field="o.time"/>
+                            </div>
+                            <div style="width: 40%; float: left; text-align: right;">
+                                GATE PASS NO.:
+                                <span style="font-weight: normal;" t-field="o.gate_pass_id.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Information Columns -->
+                        <div style="width: 100%; overflow: hidden;">
+                            <div style="width: 50%; float: left; line-height: 1.8;">
+                                <div>
+                                    <strong>VEHICLE NO. :</strong>
+                                    <span style="margin-left: 10px;" t-field="o.vehicle_number"/>
+                                </div>
+                                <div>
+                                    <strong>CONTAINER NO.:</strong>
+                                    <span style="margin-left: 10px;" t-field="o.gate_pass_id.container_no"/>
+                                </div>
+                                <div>
+                                    <strong>NO. OF BAGS :</strong>
+                                    <span style="margin-left: 10px;" t-esc="sum(o.line_ids.mapped('bags'))"/>
+                                </div>
+                                <div>
+                                    <strong>BROKER NAME :</strong>
+                                    <span style="margin-left: 10px;" t-field="o.partner_id.name"/>
+                                </div>
+                                <div>
+                                    <strong>BILTY/DO NO :</strong>
+                                    <span style="margin-left: 10px;" t-field="o.gate_pass_id.bilty_no"/>
+                                </div>
+                            </div>
+
+                            <div style="width: 50%; float: left; line-height: 1.8;">
+                                <div>
+                                    <strong>MATERIAL :</strong>
+                                    <span t-field="o.line_ids[0].product_id.name" t-if="o.line_ids"/>
+                                </div>
+                                <div>
+                                    <strong>SUPPLIER :</strong>
+                                    <span t-field="o.partner_id.name"/>
+                                </div>
+                                <div>
+                                    <strong>PACKING SIZE :</strong>
+                                    <span t-field="o.packing_size"/>
+                                </div>
+                                <div>
+                                    <strong>PO NO :</strong>
+                                    <span t-field="o.line_ids[0].purchase_order_id.name" t-if="o.line_ids"/>
+                                </div>
+                                <div>
+                                    <strong>CUSTOMER :</strong>
+                                    <span t-field="o.consignee_id.name"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="clear: both; margin-top: 30px;"></div>
+
+                        <!-- Weights -->
+                        <div style="width: 100%; font-size: 20px; font-weight: bold; border-top: 1px solid black; padding-top: 15px;">
+                            <div style="width: 100%; margin-bottom: 8px;">
+                                <span style="width: 250px; display: inline-block;">FIRST WEIGHT :</span>
+                                <span style="width: 150px; display: inline-block; text-align: right;"
+                                      t-esc="'%.0f' % o.gross_weight"/>
+                                <span style="margin-left: 10px;">KG</span>
+                                <span style="margin-left: 60px; font-size: 14px; font-weight: normal;"
+                                      t-field="o.date"/>
+                            </div>
+
+                            <div style="width: 100%; margin-bottom: 8px;">
+                                <span style="width: 250px; display: inline-block;">SECOND WEIGHT:</span>
+                                <span style="width: 150px; display: inline-block; text-align: right;"
+                                      t-esc="'%.0f' % o.tare_weight"/>
+                                <span style="margin-left: 10px;">KG</span>
+                                <span style="margin-left: 60px; font-size: 14px; font-weight: normal;"
+                                      t-field="o.time"/>
+                            </div>
+
+                            <div style="width: 100%; margin-top: 10px; border-top: 2px solid black; padding-top: 10px; font-size: 26px;">
+                                <span style="width: 250px; display: inline-block;">NET WEIGHT :</span>
+                                <span style="width: 150px; display: inline-block; text-align: right;"
+                                      t-esc="'%.0f' % o.net_weight"/>
+                                <span style="margin-left: 10px;">KG</span>
+                            </div>
+                        </div>
+
+                        <!-- Driver Status -->
+                        <div style="width: 100%; text-align: left; margin-top: 50px; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-decoration: underline;">
+                            <span t-if="o.driver_selection == 'with_driver'">WITH DRIVER</span>
+                            <span t-if="o.driver_selection == 'without_driver'">WITHOUT DRIVER</span>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div style="width: 100%; margin-top: 100px; font-weight: bold; font-size: 12px;">
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">W/B OPERATOR</div>
+                            </div>
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">DRIVER/RECEIVER</div>
+                            </div>
+                            <div style="width: 33%; float: left; text-align: center;">
+                                <div style="border-top: 1px solid black; margin: 0 10px;">WARE/HOUSE/INCHARGE</div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

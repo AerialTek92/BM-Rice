@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_delivery_certificate_local" model="ir.actions.report">
+        <field name="name">Local Sales Delivery Certificate</field>
+        <field name="model">gate.pass</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_mill.report_delivery_certificate_local_document</field>
+        <field name="report_file">arm_rice_mill.report_delivery_certificate_local_document</field>
+        <field name="binding_model_id" ref="model_gate_pass"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_delivery_certificate_local_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+
+                        <!-- Header -->
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                            <h2 style="margin: 0; font-weight: bold; font-size: 22px;">
+                                <span t-esc="env.company.partner_id.name or 'Bulk Management (Pakistan) Pvt. Ltd.'"/>
+                                <span style="font-size: 14px; color: #555;">BMI RICE PLANT</span>
+                            </h2>
+                            <h3 style="margin: 10px 0 0 0; font-weight: bold; text-transform: uppercase; font-size: 16px;">Delivery Certificate</h3>
+                        </div>
+
+                        <!-- Top Info Grid -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px; width: 20%; background-color: #f2f2f2; font-weight: bold; text-align: center;">Customer Name</td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 30%;"><span t-field="o.partner_id.name"/></td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 20%; background-color: #f2f2f2; font-weight: bold; text-align: center;">Delivery Date</td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 30%; text-align: center;"><span t-field="o.date" t-options='{"widget": "date"}'/></td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px; background-color: #f2f2f2; font-weight: bold; text-align: center;">D/O No</td>
+                                <td style="border: 1px solid #000; padding: 8px;"><span t-field="o.delivery_picking_id.name"/></td>
+                                <td style="border: 1px solid #000; padding: 8px; background-color: #f2f2f2; font-weight: bold; text-align: center;">Gate Pass No</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-field="o.name"/></td>
+                            </tr>
+                        </table>
+
+                        <!-- Product Lines Table -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2;">
+                                    <th style="border: 1px solid #000; padding: 8px; text-align: left;">Product Name</th>
+                                    <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">Packing</th>
+                                    <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">Case Count</th>
+                                    <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 10%;">Bags</th>
+                                    <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">Weight (kgs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.gate_pass_line_ids" t-as="line">
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 8px;"><span t-field="line.product_id.name"/></td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-esc="line.product_id.piece_weight or 0.0"/> kg</td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-esc="line.ctn or 0.0"/> (1 x <span t-esc="line.product_id.carton_capacity or 0"/>)</td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-field="line.bags"/></td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold;"><span t-field="line.net"/></td>
+                                    </tr>
+                                </t>
+                                <tr style="font-weight: bold; background-color: #f9f9f9;">
+                                    <td style="border: 1px solid #000; padding: 8px; text-align: right;" colspan="3">Total Weight (kgs):</td>
+                                    <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-esc="sum(o.gate_pass_line_ids.mapped('bags'))"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px; text-align: center;"><span t-esc="sum(o.gate_pass_line_ids.mapped('net'))"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Quality Parameters Table -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                            <tr style="background-color: #f2f2f2;">
+                                <th colspan="4" style="border: 1px solid #000; padding: 8px; text-align: left;">Quality Parameters</th>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px; width: 25%;">Rice Quality</td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 25%; text-align: center;">
+                                    <t t-if="o.check_rice_quality">✓ Passed</t>
+                                    <t t-else="">- Pending</t>
+                                </td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 25%;">Packing Condition</td>
+                                <td style="border: 1px solid #000; padding: 8px; width: 25%; text-align: center;">
+                                    <t t-if="o.check_packaging_condition">✓ Passed</t>
+                                    <t t-else="">- Pending</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px;">Fumigation</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                    <t t-if="o.check_fumigation">✓ Passed</t>
+                                    <t t-else="">- Pending</t>
+                                </td>
+                                <td style="border: 1px solid #000; padding: 8px;">Weevils</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                    <t t-if="o.check_weevils">✓ Passed</t>
+                                    <t t-else="">- Pending</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px;">Vehicle Condition</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center;" colspan="3">
+                                    <t t-if="o.check_vehicle_condition">✓ Passed</t>
+                                    <t t-else="">- Pending</t>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Declaration Text -->
+                        <div style="text-align: center; font-weight: bold; margin-bottom: 40px; font-style: italic;">
+                            Stock is quality cleared to be despatched.
+                        </div>
+
+                        <!-- Signatures -->
+                        <table style="width: 100%; margin-top: 60px;">
+                            <tr>
+                                <td style="width: 33%; text-align: center; vertical-align: bottom;">
+                                    <div style="border-top: 1px solid #000; padding-top: 5px; margin: 0 20px;">
+                                        <strong>Quality Assurance</strong>
+                                    </div>
+                                </td>
+                                <td style="width: 33%; text-align: center; vertical-align: bottom;">
+                                    <div style="border-top: 1px solid #000; padding-top: 5px; margin: 0 20px;">
+                                        <strong>Supply Chain Executive</strong>
+                                    </div>
+                                </td>
+                                <td style="width: 33%; text-align: center; vertical-align: bottom;">
+                                    <div style="border-top: 1px solid #000; padding-top: 5px; margin: 0 20px;">
+                                        <strong>Received By</strong>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

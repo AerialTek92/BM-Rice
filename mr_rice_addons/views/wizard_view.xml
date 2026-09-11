@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 2. Wizard Form View -->
+    <record id="view_purchase_order_wizard_form" model="ir.ui.view">
+        <field name="name">purchase.order.wizard.form</field>
+        <field name="model">purchase.order.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Purchase Order Detail">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 3. Wizard Window Action -->
+    <record id="action_purchase_order_wizard" model="ir.actions.act_window">
+        <field name="name">PO Detail Report</field>
+        <field name="res_model">purchase.order.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 4. Menu Item (Reporting Menu mein) -->
+    <menuitem id="menu_purchase_order_report_detail"
+              name="PO Detail Report"
+              parent="purchase.purchase_report_main"
+              action="action_purchase_order_wizard"
+              sequence="100"/>
+</odoo>

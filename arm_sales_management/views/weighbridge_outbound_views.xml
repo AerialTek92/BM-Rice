@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_weighbridge_ticket_form_outbound_inherit" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.form.outbound.inherit</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="inherit_id" ref="arm_rice_mill.weighbridge_ticket_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Customers (multiple, from the Gate Passes) after the base partner;
+                 base partner hidden for outbound (single-value field, multi now). -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="outbound_partner_ids" widget="many2many_tags" readonly="1"
+                       invisible="weighbridge_type != 'outbound'"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">weighbridge_type == 'outbound'</attribute>
+            </xpath>
+
+            <!-- 2. The OUTBOUND surface: multiple Gate Pass refs (search by Vehicle No).
+                 The old single Sales Memo / Delivery Order header fields are GONE -
+                 the Delivery Orders live on the lines, one per Gate Pass. -->
+            <xpath expr="//field[@name='rice_sales_contract_id']" position="after">
+                <field name="gate_pass_ids" widget="many2many_tags"
+                       context="{'wb_gate_pass_view': True}"
+                       domain="[('pass_type', '=', 'outbound'), ('state', '=', 'confirmed')]"
+                       options="{'no_create': True}"
+                       invisible="weighbridge_type != 'outbound'"
+                       placeholder="Select Gate Passes - search by Vehicle No."/>
+            </xpath>
+
+            <!-- Hide the mill's single Gate Pass fields for outbound (kept for
+                 procurement/manufacturing). -->
+            <xpath expr="//field[@name='gate_pass_id']" position="attributes">
+                <attribute name="invisible">weighbridge_type != 'procurement'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='gate_pass_date']" position="attributes">
+                <attribute name="invisible">weighbridge_type != 'procurement'</attribute>
+            </xpath>
+
+            <!-- 3. Outbound Smart Buttons: Delivery Orders (from the lines). -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_delivery_pickings" type="object" class="oe_stat_button" icon="fa-truck" invisible="weighbridge_type != 'outbound'">
+                    <span class="o_stat_text">Delivery Orders</span>
+                </button>
+            </xpath>
+
+            <!-- 4. Outbound Buttons in Header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_start_loading" string="Start Loading" type="object" class="btn-primary"
+                        invisible="weighbridge_type != 'outbound' or state != 'draft' or gross_weight == 0"/>
+                <button name="action_confirm_outbound" string="Confirm" type="object" class="btn-success"
+                        invisible="weighbridge_type != 'outbound' or state != 'unloading' or tare_weight == 0"/>
+            </xpath>
+
+            <!-- 5. Hide the inherited Cancel button for CONFIRMED outbound tickets -->
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">state in ('cancel', 'done') or (weighbridge_type == 'outbound' and state == 'confirmed')</attribute>
+            </xpath>
+
+            <!-- 6. Update Allocation Separator -->
+            <xpath expr="//separator[@name='allocation_separator']" position="after">
+                <separator name="allocation_separator_outbound" string="Allocate Weight by Delivery Order" invisible="weighbridge_type != 'outbound'"/>
+            </xpath>
+
+            <!-- 7. Outbound Line Fields: the line's OWN Delivery Order drives everything. -->
+            <xpath expr="//field[@name='line_ids']//list//field[@name='purchase_order_line_id']" position="after">
+                <field name="delivery_picking_id" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_line_id" domain="[('picking_id', '=', delivery_picking_id)]" string="D/O Line / Product" readonly="parent.state == 'confirmed'" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_qty" string="D/O Qty" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="do_demand_qty" string="Demand" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="additional_weight" string="Add. Wt (g)" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+                <field name="total_weight" string="Total Wt" readonly="1" force_save="1" column_invisible="parent.weighbridge_type != 'outbound'"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

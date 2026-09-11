@@ -1,0 +1,119 @@
+<odoo>
+
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_stock_picking_product" model="ir.actions.report">
+        <field name="name">Product Allowance Actual vs Billing</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_stock_picking_product</field>
+        <field name="report_file">mr_rice_addons.report_stock_picking_product</field>
+        <field name="print_report_name">'Product Allowance Report'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_stock_picking_product">
+        <t t-call="web.html_container">
+            <div class="page"
+                 style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 10px;">
+
+                <!-- Title Section -->
+                <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Product Allowance Actual V/S Billing</h2>
+                    <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px; margin-bottom: 10px;">
+                        <span t-esc="date_from"/>
+                        -
+                        <span t-esc="date_to"/>
+                    </p>
+                    <p t-if="docs" style="font-size: 20px; font-weight: bold;">
+                        Product: <span t-field="docs[0].product_id.name"/>
+                    </p>
+                </div>
+                <table class="table table-bordered"
+                       style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+                    <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                        <!-- Header Rows -->
+                        <tr>
+                            <th rowspan="2" style="border: 1px solid black; vertical-align: middle;">GRN No</th>
+                            <th rowspan="2" style="border: 1px solid black; vertical-align: middle;">Party / Broker
+                                Name
+                            </th>
+                            <th colspan="2" style="border: 1px solid black; text-align: center;">Billing</th>
+                            <th colspan="2" style="border: 1px solid black; text-align: center;">Actual</th>
+                            <th rowspan="2" style="border: 1px solid black; vertical-align: middle;">Difference
+                                (Moisture)
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="border: 1px solid black;">Moisture</th>
+                            <th style="border: 1px solid black;">Broken</th>
+                            <th style="border: 1px solid black;">Moisture</th>
+                            <th style="border: 1px solid black;">Broken</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <!-- 3. Loop Shuru (Sirf rows repeat hongi) -->
+                        <t t-set="total_diff" t-value="0"/>
+
+                        <t t-foreach="docs" t-as="o">
+                            <tr>
+                                <td style="border: 1px solid black; padding: 10px;">
+                                    <span t-field="o.name"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 10px;">
+                                    <strong>
+                                        <span t-field="o.partner_id.name"/>
+                                    </strong>
+                                </td>
+                                <td class="text-center" style="border: 1px solid black; padding: 10px;">
+                                    <span t-field="o.initial_moisture_percent"/>%
+                                </td>
+                                <td class="text-center" style="border: 1px solid black; padding: 10px;">
+                                    <span t-field="o.initial_broken_percent"/>%
+                                </td>
+                                <td class="text-center" style="border: 1px solid black; padding: 10px;">
+                                    <span t-field="o.actual_moisture"/>%
+                                </td>
+                                <td class="text-center" style="border: 1px solid black; padding: 10px;">
+                                    <span t-field="o.actual_broken"/>%
+                                </td>
+                                <td class="text-right" style="border: 1px solid black; padding: 10px;">
+                                    <t t-set="diff"
+                                       t-value="o.actual_moisture - (o.initial_moisture_percent or 0.0)"/>
+                                    <span t-esc="'%.2f' % diff"/>
+                                    <t t-set="total_diff" t-value="total_diff + diff"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+
+                    <!-- 4. Footer Totals (Loop se bahar) -->
+                    <tfoot style="font-weight: bold; background-color: #f2f2f2;">
+                        <tr>
+                            <td colspan="6" style="text-align: right; border: 1px solid black; padding: 5px;">GRAND
+                                TOTAL DIFFERENCE:
+                            </td>
+                            <td style="text-align: right; border: 1px solid black; padding: 5px;">
+                                <span t-esc="'%.2f' % total_diff"/>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </t>
+    </template>
+
+</odoo>

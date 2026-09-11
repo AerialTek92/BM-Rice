@@ -1,0 +1,134 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_do_landscape" model="report.paperformat">
+        <field name="name">Delivery Order Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- 1. Report Action -->
+    <record id="action_report_do_date_wise" model="ir.actions.report">
+        <field name="name">Delivery Order Date Wise</field>
+        <field name="model">delivery.order.date.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_do_date_wise_template</field>
+        <field name="report_file">mr_rice_addons.report_do_date_wise_template</field>
+        <field name="print_report_name">'Delivery_Order_DateWise_Report'</field>
+        <field name="paperformat_id" ref="paperformat_do_landscape"/>
+    </record>
+
+    <!-- 2. PDF Template -->
+    <template id="report_do_date_wise_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 11px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 15px;">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="font-weight: bold;">Delivery Order</h5>
+                        <div style="font-weight: bold;">
+                            <span t-esc="data['date_from']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                            TO
+                            <span t-esc="data['date_to']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                        </div>
+                    </div>
+
+                    <!-- Main Table -->
+                    <table class="table table-sm"
+                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid black; text-align: center;">
+                                <th style="width: 8%;">D/O NO.</th>
+                                <th style="width: 8%;">D/O Date</th>
+                                <th style="width: 15%;">Customer</th>
+                                <th style="width: 8%;">Memo No</th>
+                                <th style="width: 20%;">Product Name</th>
+                                <th style="width: 7%; text-align: right;">Rate</th>
+                                <th style="width: 8%; text-align: right;">D/O Qty</th>
+                                <th style="width: 10%; text-align: right;">GatePass Qty</th>
+                                <th style="width: 8%; text-align: right;">Balance Qty</th>
+                                <th style="width: 10%; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="grouped_data" t-as="g">
+                                <!-- Customer Group Items -->
+                                <tr t-foreach="g['items']" t-as="l">
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['do_no']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['do_date']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yy"}'/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['customer']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['memo_no']"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['product_name']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['rate'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(l['do_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(l['gatepass_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(l['balance_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['amount'])"/>
+                                    </td>
+                                </tr>
+                                <!-- Customer Sub Total -->
+                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
+                                    <td colspan="6" style="text-align: right;">Total:</td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(g['total_do_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(g['total_gp_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.3f}'.format(g['total_bal_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(g['total_amount'])"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <!-- Grand Total -->
+                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 12px;">
+                                <td colspan="6" style="text-align: right;">GRAND TOTAL:</td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.3f}'.format(grand_total_do)"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.3f}'.format(grand_total_gp)"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.3f}'.format(grand_total_bal)"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.2f}'.format(grand_total_amt)"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

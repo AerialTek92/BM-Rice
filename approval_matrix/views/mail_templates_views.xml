@@ -1,0 +1,128 @@
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<odoo>-->
+<!--    <data noupdate="0">-->
+<!--        &lt;!&ndash; Verification Notification &ndash;&gt;-->
+<!--        <record id="email_template_po_verification" model="mail.template">-->
+<!--            <field name="name">PO: Request for Verification (One-Click)</field>-->
+<!--            <field name="model_id" ref="purchase.model_purchase_order"/>-->
+<!--            <field name="subject">Verification Needed: {{ object.name }}</field>-->
+<!--            <field name="body_html" type="html">-->
+<!--                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">-->
+<!--                    <h2 style="color: #875A7B;">Verification Request</h2>-->
+<!--                    <p>Hello-->
+<!--                        <strong>-->
+<!--                            <t t-out="ctx.get('approver_name')"/>-->
+<!--                        </strong>-->
+<!--                        ,-->
+<!--                    </p>-->
+<!--                    <p>Purchase Order-->
+<!--                        <strong>-->
+<!--                            <t t-out="object.name"/>-->
+<!--                        </strong>-->
+<!--                        requires your Verification.-->
+<!--                    </p>-->
+<!--                    <div style="text-align: center; margin: 30px;">-->
+<!--                        <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/verify'"-->
+<!--                           style="background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">-->
+<!--                            Verify Now-->
+<!--                        </a>-->
+<!--                        <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/refuse'"-->
+<!--                           style="background-color: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">-->
+<!--                            Refuse-->
+<!--                        </a>-->
+<!--                        <a t-att-href="object.get_base_url() + '/web#id=' + str(object.id) + '&amp;model=purchase.order&amp;view_type=form'"-->
+<!--                           style="background-color: #875A7B; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">-->
+<!--                            View Order-->
+<!--                        </a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </field>-->
+<!--        </record>-->
+
+<!--        &lt;!&ndash; Final Approval Notification &ndash;&gt;-->
+<!--        <record id="email_template_po_final_approval" model="mail.template">-->
+<!--            <field name="name">PO: Final Approval (One-Click)</field>-->
+<!--            <field name="model_id" ref="purchase.model_purchase_order"/>-->
+<!--            <field name="subject">Final Approval Needed: {{ object.name }}</field>-->
+<!--            <field name="body_html" type="html">-->
+<!--                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">-->
+<!--                    <h2 style="color: #00A09D;">Approval Request</h2>-->
+<!--                    <p>Hello-->
+<!--                        <strong>-->
+<!--                            <t t-out="ctx.get('approver_name')"/>-->
+<!--                        </strong>-->
+<!--                        ,-->
+<!--                    </p>-->
+<!--                    <p>Purchase Order-->
+<!--                        <strong>-->
+<!--                            <t t-out="object.name"/>-->
+<!--                        </strong>-->
+<!--                        requires your Final Approval.-->
+<!--                    </p>-->
+<!--                    <div style="text-align: center; margin: 30px;">-->
+<!--                        <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/approve'"-->
+<!--                           style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">-->
+<!--                            Approve Now-->
+<!--                        </a>-->
+<!--                        <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/refuse'"-->
+<!--                           style="background-color: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">-->
+<!--                            Refuse-->
+<!--                        </a>-->
+<!--                        <a t-att-href="object.get_base_url() + '/web#id=' + str(object.id) + '&amp;model=purchase.order&amp;view_type=form'"-->
+<!--                           style="background-color: #875A7B; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">-->
+<!--                            View Order-->
+<!--                        </a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </field>-->
+<!--        </record>-->
+<!--    </data>-->
+<!--</odoo>-->
+
+
+<odoo>
+    <data noupdate="0">
+        <record id="email_template_po_verification" model="mail.template">
+            <field name="name">email_template_po_verification</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="subject">PO Verification Needed: {{ object.name }}</field>
+            <field name="body_html" type="html">
+                <div style="padding:20px; border:1px solid #ddd;">
+                    <p>Hello<t t-out="ctx.get('approver_name')"/>,
+                    </p>
+                    <p>Please verify PO
+                        <b>
+                            <t t-out="object.name"/>
+                        </b>
+                    </p>
+                    <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/verify'"
+                       style="padding:10px; background:#28a745; color:#fff; text-decoration:none; border-radius:5px;">
+                        Verify Now
+                    </a>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_po_final_approval" model="mail.template">
+            <field name="name">email_template_po_final_approval</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="subject">Final PO Approval Needed: {{ object.name }}</field>
+            <field name="body_html" type="html">
+                <div style="padding:20px; border:1px solid #ddd;">
+                    <p>Hello<t t-out="ctx.get('approver_name')"/>,
+                    </p>
+                    <p>PO
+                        <b>
+                            <t t-out="object.name"/>
+                        </b>
+                        needs Final Approval.
+                    </p>
+                    <a t-att-href="object.get_base_url() + '/po/approval/' + str(object.id) + '/approve'"
+                       style="padding:10px; background:#007bff; color:#fff; text-decoration:none; border-radius:5px;">
+                        Approve Now
+                    </a>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

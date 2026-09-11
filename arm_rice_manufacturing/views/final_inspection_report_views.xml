@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. Form View -->
+    <record id="final_inspection_report_view_form" model="ir.ui.view">
+        <field name="name">final.inspection.report.view.form</field>
+        <field name="model">final.inspection.report</field>
+        <field name="arch" type="xml">
+            <form string="Final Inspection Report">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                        invisible="state != 'draft'" />
+                    <button name="action_cancel" string="Cancel" type="object"
+                        invisible="state in ('draft', 'cancel')" />
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                        class="btn-secondary"
+                        invisible="state != 'cancel'" />
+                    <!-- NEW: Print Button -->
+                    <button name="%(action_report_final_inspection_report)d" string="Print Report"
+                        type="action" class="oe_highlight" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+
+                    <!-- Plant Selection as per SS -->
+                    <group string="Plant Selection">
+                        <field name="plant" widget="radio" options="{'horizontal': true}" />
+                    </group>
+
+                    <!-- Top Section: Operator, Customer, Job Order -->
+                    <group>
+                        <group>
+                            <field name="operator_name" />
+                            <field name="customer_id" />
+                            <field name="brand_name" />
+                        </group>
+                        <group>
+                            <field name="job_order_id" />
+                            <field name="date" />
+                            <field name="day" />
+                            <field name="shift" />
+                        </group>
+                    </group>
+
+                    <!-- Quality Parameters Table (Two Tabs) -->
+                    <notebook>
+                        <!-- TAB 1: Standard Value (Readonly) -->
+                        <page string="Standard Value">
+                            <field name="report_line_ids" readonly="1">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="name" string="Hours / Type" readonly="1"/>
+                                    <field name="std_sample_kg" readonly="1"/>
+                                    <field name="std_broken" readonly="1"/>
+                                    <field name="std_damage_yellow" readonly="1"/>
+                                    <field name="std_moisture" readonly="1"/>
+                                    <field name="std_foreign_grains" readonly="1"/>
+                                    <field name="std_foreign_matter" readonly="1"/>
+                                    <field name="std_paddy_grain" readonly="1"/>
+                                    <field name="std_under_milled_choba" readonly="1"/>
+                                    <field name="std_kett_whitnes" readonly="1"/>
+                                    <field name="std_packaging_material" readonly="1"/>
+                                    <field name="std_remarks" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- TAB 2: Observed Value (Editable) -->
+                        <page string="Observed Value">
+                            <field name="report_line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name" string="Hours / Type"/>
+                                    <field name="sample_kg"/>
+                                    <field name="broken"/>
+                                    <field name="damage_yellow"/>
+                                    <field name="moisture"/>
+                                    <field name="foreign_grains"/>
+                                    <field name="foreign_matter"/>
+                                    <field name="paddy_grain"/>
+                                    <field name="under_milled_choba"/>
+                                    <field name="kett_whitnes"/>
+                                    <field name="packaging_material"/>
+                                    <field name="remarks"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <!-- Sign-off Section -->
+                    <group>
+                        <group>
+                            <field name="shift_supervisor" />
+                        </group>
+                        <group>
+                            <field name="production_head" />
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. List View -->
+    <record id="final_inspection_report_view_tree" model="ir.ui.view">
+        <field name="name">final.inspection.report.view.tree</field>
+        <field name="model">final.inspection.report</field>
+        <field name="arch" type="xml">
+            <list string="Final Inspection Reports" decoration-info="state == 'confirmed'"
+                decoration-muted="state == 'cancel'">
+                <field name="name" />
+                <field name="date" />
+                <field name="plant" />
+                <field name="shift" />
+                <field name="operator_name" />
+                <field name="customer_id" />
+                <field name="brand_name" />
+                <field name="job_order_id" />
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'"
+                    decoration-muted="state == 'cancel'" />
+            </list>
+        </field>
+    </record>
+
+    <!-- 3. Action -->
+    <record id="action_final_inspection_report" model="ir.actions.act_window">
+        <field name="name">Final Inspection Report</field>
+        <field name="res_model">final.inspection.report</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 4. Menu Item (Directly under Manufacturing) -->
+    <menuitem id="menu_final_inspection_report"
+        name="Final Inspection Report"
+        parent="menu_arm_rice_manufacturing"
+        action="action_final_inspection_report"
+        sequence="56" />
+
+</odoo>

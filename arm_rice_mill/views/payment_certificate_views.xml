@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payment_certificate_view_form" model="ir.ui.view">
+        <field name="name">payment.certificate.view.form</field>
+        <field name="model">payment.certificate</field>
+        <field name="arch" type="xml">
+            <form string="Payment Certificate">
+                <header>
+                    <!-- Standard PC Buttons -->
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft' or (approval_status != 'approved' and not is_admin)"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object" class="btn-success" invisible="state != 'confirmed'"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="state == 'draft'"/>
+                    <button name="%(arm_rice_mill.action_report_payment_certificate_arm)d" string="Print COP" type="action" class="oe_highlight" invisible="state != 'confirmed'"/>
+
+                    <!-- NEW: Dynamic Approval Buttons -->
+                    <button name="action_approve" string="Verify" type="object" class="oe_highlight"
+                            invisible="not can_user_approve or pending_line_label != 'Verify'"/>
+
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="not can_user_approve or pending_line_label != 'Approve'"/>
+
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="not can_user_approve or pending_line_label in ('Verify', 'Approve', False)"/>
+
+                    <button name="action_refuse" string="Refuse" type="object" class="btn-danger"
+                            invisible="not can_user_approve"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,paid"/>
+                </header>
+                <sheet>
+                    <!-- NEW: Smart Button for Payment Voucher -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_payment_vouchers" type="object" class="oe_stat_button" icon="fa-pencil-square-o" invisible="payment_voucher_count == 0">
+                            <field name="payment_voucher_count" widget="statinfo" string="Vouchers"/>
+                        </button>
+                    </div>
+
+                    <!-- NEW: Approval Status Banner -->
+                    <div class="alert alert-info" role="alert" invisible="approval_status == 'approved' or not approval_line_ids">
+                        <strong>Approval Status:</strong> <field name="approval_label" readonly="1"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="approval_status != 'refused'">
+                        <strong>This Payment Certificate has been Refused.</strong>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <!-- NEW: Invisible fields for view evaluation -->
+                    <field name="can_user_approve" invisible="1"/>
+                    <field name="approval_status" invisible="1"/>
+                    <field name="pending_line_label" invisible="1"/>
+                    <field name="is_admin" invisible="1"/>
+
+                    <!-- Section 1: Goods Receipt Reference -->
+                    <group string="Goods Receipt Reference">
+                        <group>
+                            <!-- Context passes payment_cert_grn_view=True to enable custom dropdown search/display -->
+                            <field name="grn_id" context="{'payment_cert_grn_view': True}"/>
+                            <!-- NEW: GRN Date mapped directly -->
+                            <field name="grn_date" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="purchase_id" invisible="not purchase_id" readonly="1"/>
+                            <field name="purchase_order_date" invisible="not purchase_id" readonly="1"/>
+                            <field name="po_due_date" invisible="not purchase_id" readonly="1"/>
+                            <field name="rice_sales_contract_id" invisible="not rice_sales_contract_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="vehicle_number" invisible="1" force_save="1"/>
+                             <field name="broker_id" invisible="1" force_save="1"/>
+                            <field name="buyer_id" readonly="state == 'paid'"/>
+                            <field name="transporter_id" readonly="1"/>
+                            <field name="net_weight" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Product &amp; Amount">
+                        <group>
+                            <field name="product_id" readonly="1"/>
+                            <field name="rate" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="bags" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Deductions &amp; Charges">
+                            <group string="Deductions (Quality &amp; Bags)">
+                                <group>
+                                    <label for="moisture_actual" string="Moisture"/>
+                                    <div class="o_row">
+                                        <field name="moisture_actual" placeholder="Actual %"/>
+                                        <field name="moisture_allowance_rate" placeholder="Rate/Kg" force_save="1" readonly="state in ('confirmed', 'paid')"/>
+                                    </div>
+                                    <!-- FIX: Added editable deduction field in the main section -->
+                                    <field name="moisture_deduction" readonly="state in ('confirmed', 'paid')"/>
+
+                                    <label for="broken_actual" string="Broken"/>
+                                    <div class="o_row">
+                                        <field name="broken_actual" placeholder="Actual %"/>
+                                        <field name="broken_allowance_rate" placeholder="Rate/Kg" force_save="1" readonly="state in ('confirmed', 'paid')"/>
+                                    </div>
+                                    <!-- FIX: Added editable deduction field in the main section -->
+                                    <field name="broken_deduction" readonly="state in ('confirmed', 'paid')"/>
+
+                                    <!-- NEW: Filling Bags Deduction with dynamic Rate/Kg -->
+                                    <label for="filling_bags" string="Filling Bags"/>
+                                    <div class="o_row">
+                                        <field name="filling_bags" placeholder="Bags"/>
+                                        <field name="filling_bags_allowance_rate" placeholder="Rate/Kg" force_save="1" readonly="state in ('confirmed', 'paid')"/>
+                                    </div>
+                                    <!-- FIX: Added editable deduction field in the main section -->
+                                    <field name="filling_bags_deduction" readonly="state in ('confirmed', 'paid')"/>
+                                </group>
+                            </group>
+                            <group string="Brokerage &amp; Charges">
+                                <group>
+                                     <field name="broker_brokerage_rate" invisible="not broker_id"/>
+                                     <field name="broker_wh_tax_rate" invisible="not broker_id"/>
+                                    <field name="gross_amount"/>
+                                </group>
+                                <group>
+                                    <field name="add_brokerage" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="less_wh_tax_brokerage" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="less_damage" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="less_weighing_charges" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="less_other_deductions" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="add_transportation" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="add_bardana" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="add_labour" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="add_commission" readonly="state in ('confirmed', 'paid')"/>
+                                    <field name="add_other" readonly="state in ('confirmed', 'paid')"/>
+                                </group>
+                            </group>
+                            <group class="oe_subtotal_footer">
+                                <!-- FIX: Made all fields in the footer strictly readonly -->
+                                <field name="gross_amount" string="Gross Amount" readonly="1"/>
+                                <field name="moisture_deduction" string="- Moisture Deduction" readonly="1"/>
+                                <field name="broken_deduction" string="- Broken Deduction" readonly="1"/>
+                                <field name="filling_bags_deduction" string="- Filling Bags Deduction" readonly="1"/>
+                                <field name="total_deductions" string="- Total Deductions" readonly="1"/>
+                                <field name="total_charges" string="+/- Add &amp; Less Adjustments" readonly="1"/>
+                                <field name="net_payable" class="oe_subtotal_footer_separator" string="= Net Payable" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Remarks">
+                            <field name="remarks" nolabel="1" colspan="2"/>
+                        </page>
+
+                        <!-- NEW: Approval Matrix Tab -->
+                        <page string="Approval Matrix" name="approval_matrix_page" invisible="not approval_line_ids">
+                            <field name="approval_line_ids" readonly="1">
+                                <list decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'">
+                                    <field name="label"/>
+                                    <field name="employee_id"/>
+                                    <field name="status" widget="badge" decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'"/>
+                                    <field name="time_of_approval"/>
+                                </list>
+                            </field>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="payment_certificate_view_tree" model="ir.ui.view">
+        <field name="name">payment.certificate.view.tree</field>
+        <field name="model">payment.certificate</field>
+        <field name="arch" type="xml">
+            <list string="Payment Certificates">
+                <field name="approval_status" widget="badge"
+                       decoration-info="approval_status == 'prepared'"
+                       decoration-warning="approval_status == 'verified'"
+                       decoration-success="approval_status == 'approved'"
+                       decoration-danger="approval_status == 'refused'"/>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="grn_id"/>
+                <!-- FIX: Added width to create spacing -->
+                <field name="purchase_order_date" width="120"/>
+                <field name="grn_date"/>
+                <!-- FIX: Added width to create spacing -->
+                <field name="partner_id" width="110"/>
+                <field name="vehicle_number" string="Vehicle No." />
+                <!-- <field name="product_id" optional="show"/> -->
+                <!-- FIX: Added width to create spacing -->
+                <field name="net_weight" string="Quantity" optional="show" width="110"/>
+                <!-- FIX: Added width to create spacing -->
+                <field name="rate" string="Unit Price" optional="show" width="110"/>
+                <field name="gross_amount"/>
+                <field name="net_payable"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_payment_certificate" model="ir.actions.act_window">
+        <field name="name">Payment Certificates</field>
+        <field name="res_model">payment.certificate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_payment_certificate_purchase" name="Payment Certificates"
+              parent="purchase.menu_purchase_root" action="action_payment_certificate" sequence="40"/>
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_leave_type_view_form_inherit_bm_payroll"
+            model="ir.ui.view">
+
+        <field name="name">hr.leave.type.form.inherit.bm.payroll</field>
+        <field name="model">hr.leave.type</field>
+
+        <field name="inherit_id"
+               ref="hr_holidays.edit_holiday_status_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='request_unit']" position="after">
+
+                <field name="code"/>
+                <field name="use_daily_working_hours"/>
+                <field name="short"/>
+                <field name="days"/>
+                <field name="rate"/>
+                <field name="detail"/>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>

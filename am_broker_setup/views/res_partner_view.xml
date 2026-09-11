@@ -1,0 +1,74 @@
+<odoo>
+    <record id="view_partner_form_inherit_broker_radio" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.broker.radio</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Group 1: Radio and Rates -->
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="partner_assign_type" widget="radio" options="{'horizontal': true}"/>
+                <!-- <field name="brokerage_rate" invisible="partner_assign_type != 'broker'"/> -->
+                <field name="wh_tax_rate" invisible="partner_assign_type != 'broker'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_assign_type']" position="before">
+                <field name="partner_code" placeholder="Auto-Generated Code"/>
+            </xpath>
+
+            <!-- Group 2: Tax Identifiers (Placed after the address block) -->
+            <xpath expr="//div[hasclass('o_address_format')]" position="after">
+                <field name="stax_reg_no"/>
+                <field name="ntn_no"/>
+            </xpath>
+
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="broker_category" invisible="partner_assign_type != 'customer'"/>
+            </xpath>
+
+            <!-- FIX: Control Company field visibility based on Person/Company radio button -->
+            <!-- Hides when Person (is_company == False), Shows when Company (is_company == True) -->
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="invisible">is_company == False</attribute>
+            </xpath>
+
+            <!-- Standard Odoo hides these for companies, but we might want to keep them visible or hidden based on your specific needs.
+                 Adjusting standard visibility for Job Position and Email if needed. -->
+            <xpath expr="//field[@name='function']" position="attributes">
+                <attribute name="invisible">is_company == True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="invisible">is_company == True</attribute>
+            </xpath>
+
+            <!-- Hiding the address block label/name for companies is standard, but let's ensure it behaves correctly -->
+            <xpath expr="//span[@name='address_name']" position="attributes">
+                <attribute name="invisible">is_company == True</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('o_address_format')]" position="attributes">
+                <attribute name="invisible">is_company == True</attribute>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page name="vendor_contacts" string="Vendor Contact Info" invisible="partner_assign_type != 'vendor'">
+                    <group>
+                        <!-- Top Box: Head Office -->
+                        <group string="Head Office Contact Info" col="4">
+                            <field name="ho_address" colspan="4" placeholder="Enter Head Office Address..."/>
+                            <field name="ho_contact_person" colspan="4"/>
+                            <field name="ho_contact_no" colspan="2"/>
+                            <field name="ho_fax_no" colspan="2"/>
+                        </group>
+
+                        <!-- Bottom Box: Factory -->
+                        <group string="Factory Contact Info" col="4">
+                            <field name="factory_address" colspan="4" placeholder="Enter Factory Address..."/>
+                            <field name="factory_contact_person" colspan="4"/>
+                            <field name="factory_contact_no" colspan="2"/>
+                            <field name="factory_fax_no" colspan="2"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

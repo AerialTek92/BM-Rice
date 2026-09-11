@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_hr_salary_advance_list" model="ir.ui.view">
+        <field name="name">hr.salary.advance.list</field>
+        <field name="model">hr.salary.advance</field>
+        <field name="arch" type="xml">
+            <list string="Salary Advances">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="advance_amount" widget="monetary"/>
+                <field name="request_date"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'submitted'"
+                       decoration-success="state == 'approved'"
+                       decoration-muted="state == 'paid'"/>
+                <field name="currency_id" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_hr_salary_advance_form" model="ir.ui.view">
+        <field name="name">hr.salary.advance.form</field>
+        <field name="model">hr.salary.advance</field>
+        <field name="arch" type="xml">
+            <form string="Salary Advance">
+                <header>
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_generate_journal_entry" string="Post to Accounting" type="object"
+                            class="oe_highlight" groups="account.group_account_user" invisible="state != 'approved'"/>
+                    <button name="action_refuse" string="Refuse" type="object" invisible="state != 'submitted'"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,paid"/>
+                </header>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_open_account_move" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not move_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Employee Information">
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="work_location_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Advance Details">
+                            <field name="request_date" readonly="state != 'draft'"/>
+                            <field name="repayment_date" readonly="state != 'draft'"/>
+                            <field name="advance_amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Accounting Integration" invisible="state not in ('approved', 'paid')">
+                        <group>
+                            <field name="journal_id" options="{'no_create': True}" required="state == 'approved'"
+                                   readonly="state == 'paid'"/>
+                            <field name="emp_account_id" options="{'no_create': True}" required="state == 'approved'"
+                                   readonly="state == 'paid'"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTIONS -->
+    <record id="action_hr_salary_advance" model="ir.actions.act_window">
+        <field name="name">Salary Advances</field>
+        <field name="res_model">hr.salary.advance</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- MENUS -->
+    <menuitem id="menu_hr_loan_advance_root" name="Loans &amp; Advances" parent="hr.menu_hr_root" sequence="25"/>
+    <!-- Note: action_hr_loan_request ko filhal temporary salary advance action diya hai jab tak aap wo code nahi bhejte -->
+    <menuitem id="menu_hr_loan_request_child" name="Loan Requests" parent="menu_hr_loan_advance_root"
+              action="action_hr_salary_advance" sequence="1"/>
+    <menuitem id="menu_hr_salary_advance_child" name="Salary Advances" parent="menu_hr_loan_advance_root"
+              action="action_hr_salary_advance" sequence="2"/>
+
+    <!-- ACCOUNTING MENUS -->
+    <menuitem id="menu_account_loans_advances_root" name="Employee Payments" parent="account.menu_finance_payables"
+              sequence="110"/>
+    <menuitem id="menu_account_salary_advance" name="Salary Advances to Pay" parent="menu_account_loans_advances_root"
+              action="action_hr_salary_advance" sequence="2"/>
+
+</odoo>

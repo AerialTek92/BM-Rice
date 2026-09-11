@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="paperformat_grn_inspection" model="report.paperformat">
+            <field name="name">GRN Inspection Paper Format</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+        </record>
+
+        <!-- 1. Report Action -->
+        <record id="action_report_grn_inspection" model="ir.actions.report">
+            <field name="name">Final Inspection Report</field>
+            <field name="model">grn.inspection</field>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">mr_rice_addons.report_grn_inspection_template</field>
+            <field name="report_file">mr_rice_addons.report_grn_inspection_template</field>
+            <field name="paperformat_id" ref="paperformat_grn_inspection"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 2. Report Template -->
+        <template id="report_grn_inspection_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page"
+                         style="font-family: Arial, sans-serif; font-size: 13px; color: black; padding: 10px;">
+
+                        <div style="width: 100%; text-align: center; margin-bottom: 5px;">
+                            <h4 style="margin:0; font-weight: bold;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                            <h5 style="margin:5px 0; text-decoration: underline; font-weight: bold;">ARRIVAL INSPECTION
+                                REPORT
+                            </h5>
+                            <p>Arrival [ X ] | Inventory [ ]</p>
+                        </div>
+
+                        <!-- Top Info Section -->
+                        <div class="row" style="margin-top: 15px;">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td width="30%">DATE:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_date"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PARTY:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.partner_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PRODUCT:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].product_id.name"
+                                                  t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>BILTY NO:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].bilty_no"
+                                                  t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>TRUCK NO:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].truck_no"
+                                                  t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td width="35%">BROKER:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.broker_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>NO OF BAGS:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].bags" t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>SIZE &amp; TYPE:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].bardana"
+                                                  t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>CROP:</td>
+                                        <td style="border-bottom: 1px solid black;">
+                                            <span t-field="o.inspection_line_ids[0].crop" t-if="o.inspection_line_ids"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Main Parameters Table -->
+                        <table class="table table-bordered" style="border: 1px solid black; margin-top: 10px;">
+                            <thead class="text-center" style="background-color: #f2f2f2;">
+                                <tr>
+                                    <th width="10%">S.NO.</th>
+                                    <th width="60%">PARAMETERS</th>
+                                    <th width="30%">RESULTS %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center">1</td>
+                                    <td>MOISTURE</td>
+                                    <td class="text-center">
+                                        <span t-field="o.moisture_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">2</td>
+                                    <td>BROKEN</td>
+                                    <td class="text-center">
+                                        <span t-field="o.broken_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">3</td>
+                                    <td>B1</td>
+                                    <td class="text-center">
+                                        <span t-field="o.b1_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">4</td>
+                                    <td>SHORT GRAIN</td>
+                                    <td class="text-center">
+                                        <span t-field="o.short_grain_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">5</td>
+                                    <td>DAMAGE &amp; YELLOW</td>
+                                    <td class="text-center">
+                                        <span t-field="o.damage_yellow_shriveled_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">6</td>
+                                    <td>CHALKY</td>
+                                    <td class="text-center">
+                                        <span t-field="o.chalky_immature_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">7</td>
+                                    <td>IMMATURE / SHRIVELED</td>
+                                    <td class="text-center">
+                                        <span t-field="o.chalky_immature_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">8</td>
+                                    <td>UNDER MILLED / RED STRIPED</td>
+                                    <td class="text-center">
+                                        <span t-field="o.red_rice_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">9</td>
+                                    <td>OTHER VARIETIES</td>
+                                    <td class="text-center">
+                                        <span t-field="o.other_variety_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">10</td>
+                                    <td>RED RICE</td>
+                                    <td class="text-center">
+                                        <span t-field="o.red_rice_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">11</td>
+                                    <td>GREEN RICE</td>
+                                    <td class="text-center">
+                                        <span t-field="o.green_rice_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">12</td>
+                                    <td>PADDY GRAIN</td>
+                                    <td class="text-center">
+                                        <span t-field="o.paddy_grain_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">13</td>
+                                    <td>FOREIGN GRAIN</td>
+                                    <td class="text-center">
+                                        <span t-field="o.foreign_grain_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">14</td>
+                                    <td>FOREIGN MATTER</td>
+                                    <td class="text-center">
+                                        <span t-field="o.foreign_matter_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">15</td>
+                                    <td>COOKING</td>
+                                    <td class="text-center">
+                                        <span t-field="o.cooking"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">16</td>
+                                    <td>POLISH</td>
+                                    <td class="text-center">
+                                        <span t-field="o.polish_percent"/>
+                                        %
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">17</td>
+                                    <td>AVERAGE GRAIN LENGTH</td>
+                                    <td class="text-center">
+                                        <span t-field="o.average_length"/>
+                                        mm
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">18</td>
+                                    <td>AFLATOXIN</td>
+                                    <td class="text-center">
+                                        <span t-field="o.aflatoxin_percent"/>
+                                        ppb
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">19</td>
+                                    <td>KETT WHITNESS</td>
+                                    <td class="text-center">
+                                        <span t-field="o.kett_whitness_percent"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">20</td>
+                                    <td>-</td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">21</td>
+                                    <td>-</td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Remarks Section -->
+                        <div style="margin-top: 10px;">
+                            <strong>Remarks: </strong> <span style="border-bottom: 1px solid black; display: inline-block; width: 85%;" t-field="o.qc_remarks" t-if="o.qc_remarks"/>
+                        </div>
+
+                        <!-- Footer Signatures -->
+                        <div class="row"
+                             style="margin-top: 50px; text-align: center; font-size: 11px; font-weight: bold;">
+                            <div class="col-4">
+                                <p style="border-top: 1px solid black; margin: 0 10px; padding-top: 5px;">Incharge QA
+                                    &amp; Ops<br/>PREPARED BY
+                                </p>
+                            </div>
+                            <div class="col-4">
+                                <p style="border-top: 1px solid black; margin: 0 10px; padding-top: 5px;">Production
+                                    Head<br/>CHECKED BY
+                                </p>
+                            </div>
+                            <div class="col-4">
+                                <p style="border-top: 1px solid black; margin: 0 10px; padding-top: 5px;">Factory
+                                    Manager<br/>APPROVED BY
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

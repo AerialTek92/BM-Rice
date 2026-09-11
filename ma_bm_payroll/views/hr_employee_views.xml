@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_device" model="ir.ui.view">
+        <field name="name">hr.employee.form.device</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- FIX: Placed strictly AFTER Manager (parent_id) field -->
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="device_user_id" readonly="1"/>
+            </xpath>
+
+            <!-- NEW: Add Employee ID right next to Job Title (Top of the form) -->
+            <!-- <xpath expr="//sheet//div[hasclass('oe_title')]//field[@name='job_title']" position="after"> -->
+                <!-- <span class="oe_inline"> / </span> -->
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="custom_employee_id" placeholder="Employee ID" class="oe_inline"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Leave Days">
+                    <field name="leave_days_ids">
+                        <list editable="bottom">
+                            <field name="leave_type_id"/>
+                            <field name="days"/>
+                            <field name="used_days"/>
+                            <field name="remaining"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- NEW: Add Employee ID to the Search View for easy searching -->
+    <record id="view_employee_filter_device" model="ir.ui.view">
+        <field name="name">hr.employee.filter.device</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="custom_employee_id" string="Employee ID"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

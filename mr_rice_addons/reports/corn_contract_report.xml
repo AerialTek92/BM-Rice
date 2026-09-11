@@ -1,0 +1,24 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- 1. Report Action -->
+    <record id="action_report_corn_future_contract" model="ir.actions.report">
+        <field name="name">Corn Future Contract Summary</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_corn_future_contract_template</field>
+        <field name="report_file">mr_rice_addons.report_corn_future_contract_template</field>
+        <field name="print_report_name">'Corn_Future_Contract_Summary'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+</odoo>

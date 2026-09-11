@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- New Parent Menu inside native Odoo Manufacturing App -->
+    <menuitem id="menu_arm_rice_manufacturing"
+              name="Manufacturing"
+              parent="mrp.menu_mrp_root"
+              sequence="5"/>
+</odoo>

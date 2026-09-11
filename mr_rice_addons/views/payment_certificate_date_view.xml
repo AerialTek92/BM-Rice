@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_payment_cert_date_wizard_form" model="ir.ui.view">
+        <field name="name">payment.certificate.date.wizard.form</field>
+        <field name="model">payment.certificate.date.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Payment Certificate Date Wise">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_payment_cert_date_wizard" model="ir.actions.act_window">
+        <field name="name">Payment Certificate Date Wise</field>
+        <field name="res_model">payment.certificate.date.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Accounting -> Reporting) -->
+    <menuitem id="menu_payment_cert_date_report"
+              name="Payment Certificate Date Wise"
+              parent="account.menu_finance_reports"
+              action="action_payment_cert_date_wizard"
+              sequence="110"/>
+</odoo>

@@ -1,0 +1,145 @@
+<odoo>
+    <!-- Paper Format (Landscape) -->
+    <record id="paperformat_invoice_landscape" model="report.paperformat">
+        <field name="name">Invoice Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_invoice_date_wise" model="ir.actions.report">
+        <field name="name">Invoice Date Wise</field>
+        <field name="model">invoice.date.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_invoice_date_wise_template</field>
+        <field name="report_file">mr_rice_addons.report_invoice_date_wise_template</field>
+        <field name="print_report_name">'Invoice_DateWise_Report'</field>
+        <field name="paperformat_id" ref="paperformat_invoice_landscape"/>
+    </record>
+
+    <!-- PDF Template -->
+    <template id="report_invoice_date_wise_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 9px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 10px;">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="font-weight: bold;">Invoice Report</h5>
+                        <div style="font-weight: bold;">
+                            <span t-esc="data['date_from']"/>
+                            TO
+                            <span t-esc="data['date_to']"/>
+                        </div>
+                    </div>
+
+                    <!-- Main Table (12 Columns) -->
+                    <table class="table table-sm"
+                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
+                                <th style="width: 7%;">Bill No</th>
+                                <th style="width: 7%;">Date</th>
+                                <th style="width: 12%;">Customer</th>
+                                <th style="width: 15%;">Item Name</th>
+                                <th style="width: 5%; text-align: right;">Bag</th>
+                                <th style="width: 5%; text-align: right;">Ctn</th>
+                                <th style="width: 7%; text-align: right;">Qty (Kgs)</th>
+                                <th style="width: 6%; text-align: right;">Rate</th>
+                                <th style="width: 5%; text-align: right;">Disct %</th>
+                                <th style="width: 7%; text-align: right;">Disct Sp.</th>
+                                <th style="width: 8%; text-align: right;">Net Amount</th>
+                                <th style="width: 8%; text-align: center;">D/O No</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="grouped_data" t-as="g">
+                                <!-- Customer Items -->
+                                <tr t-foreach="g['items']" t-as="l" style="border-bottom: 1px solid #ddd;">
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['bill_no']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['date']"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['customer']"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['item_name']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['bags']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['ctn']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['qty']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['rate']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['disct_per']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['disct_sp']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="l['net_amount']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['do_no']"/>
+                                    </td>
+                                </tr>
+                                <!-- Customer Sub Total -->
+                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
+                                    <td colspan="4" style="text-align: right;">Total:</td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="g['total_bags']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="g['total_ctn']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="g['total_qty']"/>
+                                    </td>
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="g['total_net']"/>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </t>
+                            <!-- Grand Total -->
+                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 11px;">
+                                <td colspan="4" style="text-align: right;">GRAND TOTAL:</td>
+                                <td style="text-align: right;">
+                                    <span t-esc="grand_total_bags"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="grand_total_ctn"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="grand_total_qty"/>
+                                </td>
+                                <td colspan="3"></td>
+                                <td style="text-align: right;">
+                                    <span t-esc="grand_total_net"/>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

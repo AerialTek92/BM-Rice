@@ -1,0 +1,233 @@
+<odoo>
+    <record id="action_report_sale_memo" model="ir.actions.report">
+        <field name="name">Sale Order Form</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_sale_memo_template</field>
+        <field name="report_file">mr_rice_addons.report_sale_memo_template</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_sale_memo_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-size: 11px; font-family: sans-serif; color: black; line-height: 1.2;">
+
+                        <!-- Main Title -->
+                        <div class="text-center" style="margin-top: 20px; margin-bottom: 20px;">
+                            <h4 style="font-weight: bold; text-transform: uppercase;">SALE ORDER FORM</h4>
+                        </div>
+
+                        <!-- Header Info Section -->
+                        <div class="row">
+                            <div class="col-7">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width: 25%;">
+                                            <strong>Customer Name</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.partner_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align: top;">
+                                            <strong>Address</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.partner_id.contact_address"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Contact Person</strong>
+                                        </td>
+                                        <td>:
+                                            <t t-if="o.partner_id.child_ids">
+                                                <span t-field="o.partner_id.child_ids[0].name"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Broker Name</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.broker_id.name"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-5">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width: 40%;">
+                                            <strong>Order No</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Order Date</strong>
+                                        </td>
+                                        <td>:
+                                            <span t-field="o.date_order"
+                                                  t-options='{"widget": "date", "format": "dd-MM-yyyy"}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Main Table -->
+                        <table class="table table-bordered table-sm mt-2"
+                               style="border: 1px solid black !important; border-collapse: collapse;">
+                            <thead class="text-center" style="font-weight: bold; border: 1px solid black !important;">
+                                <tr>
+                                    <th style="border: 1px solid black !important; width: 4%;">S.No</th>
+                                    <th style="border: 1px solid black !important; width: 20%;">PRODUCT</th>
+                                    <th style="border: 1px solid black !important; width: 6%;">PACK SIZE</th>
+                                    <th style="border: 1px solid black !important; width: 7%;">NO. OF BAGS</th>
+                                    <th style="border: 1px solid black !important; width: 8%;">QTY (KGS)</th>
+                                    <th style="border: 1px solid black !important; width: 8%;">TRADE PRICE</th>
+                                    <th style="border: 1px solid black !important; width: 6%;">DISCT %</th>
+                                    <th style="border: 1px solid black !important; width: 10%;">GROSS AMOUNT</th>
+                                    <th style="border: 1px solid black !important; width: 10%;">DISCOUNT AMOUNT</th>
+                                    <th style="border: 1px solid black !important; width: 10%;">SPECIAL DISC.</th>
+                                    <th style="border: 1px solid black !important; width: 10%;">NET AMOUNT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_bags" t-value="0"/>
+                                <t t-set="total_qty" t-value="0"/>
+                                <t t-set="total_gross" t-value="0"/>
+                                <t t-set="total_net" t-value="0"/>
+
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <t t-if="not line.display_type">
+                                        <t t-set="total_bags" t-value="total_bags + line.pcs"/>
+                                        <t t-set="total_qty" t-value="total_qty + line.product_uom_qty"/>
+                                        <t t-set="gross_amt" t-value="line.product_uom_qty * line.price_unit"/>
+                                        <t t-set="total_gross" t-value="total_gross + gross_amt"/>
+                                        <t t-set="total_net" t-value="total_net + line.net_amount"/>
+
+                                        <tr>
+                                            <td class="text-center" style="border: 1px solid black !important;">
+                                                <span t-esc="line_index + 1"/>
+                                            </td>
+                                            <td style="border: 1px solid black !important;">
+                                                <span t-field="line.product_id.name"/>
+                                            </td>
+                                            <td class="text-center" style="border: 1px solid black !important;">
+                                                <span t-field="line.product_id.carton_capacity"/>
+                                            </td>
+                                            <td class="text-center" style="border: 1px solid black !important;">
+                                                <span t-field="line.pcs"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                            <td class="text-center" style="border: 1px solid black !important;">
+                                                <span t-field="line.product_uom_qty"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black !important;">
+                                                <span t-field="line.price_unit"
+                                                      t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td class="text-center" style="border: 1px solid black !important;">
+                                                <span t-field="line.discount"/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black !important;">
+                                                <span t-esc="gross_amt"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black !important;">
+                                                <span t-field="line.discount_amount"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black !important;">
+                                                <span t-field="line.discount_special"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                            <td class="text-right" style="border: 1px solid black !important;">
+                                                <span t-field="line.net_amount"
+                                                      t-options='{"widget": "float", "precision": 0}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+
+                                <!-- Totals Row -->
+                                <tr style="font-weight: bold; border: 1px solid black !important;">
+                                    <td colspan="3" class="text-center" style="border: 1px solid black !important;">T O
+                                        T A L -------------------------- > > >
+                                    </td>
+                                    <td class="text-center" style="border: 1px solid black !important;">
+                                        <span t-esc="total_bags" t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                    <td class="text-center" style="border: 1px solid black !important;">
+                                        <span t-esc="total_qty" t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                    <td style="border: 1px solid black !important;"></td>
+                                    <td style="border: 1px solid black !important;"></td>
+                                    <td class="text-right" style="border: 1px solid black !important;">
+                                        <span t-esc="total_gross" t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                    <td style="border: 1px solid black !important;"></td>
+                                    <td style="border: 1px solid black !important;"></td>
+                                    <td class="text-right" style="border: 1px solid black !important;">
+                                        <span t-esc="total_net" t-options='{"widget": "float", "precision": 0}'/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Footer Section -->
+                        <div class="row mt-2">
+                            <div class="col-8">
+                                <p>
+                                    <strong>Payment Terms:</strong>
+                                    <span t-field="o.payment_term_id.name"/>
+                                </p>
+                                <p style="margin-bottom: 5px;">
+                                    <strong>TERMS &amp; CONDITION</strong>
+                                </p>
+                                <ul style="list-style: none; padding-left: 0;">
+                                    <li>1- To be Delivered on
+                                        <u>
+                                            <span t-field="o.delivery_date"
+                                                  t-options='{"widget": "date", "format": "dd.MM.yyyy"}'/>
+                                        </u>
+                                    </li>
+                                    <li>2- Transport to be arranged by PQ-Rice Plant</li>
+                                    <li>3- Loading of Truck on Bulk Management</li>
+                                </ul>
+                                <t t-if="o.delivery_remarks">
+                                    <p>
+                                        <strong>Remarks:</strong>
+                                        <span t-field="o.delivery_remarks"/>
+                                    </p>
+                                </t>
+                            </div>
+
+                            <!-- Balance Box -->
+                            <div class="col-4 text-center">
+                                <div style="border: 1px solid black; padding: 5px;">
+                                    <strong>Outstanding Balance including this bill</strong>
+                                    <div style="border-top: 1px solid black; margin-top: 5px; padding-top: 5px;">
+                                        Rs.
+                                        <span t-esc="o.partner_id.credit + o.amount_total"
+                                              t-options='{"widget": "float", "precision": 0}'/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

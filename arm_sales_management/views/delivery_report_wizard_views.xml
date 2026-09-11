@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_order_wizard_form" model="ir.ui.view">
+        <field name="name">delivery.order.wizard.form</field>
+        <field name="model">delivery.order.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Delivery Order Detail">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_delivery_order_wizard" model="ir.actions.act_window">
+        <field name="name">Delivery Order Detail (Range)</field>
+        <field name="res_model">delivery.order.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu placed under Sales > Reporting -->
+    <menuitem id="menu_delivery_order_report"
+              name="Delivery Order Detail (Range)"
+              parent="sale.menu_sale_report"
+              action="action_delivery_order_wizard"
+              sequence="15"/>
+</odoo>

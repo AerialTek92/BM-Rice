@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_order_approval_form" model="ir.ui.view">
+        <field name="name">purchase.order.approval.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Dynamic Custom Buttons -->
+            <xpath expr="//header" position="inside">
+                <button name="action_approve" string="Verify" type="object" class="oe_highlight"
+                        invisible="not can_user_approve or pending_line_label != 'Verify'"/>
+
+                <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                        invisible="not can_user_approve or pending_line_label != 'Approve'"/>
+
+                <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                        invisible="not can_user_approve or pending_line_label in ('Verify', 'Approve', False)"/>
+
+                <button name="action_refuse" string="Refuse" type="object" class="btn-danger"
+                        invisible="not can_user_approve"/>
+            </xpath>
+
+            <!-- 2. Hide standard Confirm buttons until approved (Exception for Admin) -->
+            <xpath expr="//button[@name='button_confirm'][not(@id='bid_confirm')]" position="attributes">
+                <attribute name="invisible">state != 'draft' or (approval_status != 'approved' and not is_admin)</attribute>
+            </xpath>
+            <xpath expr="//button[@id='bid_confirm']" position="attributes">
+                <attribute name="invisible">state != 'sent' or (approval_status != 'approved' and not is_admin)</attribute>
+            </xpath>
+
+            <!-- 3. Add invisible field at the top of the sheet for proper evaluation -->
+            <xpath expr="//sheet" position="inside">
+                <field name="can_edit_rfq" invisible="1"/>
+            </xpath>
+
+            <!-- 4. Lock the entire sheet for Approvers (Throughout all states) -->
+            <xpath expr="//sheet" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+
+            <!-- 5. Explicitly Lock the order_line tree for Approvers -->
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">not can_edit_rfq</attribute>
+            </xpath>
+
+            <!-- 6. Status Banner -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="alert alert-info" role="alert" invisible="approval_status == 'approved' or not approval_line_ids">
+                    <strong>Approval Status:</strong> <field name="approval_label" readonly="1"/>
+                </div>
+                <div class="alert alert-danger" role="alert" invisible="approval_status != 'refused'">
+                    <strong>This Order has been Refused.</strong>
+                </div>
+            </xpath>
+
+            <!-- 7. Approval Matrix Tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Approval Matrix" name="approval_matrix_page" invisible="not approval_line_ids">
+                    <field name="approval_line_ids" readonly="1">
+                        <list decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'">
+                            <field name="label"/>
+                            <field name="employee_id"/>
+                            <field name="status" widget="badge" decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'"/>
+                            <field name="time_of_approval"/>
+                        </list>
+                    </field>
+                    <field name="can_user_approve" invisible="1"/>
+                    <field name="approval_status" invisible="1"/>
+                    <field name="pending_line_label" invisible="1"/>
+                    <field name="is_admin" invisible="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

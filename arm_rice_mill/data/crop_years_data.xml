@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="crop_year_2021" model="master.crop.year"><field name="name">2021</field></record>
+        <record id="crop_year_2022" model="master.crop.year"><field name="name">2022</field></record>
+        <record id="crop_year_2023" model="master.crop.year"><field name="name">2023</field></record>
+        <record id="crop_year_2024" model="master.crop.year"><field name="name">2024</field></record>
+        <record id="crop_year_2025" model="master.crop.year"><field name="name">2025</field></record>
+        <record id="crop_year_2026" model="master.crop.year"><field name="name">2026</field></record>
+        <record id="crop_year_2027" model="master.crop.year"><field name="name">2027</field></record>
+        <record id="crop_year_2028" model="master.crop.year"><field name="name">2028</field></record>
+        <record id="crop_year_2029" model="master.crop.year"><field name="name">2029</field></record>
+        <record id="crop_year_2030" model="master.crop.year"><field name="name">2030</field></record>
+        <record id="crop_year_2031" model="master.crop.year"><field name="name">2031</field></record>
+        <record id="crop_year_2032" model="master.crop.year"><field name="name">2032</field></record>
+        <record id="crop_year_2033" model="master.crop.year"><field name="name">2033</field></record>
+        <record id="crop_year_2034" model="master.crop.year"><field name="name">2034</field></record>
+        <record id="crop_year_2035" model="master.crop.year"><field name="name">2035</field></record>
+        <record id="crop_year_2036" model="master.crop.year"><field name="name">2036</field></record>
+    </data>
+</odoo>

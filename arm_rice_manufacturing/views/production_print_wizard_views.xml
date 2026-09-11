@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_production_print_wizard_form" model="ir.ui.view">
+        <field name="name">production.print.wizard.form</field>
+        <field name="model">production.print.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Production Logs">
+                <group>
+                    <field name="production_record_id" domain="[('state', 'in', ('draft', 'confirmed'))]"/>
+                </group>
+                <footer>
+                    <button name="action_print_log_sheet" string="Print Log Sheet" type="object" class="btn-primary"/>
+                    <button name="action_print_qa_report" string="Print QA Report" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_production_log_wizard" model="ir.actions.act_window">
+        <field name="name">Print Log Sheet / QA Report</field>
+        <field name="res_model">production.print.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu under Manufacturing > Operations -->
+<!--    <menuitem id="menu_print_production_logs"-->
+<!--              name="Print Production Logs"-->
+<!--              parent="menu_arm_rice_manufacturing"-->
+<!--              action="action_production_log_wizard"-->
+<!--              sequence="50"/>-->
+</odoo>

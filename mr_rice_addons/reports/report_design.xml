@@ -1,0 +1,123 @@
+<odoo>
+
+    <record id="paperformat_purchase_order" model="report.paperformat">
+        <field name="name">Purchase Order Paper Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+
+    <!-- 1. Report Action -->
+    <record id="action_report_purchase_order_detail" model="ir.actions.report">
+        <field name="name">Purchase Order Detail</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_purchase_order_template</field>
+        <field name="report_file">mr_rice_addons.report_purchase_order_template</field>
+        <field name="print_report_name">'PO Detail Report'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchase_order"/>
+    </record>
+
+    <template id="report_purchase_order_template">
+        <t t-call="web.html_container">
+            <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; padding: 10px;">
+
+                <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Purchase Order Detail</h2>
+                    <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px;">
+                        <span t-esc="date_from"/>
+                        -
+                        <span t-esc="date_to"/>
+                    </p>
+                </div>
+
+                <table class="table table-bordered"
+                       style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+                    <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                        <tr>
+                            <th style="border: 1px solid black;">P/O NO.<br/>P/ Date
+                            </th>
+                            <th style="border: 1px solid black;">Supplier Name<br/>Broker Name
+                            </th>
+                            <th style="border: 1px solid black;">Quantity(Kgs)<br/>No of Trucks
+                            </th>
+                            <th style="border: 1px solid black;">Rate (Rs)<br/>Amount (Rs)
+                            </th>
+                            <th style="border: 1px solid black;">Broker %<br/>Moisture %
+                            </th>
+                            <th style="border: 1px solid black;">Delivery Date<br/>No of Bags
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="total_qty" t-value="0"/>
+                        <t t-set="total_amount" t-value="0"/>
+                        <t t-set="total_bags" t-value="0"/>
+
+                        <t t-foreach="docs" t-as="o">
+                            <t t-foreach="o.order_line" t-as="line">
+                                <tr style="border-bottom: 1px solid #ccc;">
+                                    <td style="border-left: 1px solid black; border-right: 1px solid black; padding: 5px;">
+                                        <span t-field="o.name"/>
+                                        <br/>
+                                        <span t-field="o.date_order" t-options='{"widget": "date"}'/>
+                                    </td>
+                                    <td style="border-right: 1px solid black; padding: 5px;">
+                                        <span t-field="o.partner_id.name"/>
+                                        <br/>
+                                        <span t-field="o.broker_id.name"/>
+                                        (<span t-field="line.product_id.name"/>)
+                                    </td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
+                                        <span t-field="line.product_qty"/>
+                                        <br/>
+                                        <span t-field="line.no_of_trucks"/>
+                                    </td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
+                                        <span t-field="line.price_unit"/>
+                                        <br/>
+                                        <span t-field="line.price_subtotal"/>
+                                    </td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
+                                        <span t-field="line.broken_percent"/>%
+                                        <br/>
+                                        <span t-field="line.moisture_percent"/>%
+                                    </td>
+                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
+                                        <span t-field="o.delivery_date_to"/>
+                                        <br/>
+                                        <span t-field="line.no_of_bags"/>
+                                    </td>
+                                </tr>
+                                <!-- Totals Calculation -->
+                                <t t-set="total_qty" t-value="total_qty + line.product_qty"/>
+                                <t t-set="total_amount" t-value="total_amount + line.price_subtotal"/>
+                                <t t-set="total_bags" t-value="total_bags + line.no_of_bags"/>
+                            </t>
+                        </t>
+                    </tbody>
+                    <tfoot style="font-weight: bold; background-color: #f2f2f2; border: 2px solid black;">
+                        <tr>
+                            <td colspan="2" style="text-align: right; border: 1px solid black;">TOTALS:</td>
+                            <td style="text-align: right; border: 1px solid black;">
+                                <span t-esc="'{:,}'.format(total_qty)"/>
+                            </td>
+                            <td style="text-align: right; border: 1px solid black;">
+                                <span t-esc="'{:,}'.format(total_amount)"/>
+                            </td>
+                            <td style="border: 1px solid black;"></td>
+                            <td style="text-align: right; border: 1px solid black;">
+                                <span t-esc="'{:,}'.format(total_bags)"/>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </t>
+    </template>
+</odoo>

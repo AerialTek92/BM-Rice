@@ -1,0 +1,141 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- Report Action -->
+    <record id="action_report_grn_inspection_detail" model="ir.actions.report">
+        <field name="name">Goods Receipt Inspection Detail</field>
+        <field name="model">grn.inspection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_grn_inspection_detail_template</field>
+        <field name="report_file">mr_rice_addons.report_grn_inspection_detail_template</field>
+        <field name="print_report_name">'GRN_Inspection_Detail'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_grn_inspection_detail_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold;">Goods Receipt Inspection Detail</h4>
+                        <div style="font-weight: bold; font-size: 15px;">
+                            <span t-esc="date_from"/>
+                            -
+                            <span t-esc="date_to"/>
+                        </div>
+                    </div>
+
+                    <!-- Main Table -->
+                    <table class="table table-sm"
+                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid black;">
+                                <th style="width: 10%;">Insp. No<br/>Date
+                                </th>
+                                <th style="width: 20%;">Broker<br/>Party
+                                </th>
+                                <th style="width: 12%;">Truck No<br/>Billty No.
+                                </th>
+                                <th style="width: 10%;">Bag/Bardana<br/>Sample No
+                                </th>
+                                <th style="width: 12%;">Crop Period<br/>Destination
+                                </th>
+                                <th style="width: 10%;">Broker %<br/>Moisture %
+                                </th>
+                                <th style="width: 10%;">Damage<br/>Chalky
+                                </th>
+                                <th style="width: 10%; text-align: right;">Billty<br/>Weight
+                                </th>
+                                <th style="width: 6%; text-align: center;">Status<br/>TLS
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Loop through parent records (grn.inspection) -->
+                            <t t-foreach="docs" t-as="o">
+                                <t t-foreach="o.inspection_line_ids" t-as="line">
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <!-- Insp No / Date -->
+                                        <td>
+                                            <span t-field="o.name"/>
+                                            <br/>
+                                            <span t-field="o.inspection_date"
+                                                  t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                        </td>
+                                        <!-- Broker / Party -->
+                                        <td>
+                                            <span t-field="o.broker_id.name"/>
+                                            <br/>
+                                            <span t-field="o.partner_id.name"/>
+                                        </td>
+                                        <!-- Truck / Billty -->
+                                        <td>
+                                            <span t-field="line.truck_no"/>
+                                            <br/>
+                                            <span t-field="line.bilty_no"/>
+                                        </td>
+                                        <!-- Bags / Bardana -->
+                                        <td>
+                                            <span t-field="line.bags" style="padding-right: 50px;"/>
+                                            <span t-field="line.bardana"/>
+                                            <br/>
+                                            <span></span>
+                                        </td>
+                                        <!-- Crop / Destination -->
+                                        <td>
+                                            <span t-field="line.crop"/>
+                                            <br/>
+                                            <span t-field="line.destination"/>
+                                        </td>
+                                        <!-- Percentages -->
+                                        <td>
+                                            <span t-field="o.broken_percent"/>%
+                                            <br/>
+                                            <span t-field="o.moisture_percent"/>%
+                                        </td>
+                                        <!-- Damage / Chalky -->
+                                        <td>
+                                            <span></span>
+                                            <br/> <!-- Damage placeholder -->
+                                            <span t-field="o.chalky_immature_percent"/>%
+                                        </td>
+                                        <!-- Weight -->
+                                        <td style="text-align: right; vertical-align: top;">
+                                            <span t-field="line.bilty_weight"
+                                                  t-options='{"widget": "float", "precision": 0}'/>
+                                        </td>
+                                        <!-- Status / TLS Logic -->
+                                        <td style="text-align: center;">
+                                            <!-- Logic: If TLS is 0, REJECT, else ACCEPT -->
+                                            <t t-if="line.grn_insp_tls == 0">
+                                                <span style="font-weight: bold; color: red;">REJECT</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="font-weight: bold;">ACCEPT</span>
+                                            </t>
+                                            <br/>
+                                            <span t-field="line.grn_insp_tls"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

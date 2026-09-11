@@ -1,0 +1,77 @@
+<t t-name="bop_charts.PurchaseDashboardMain">
+    <div class="bop-dashboard">
+        <div class="bop-header">
+            <div>
+                <h2 class="bop-title">Purchase &amp; Inventory Dashboard</h2>
+                <p class="bop-subtitle">
+                    Live overview of purchases, vendors, outstanding and stock
+                    <span class="bop-updated" t-if="state.updatedAt">
+                        · Updated <t t-esc="state.updatedAt"/>
+                    </span>
+                </p>
+            </div>
+            <button class="bop-refresh-btn" t-on-click="refresh" title="Reload dashboard data">
+                <i class="fa fa-refresh" role="img" aria-label="Refresh"/> Refresh
+            </button>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="bop-kpi-grid" t-if="!state.loading &amp;&amp; !state.error">
+            <div class="bop-kpi-card" t-foreach="state.kpis" t-as="kpi" t-key="kpi.id"
+                 t-on-click="() => this.openKpi(kpi)" t-att-title="kpi.full || kpi.name">
+                <div class="bop-kpi-icon" t-attf-class="bop-kpi-icon-#{kpi.id}">
+                    <i class="fa" t-att-class="kpi.icon" role="img" aria-label="icon"/>
+                </div>
+                <div class="bop-kpi-body">
+                    <span class="bop-kpi-value" t-esc="kpi.display"/>
+                    <span class="bop-kpi-label" t-esc="kpi.label"/>
+                </div>
+                <span class="bop-kpi-trend" t-if="kpi.trend != null"
+                      t-attf-class="#{kpi.trend >= 0 ? 'bop-trend-up' : 'bop-trend-down'}">
+                    <i class="fa" t-att-class="kpi.trend >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'" role="img"/>
+                    <t t-esc="kpi.trend"/>%
+                </span>
+            </div>
+        </div>
+
+        <!-- CHARTS + OVERLAYS -->
+        <div class="bop-chart-area">
+            <div class="bop-chart-grid">
+                <div class="bop-card bop-span-8 bop-accent-success">
+                    <div class="bop-card-header"><h5>Monthly Purchase Amount</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="monthly_amount"/></div>
+                </div>
+                <div class="bop-card bop-span-4 bop-accent-info">
+                    <div class="bop-card-header"><h5>Orders by Status</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="order_status"/></div>
+                </div>
+                <div class="bop-card bop-span-6 bop-accent-primary">
+                    <div class="bop-card-header"><h5>Product Stock Balance</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="product_stock"/></div>
+                </div>
+                <div class="bop-card bop-span-6 bop-accent-danger">
+                    <div class="bop-card-header"><h5>Vendor Outstanding Payments</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="vendor_outstanding"/></div>
+                </div>
+                <div class="bop-card bop-span-6 bop-accent-warning">
+                    <div class="bop-card-header"><h5>Top Purchased Products</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="top_purchased"/></div>
+                </div>
+                <div class="bop-card bop-span-6 bop-accent-purple">
+                    <div class="bop-card-header"><h5>Purchases by Vendor</h5></div>
+                    <div class="bop-card-body"><canvas t-ref="vendor_distribution"/></div>
+                </div>
+            </div>
+
+            <div class="bop-overlay" t-if="state.loading">
+                <div class="bop-spinner" role="status"/>
+                <p class="bop-overlay-text">Loading dashboard…</p>
+            </div>
+            <div class="bop-overlay" t-if="state.error">
+                <i class="fa fa-exclamation-triangle bop-error-icon" role="img"/>
+                <p class="bop-overlay-text">Could not load dashboard data.</p>
+                <button class="bop-retry-btn" t-on-click="refresh">Retry</button>
+            </div>
+        </div>
+    </div>
+</t>

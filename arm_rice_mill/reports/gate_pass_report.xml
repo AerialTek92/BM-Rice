@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_gate_pass_local" model="ir.actions.report">
+        <field name="name">Local Sales Gate Pass</field>
+        <field name="model">gate.pass</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_mill.report_gate_pass_local_document</field>
+        <field name="report_file">arm_rice_mill.report_gate_pass_local_document</field>
+        <field name="binding_model_id" ref="model_gate_pass"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_gate_pass_local_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+
+                        <!-- LOOP FOR 2 COPIES: Original and Driver Copy -->
+                        <t t-foreach="['ORIGINAL', 'DRIVER COPY']" t-as="copy_type">
+
+                            <!-- Main Container for each copy -->
+                            <div style="margin-bottom: 40px; padding-bottom: 40px; border-bottom: 2px dashed #000;">
+
+                                <!-- Header Block With Logo -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; width: 100%;">
+                                    <!-- Left Side: Logo Element -->
+                                    <div style="width: 25%; text-align: left;">
+                                        <!-- Odoo 19 Base64 Logo Call -->
+                                        <img t-if="res_company.logo"
+                                             t-att-src="'data:image/png;base64,%s' % res_company.logo"
+                                             style="max-height: 60px; max-width: 100%; object-fit: contain;"/>
+                                    </div>
+
+                                    <!-- Center: Company Titles -->
+                                    <div style="width: 50%; text-align: center;">
+                                        <h2 style="margin: 0; font-weight: bold; font-size: 22px;">Bulk Management
+                                            (Pakistan) Pvt. Ltd.
+                                        </h2>
+                                        <div style="display: inline-block; border: 2px solid #000; padding: 5px 20px; margin-top: 10px;">
+                                            <h3 style="margin: 0; font-weight: bold; text-transform: uppercase; font-size: 16px;">
+                                                Local Sales Gate Pass (<span t-esc="copy_type"/>)
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Side: Blank Spacer to preserve perfect center balance -->
+                                    <div style="width: 25%;"></div>
+                                </div>
+
+                                <!-- Top Info Grid -->
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 8px; width: 20%; background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                                            Gate Pass No
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; width: 30%; text-align: center;">
+                                            <span t-field="o.name"/>
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; width: 20%; background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                                            Date
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; width: 30%; text-align: center;">
+                                            <span t-field="o.date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 8px; background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                                            Customer
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px;" colspan="3">
+                                            <span t-field="o.partner_id.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 8px; background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                                            D/O No
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                            <span t-field="o.delivery_picking_id.name"/>
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                                            Truck No
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                            <span t-field="o.vehicle_number"/>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <!-- Product Lines Table -->
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <thead>
+                                        <tr style="background-color: #f2f2f2;">
+                                            <th style="border: 1px solid #000; padding: 8px; text-align: left;">Product
+                                                Name
+                                            </th>
+                                            <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
+                                                D/O Qty
+                                            </th>
+                                            <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
+                                                Bags
+                                            </th>
+                                            <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
+                                                Gross (kg)
+                                            </th>
+                                            <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
+                                                Net (kg)
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.gate_pass_line_ids" t-as="line">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 8px;">
+                                                    <span t-field="line.product_id.name"/>
+                                                </td>
+                                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                    <span t-field="line.do_demand_qty"/>
+                                                </td>
+                                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                    <span t-field="line.bags"/>
+                                                </td>
+                                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                    <span t-field="line.gross"/>
+                                                </td>
+                                                <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                    <span t-field="line.net"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <!-- Totals Row -->
+                                        <tr style="font-weight: bold; background-color: #f9f9f9;">
+                                            <td style="border: 1px solid #000; padding: 8px; text-align: right;"
+                                                colspan="2">Totals:
+                                            </td>
+                                            <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                <span t-esc="sum(o.gate_pass_line_ids.mapped('bags'))"/>
+                                            </td>
+                                            <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                <span t-esc="sum(o.gate_pass_line_ids.mapped('gross'))"/>
+                                            </td>
+                                            <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                                <span t-esc="sum(o.gate_pass_line_ids.mapped('net'))"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Remarks -->
+                                <div style="margin-bottom: 40px;">
+                                    <strong>Remarks:</strong>
+                                    <div style="border: 1px solid #ddd; padding: 10px; min-height: 30px; margin-top: 5px;">
+                                        <span t-field="o.remarks"/>
+                                    </div>
+                                </div>
+
+                                <!-- Signatures -->
+                                <table style="width: 100%; margin-top: 30px;">
+                                    <tr>
+                                        <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                                            <div style="border-top: 1px solid #000; padding-top: 5px; margin: 0 30px;">
+                                                <strong>Prepared By</strong>
+                                            </div>
+                                        </td>
+                                        <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                                            <div style="border-top: 1px solid #000; padding-top: 5px; margin: 0 30px;">
+                                                <strong>Received By (Driver)</strong>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+                            <!-- Page break between Original and Driver Copy (Optional, but recommended for clean printing) -->
+                            <t t-if="not copy_type_last">
+                                <div style="page-break-before: always;"></div>
+                            </t>
+
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

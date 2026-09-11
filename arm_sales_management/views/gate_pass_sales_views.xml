@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        OUTBOUND GATE PASS: Customer -> Delivery Order driven (Sales Memo is
+        machinery, hidden). The Create Weighbridge button is hidden for
+        Outbound entirely: User 1 creates the Gate Pass, User 2 creates the
+        Weighbridge from the Weighbridge menu. Inbound keeps its button.
+    -->
+    <record id="gate_pass_view_form_local_sales_inherit" model="ir.ui.view">
+        <field name="name">gate.pass.form.local.sales.inherit</field>
+        <field name="model">gate.pass</field>
+        <field name="inherit_id" ref="arm_rice_mill.gate_pass_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- D/O dropdown: filter by the CUSTOMER field + commercial approval. -->
+            <xpath expr="//field[@name='delivery_picking_id']" position="attributes">
+                <attribute name="domain">[
+                    ('picking_type_code', '=', 'outgoing'),
+                    ('state', 'not in', ['done', 'cancel']),
+                    ('partner_id', '=', partner_id if partner_id else -1),
+                    '|', ('contract_type', '=', 'export'), ('is_commercially_validated', '=', True)
+                ]</attribute>
+            </xpath>
+
+            <!-- D/O Date, readonly, straight from the Delivery Order. -->
+            <xpath expr="//field[@name='delivery_picking_id']" position="after">
+                <field name="delivery_order_date" readonly="1"
+                       invisible="pass_type != 'outbound'"/>
+            </xpath>
+
+            <!-- Hide the Sales Memo fields from the outbound Gate Pass. -->
+            <xpath expr="//field[@name='sale_order_id']" position="attributes">
+                <attribute name="invisible">pass_type == 'outbound'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_order_date']" position="attributes">
+                <attribute name="invisible">pass_type == 'outbound'</attribute>
+            </xpath>
+
+            <!-- Create Weighbridge: NEVER visible for Outbound (User 2 creates
+                 the Weighbridge from the Weighbridge menu, selecting GPs). -->
+            <xpath expr="//button[@name='action_create_weighbridge'][1]" position="attributes">
+                <attribute name="invisible">pass_type == 'outbound'</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,131 @@
+<odoo>
+    <!-- Paper Format (Landscape for wide table) -->
+    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
+        <field name="name">Stock Picking Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+    </record>
+    <!-- 1. Report Action -->
+    <record id="action_report_grn_date_wise" model="ir.actions.report">
+        <field name="name">Goods Receipt Date Wise</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mr_rice_addons.report_grn_date_wise_template</field>
+        <field name="report_file">mr_rice_addons.report_grn_date_wise_template</field>
+        <field name="print_report_name">'GRN_DateWise_Report'</field>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+    </record>
+
+    <template id="report_grn_date_wise_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 10px;">
+                        <h4 style="font-weight: bold;">Goods Receipt Date Wise</h4>
+                        <div style="font-weight: bold; font-size: 15px;">
+                            <span t-esc="date_from"/>
+                            -
+                            <span t-esc="date_to"/>
+                        </div>
+                    </div>
+
+                    <!-- Main Table -->
+                    <table class="table table-sm"
+                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
+                                <th style="width: 12%;">GRN No<br/>Date / Location
+                                </th>
+                                <th style="width: 12%;">P/O No<br/>Inspection
+                                </th>
+                                <th style="width: 18%;">Party Name<br/>Broker Name
+                                </th>
+                                <th style="width: 12%;">Product<br/>Name
+                                </th>
+                                <th style="width: 10%;">Broken (%)<br/>Moisture (%)
+                                </th>
+                                <th style="width: 12%;">Truck No<br/>Billty No
+                                </th>
+                                <th style="width: 12%; text-align: right;">Gross Wt (Kgs)<br/>Net Wt (Kgs)
+                                </th>
+                                <th style="width: 10%; text-align: right;">No of Bags<br/>Fill Bags
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="o">
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <!-- GRN No / Date / Location -->
+                                    <td>
+                                        <span t-field="o.name"/>
+                                        <br/>
+                                        <span t-field="o.grn_date" style="padding-right: 50px;"
+                                              t-options='{"widget": "date", "format": "dd/MM/yy"}'/>
+                                        <span t-field="o.location_dest_id.name"/>
+                                    </td>
+                                    <!-- P/O No / Inspection -->
+                                    <td>
+                                        <span t-field="o.origin"/>
+                                        <br/>
+                                        <span t-field="o.grn_inspection_id.name"/>
+                                    </td>
+                                    <!-- Party / Broker -->
+                                    <td>
+                                        <span t-field="o.partner_id.name"/>
+                                        <br/>
+                                        <t t-if="o.purchase_id and o.purchase_id.broker_id">
+                                            <span t-field="o.purchase_id.broker_id.name"/>
+                                        </t>
+                                    </td>
+                                    <!-- Product Name / TLS -->
+                                    <td>
+                                        <span t-field="o.product_id.name"/>
+                                        <br/>
+                                        <t t-if="o.grn_inspection_id">
+                                            <span t-esc="'%.1f' % o.grn_inspection_id.inspection_line_ids[0].grn_insp_tls if o.grn_inspection_id.inspection_line_ids else '0.0'"/>
+                                            TLS
+                                        </t>
+                                    </td>
+                                    <!-- Broken / Moisture -->
+                                    <td class="text-center">
+                                        <span t-field="o.actual_broken"
+                                              t-options='{"widget": "float", "precision": 2}'/>%
+                                        <br/>
+                                        <span t-field="o.actual_moisture"
+                                              t-options='{"widget": "float", "precision": 2}'/>%
+                                    </td>
+                                    <!-- Truck / Bilty -->
+                                    <td>
+                                        <span t-field="o.vehicle_number"/>
+                                        <br/>
+                                        <span t-field="o.bilty_no"/>
+                                    </td>
+                                    <!-- Weights -->
+                                    <td style="text-align: right;">
+                                        <span t-field="o.gross_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                        <br/>
+                                        <span t-field="o.net_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <!-- Bags -->
+                                    <td style="text-align: right;">
+                                        <span t-field="o.bags"/>
+                                        <br/>
+                                        <span t-field="o.filling_bags"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

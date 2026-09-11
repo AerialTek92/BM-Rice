@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- PAPER FORMAT                               -->
+    <!-- ========================================== -->
+    <record id="paperformat_qc_landscape" model="report.paperformat">
+        <field name="name">QC Report Landscape</field>
+        <field name="default" eval="True" />
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- REPORT ACTION                              -->
+    <!-- ========================================== -->
+    <record id="action_report_production_quality_control" model="ir.actions.report">
+        <field name="name">Production Quality Control Report</field>
+        <field name="model">production.quality.control</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">arm_rice_manufacturing.report_production_quality_control_document</field>
+        <field name="report_file">arm_rice_manufacturing.report_production_quality_control_document</field>
+        <field name="binding_model_id" ref="model_production_quality_control" />
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_qc_landscape" />
+    </record>
+
+    <!-- ========================================== -->
+    <!-- REPORT TEMPLATE                            -->
+    <!-- ========================================== -->
+    <template id="report_production_quality_control_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black;">
+                        
+                        <style type="text/css">
+                            .excel-table { width: 100%; border-collapse: collapse; border: 2px solid black; text-align: center; }
+                            .excel-table th, .excel-table td { border: 1px solid black; padding: 4px; vertical-align: middle; }
+                            .excel-table th { font-weight: bold; background-color: #ffffff; }
+                            .meta-table { width: 100%; font-size: 12px; margin-bottom: 5px; border: none; }
+                            .meta-table td { padding: 4px 0; border: none; vertical-align: bottom; }
+                            .border-bottom { border-bottom: 1px solid black; }
+                            .checkbox-box { display: inline-block; width: 14px; height: 14px; border: 1px solid black; text-align: center; line-height: 14px; font-size: 12px; margin-right: 5px; }
+                        </style>
+
+                        <!-- Top Checkboxes Row -->
+                        <table style="width: 100%; border: none; margin-bottom: 10px;">
+                            <tr>
+                                <td style="width: 50%; border: none;"></td>
+                                <td style="width: 50%; border: none; text-align: right; font-weight: bold; font-size: 13px;">
+                                    <div style="display: inline-block; margin-right: 15px;">
+                                        <div class="checkbox-box">
+                                            <t t-if="o.bm1_plant == 'plant_a' or o.bm2_plant == 'plant_a'">X</t>
+                                        </div> Plant A
+                                    </div>
+                                    <div style="display: inline-block; margin-right: 15px;">
+                                        <div class="checkbox-box">
+                                            <t t-if="o.bm1_plant == 'plant_b'">X</t>
+                                        </div> Plant B
+                                    </div>
+                                    <div style="display: inline-block;">
+                                        <div class="checkbox-box">
+                                            <t t-if="o.bm1_plant == 'plant_c'">X</t>
+                                        </div> Plant C
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Meta Info Grid -->
+                        <table class="meta-table">
+                            <tr>
+                                <td style="width: 12%;">Name of Operator:</td>
+                                <td class="border-bottom" style="width: 38%; padding-left: 5px;">
+                                    <span t-field="o.operator_name.name" t-if="o._fields.get('operator_name') and o.operator_name"/>
+                                </td>
+                                <td style="width: 15%; padding-left: 20px;">Specifications:</td>
+                                <td class="border-bottom" style="width: 35%; padding-left: 5px;">
+                                    <span t-if="o.job_order_id.process_rice_spec_id" t-field="o.job_order_id.process_rice_spec_id.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Customer Name:</td>
+                                <td class="border-bottom" style="padding-left: 5px;">
+                                    <span t-field="o.customer_id.name"/>
+                                </td>
+                                <td style="padding-left: 20px;">Customer Contract No :</td>
+                                <td class="border-bottom" style="padding-left: 5px;">
+                                    <span t-field="o.customer_contract_no"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Brand Name:</td>
+                                <td class="border-bottom" style="padding-left: 5px;">
+                                    <span t-field="o.brand_name"/>
+                                </td>
+                                <td style="padding-left: 20px;">JOB ORDER NO :</td>
+                                <td class="border-bottom" style="padding-left: 5px;">
+                                    <span t-field="o.job_order_id.name"/>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Date, Day, Shift -->
+                        <table class="meta-table" style="margin-bottom: 20px;">
+                            <tr>
+                                <td style="width: 5%; text-align: right; padding-right: 5px;">DATE:</td>
+                                <td class="border-bottom" style="width: 25%; text-align: center;">
+                                    <span t-field="o.date" t-options='{"widget": "date"}'/>
+                                </td>
+                                <td style="width: 5%; text-align: right; padding-right: 5px; padding-left: 15px;">DAY:</td>
+                                <td class="border-bottom" style="width: 25%; text-align: center; text-transform: uppercase;">
+                                    <span t-field="o.day"/>
+                                </td>
+                                <td style="width: 5%; text-align: right; padding-right: 5px; padding-left: 15px;">SHIFT:</td>
+                                <td class="border-bottom" style="width: 35%; text-align: center; text-transform: uppercase;">
+                                    <span t-field="o.shift"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Main Excel Grid -->
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 7%;"></th>
+                                    <th style="width: 6%;">Hours</th>
+                                    <th style="width: 5%;">Sample<br/>(kg)</th>
+
+                                    <!-- NORMAL RICE HEADERS -->
+                                    <t t-if="not o.is_brown_rice">
+                                        <th style="width: 6%;">Broken</th>
+                                        <th style="width: 7%;">Damage /<br/>Yellow</th>
+                                        <th style="width: 6%;">Moisture</th>
+                                        <th style="width: 6%;">Red<br/>Grains</th>
+                                        <th style="width: 6%;">Chalky</th>
+                                        <th style="width: 7%;">Foreign<br/>Matter</th>
+                                        <th style="width: 6%;">Paddy<br/>Grain</th>
+                                        <th style="width: 8%;">Under Milled /<br/>Choba</th>
+                                        <th style="width: 6%;">Kett<br/>Whitnes</th>
+                                    </t>
+                                    
+                                    <!-- BROWN RICE HEADERS -->
+                                    <t t-if="o.is_brown_rice">
+                                        <th style="width: 6%;">Purity</th>
+                                        <th style="width: 6%;">Broken</th>
+                                        <th style="width: 7%;">Green<br/>Grains</th>
+                                        <th style="width: 7%;">Chalky<br/>Grains</th>
+                                        <th style="width: 6%;">Moisture</th>
+                                        <th style="width: 6%;">Paddy<br/>Grains</th>
+                                        <th style="width: 6%;">Red<br/>Grains</th>
+                                        <th style="width: 7%;">Foreign<br/>Matter</th>
+                                        <th style="width: 7%;">Avg<br/>Length</th>
+                                    </t>
+
+                                    <!-- COMMON HEADERS -->
+                                    <th style="width: 8%;">Packaging<br/>Material</th>
+                                    <th style="width: 16%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <!-- ================== STANDARD VALUES ================== -->
+                                <t t-set="std_count" t-value="len(o.standard_line_ids) if o.standard_line_ids else 1"/>
+                                <t t-foreach="range(std_count)" t-as="s_idx">
+                                    <tr>
+                                        <!-- Merged Left Column for Standard Value -->
+                                        <t t-if="s_idx == 0">
+                                            <td t-att-rowspan="std_count" style="font-weight: bold; background-color: #f9f9f9;">Standard<br/>Value</td>
+                                        </t>
+
+                                        <t t-if="o.standard_line_ids and s_idx &lt; len(o.standard_line_ids)">
+                                            <t t-set="std" t-value="o.standard_line_ids[s_idx]"/>
+                                            <td><span t-field="std.product_id.name"/></td>
+                                            <td></td> <!-- Sample (kg) -->
+
+                                            <t t-if="not o.is_brown_rice">
+                                                <td><span t-field="std.broken_percent"/></td>
+                                                <td><span t-field="std.damaged_discolor_percent"/></td>
+                                                <td><span t-field="std.moisture_percent"/></td>
+                                                <td><span t-field="std.red_percent"/></td>
+                                                <td><span t-field="std.chalky_percent"/></td>
+                                                <td><span t-field="std.foreign_matter_percent"/></td>
+                                                <td><span t-field="std.paddy_percent"/></td>
+                                                <td><span t-field="std.under_milled_grains"/></td>
+                                                <td><span t-field="std.kett_whiteness"/></td>
+                                            </t>
+                                            <t t-if="o.is_brown_rice">
+                                                <td><span t-field="std.br_purity"/></td>
+                                                <td><span t-field="std.br_broken"/></td>
+                                                <td><span t-field="std.br_green_grains"/></td>
+                                                <td><span t-field="std.br_chalky_grains"/></td>
+                                                <td><span t-field="std.br_moisture"/></td>
+                                                <td><span t-field="std.br_paddy_grains"/></td>
+                                                <td><span t-field="std.br_red_grains"/></td>
+                                                <td><span t-field="std.br_foreign_matter"/></td>
+                                                <td><span t-field="std.br_avg_length"/></td>
+                                            </t>
+
+                                            <td></td> <!-- Packaging Material -->
+                                            <td></td> <!-- Remarks -->
+                                        </t>
+                                        <t t-else="">
+                                            <!-- Fallback Empty Row for Standard -->
+                                            <td></td><td></td>
+                                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                            <td></td><td></td>
+                                        </t>
+                                    </tr>
+                                </t>
+
+                                <!-- ================== OBSERVED VALUES ================== -->
+                                <!-- Always render at least 10 rows to mimic the Excel grid exactly -->
+                                <t t-set="obs_count" t-value="len(o.qc_line_ids) if len(o.qc_line_ids) > 10 else 10"/>
+                                <t t-foreach="range(obs_count)" t-as="o_idx">
+                                    <tr>
+                                        <!-- Merged Left Column for Observed Value -->
+                                        <t t-if="o_idx == 0">
+                                            <td t-att-rowspan="obs_count" style="font-weight: bold; background-color: #f9f9f9;">Observed<br/>Value</td>
+                                        </t>
+
+                                        <!-- Render Data if exists -->
+                                        <t t-if="o.qc_line_ids and o_idx &lt; len(o.qc_line_ids)">
+                                            <t t-set="obs" t-value="o.qc_line_ids[o_idx]"/>
+                                            <td style="height: 22px;"><span t-field="obs.name"/></td>
+                                            <td></td> <!-- Sample (kg) -->
+
+                                            <t t-if="not o.is_brown_rice">
+                                                <td><span t-if="obs.broken_percent != 0.0" t-field="obs.broken_percent"/></td>
+                                                <td><span t-if="obs.damaged_discolor_percent != 0.0" t-field="obs.damaged_discolor_percent"/></td>
+                                                <td><span t-if="obs.moisture_percent != 0.0" t-field="obs.moisture_percent"/></td>
+                                                <td><span t-if="obs.red_percent != 0.0" t-field="obs.red_percent"/></td>
+                                                <td><span t-if="obs.chalky_percent != 0.0" t-field="obs.chalky_percent"/></td>
+                                                <td><span t-if="obs.foreign_matter_percent != 0.0" t-field="obs.foreign_matter_percent"/></td>
+                                                <td><span t-if="obs.paddy_percent != 0.0" t-field="obs.paddy_percent"/></td>
+                                                <td><span t-if="obs.under_milled_grains != 0.0" t-field="obs.under_milled_grains"/></td>
+                                                <td><span t-if="obs.kett_whiteness != 0.0" t-field="obs.kett_whiteness"/></td>
+                                            </t>
+                                            <t t-if="o.is_brown_rice">
+                                                <td><span t-if="obs.br_purity != 0.0" t-field="obs.br_purity"/></td>
+                                                <td><span t-if="obs.br_broken != 0.0" t-field="obs.br_broken"/></td>
+                                                <td><span t-if="obs.br_green_grains != 0.0" t-field="obs.br_green_grains"/></td>
+                                                <td><span t-if="obs.br_chalky_grains != 0.0" t-field="obs.br_chalky_grains"/></td>
+                                                <td><span t-if="obs.br_moisture != 0.0" t-field="obs.br_moisture"/></td>
+                                                <td><span t-if="obs.br_paddy_grains != 0.0" t-field="obs.br_paddy_grains"/></td>
+                                                <td><span t-if="obs.br_red_grains != 0.0" t-field="obs.br_red_grains"/></td>
+                                                <td><span t-if="obs.br_foreign_matter != 0.0" t-field="obs.br_foreign_matter"/></td>
+                                                <td><span t-if="obs.br_avg_length != 0.0" t-field="obs.br_avg_length"/></td>
+                                            </t>
+
+                                            <td></td> <!-- Packaging Material -->
+                                            <td></td> <!-- Remarks -->
+                                        </t>
+                                        <!-- Render Empty rows for remaining grid lines -->
+                                        <t t-else="">
+                                            <td style="height: 22px;"></td><td></td>
+                                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                            <td></td><td></td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Footer Signatures -->
+                        <table style="width: 100%; margin-top: 40px; border: none; font-weight: bold; font-size: 13px;">
+                            <tr style="border: none;">
+                                <td style="width: 50%; text-align: left; border: none;">
+                                    Shift Supervisor <span style="display: inline-block; width: 200px; border-bottom: 1px solid black;"></span>
+                                </td>
+                                <td style="width: 50%; text-align: right; border: none;">
+                                    <span style="display: inline-block; width: 200px; border-bottom: 1px solid black;"></span> Production Head
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- VIEWS (Kept as provided for Backend UI)      -->
+    <!-- ========================================== -->
+    <record id="production_quality_control_view_form" model="ir.ui.view">
+        <field name="name">production.quality.control.view.form</field>
+        <field name="model">production.quality.control</field>
+        <field name="arch" type="xml">
+            <form string="Production Quality Control">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'" />
+                    <button name="%(action_report_production_quality_control)d" string="Print QC Report" type="action" class="oe_highlight" />
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('draft', 'cancel')" />
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="state != 'cancel'" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+
+                    <field name="is_brown_rice" invisible="1" />
+
+                    <group string="Plant Selection">
+                        <group>
+                            <field name="bm1_plant" widget="radio" options="{'horizontal': true}" />
+                        </group>
+                        <group>
+                            <field name="bm2_plant" widget="radio" options="{'horizontal': true}" />
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="issue_material_id" options="{'no_create': True}" />
+                            <field name="is_reworking" readonly="state != 'draft'" />
+                            <field name="operator_name" />
+                            <field name="customer_id" />
+                            <field name="brand_name" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="customer_contract_no" />
+                            <field name="job_order_id" />
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="date" />
+                            <field name="milling_date" readonly="state != 'draft'" />
+                            <field name="day" />
+                        </group>
+                        <group>
+                            <field name="shift" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Standard">
+                            <field name="standard_line_ids" readonly="state != 'draft'">
+                                <list string="Standard Specification Lines">
+                                    <field name="product_id" />
+                                    <field name="is_brown_rice" column_invisible="1" />
+                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
+                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                </list>
+                                <form string="Standard Specification">
+                                    <sheet>
+                                        <group>
+                                            <group string="Product Details">
+                                                <field name="product_id" readonly="1" />
+                                                <field name="is_brown_rice" invisible="1" />
+                                            </group>
+                                        </group>
+                                        <notebook>
+                                            <page string="Normal Product Specs" invisible="is_brown_rice == True">
+                                                <group>
+                                                    <group string="Basic Parameters">
+                                                        <field name="moisture_percent" readonly="1" />
+                                                        <field name="broken_percent" readonly="1" />
+                                                        <field name="damaged_discolor_percent" readonly="1" />
+                                                    </group>
+                                                    <group string="Matter $ Grains">
+                                                        <field name="foreign_matter_percent" readonly="1" />
+                                                        <field name="paddy_percent" readonly="1" />
+                                                        <field name="red_percent" readonly="1" />
+                                                        <field name="chalky_percent" readonly="1" />
+                                                        <field name="under_milled_grains" readonly="1" />
+                                                        <field name="kett_whiteness" readonly="1" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                            <page string="Brown Rice Specs" invisible="is_brown_rice == False">
+                                                <group>
+                                                    <group string="Grain Quality">
+                                                        <field name="br_purity" readonly="1" />
+                                                        <field name="br_broken" readonly="1" />
+                                                        <field name="br_green_grains" readonly="1" />
+                                                        <field name="br_chalky_grains" readonly="1" />
+                                                        <field name="br_ddkg" readonly="1" />
+                                                        <field name="br_immature_grains" readonly="1" />
+                                                    </group>
+                                                    <group string="Defects $ Foreign Matter">
+                                                        <field name="br_paddy_grains" readonly="1" />
+                                                        <field name="br_red_grains" readonly="1" />
+                                                        <field name="br_other_rices" readonly="1" />
+                                                        <field name="br_moisture" readonly="1" />
+                                                        <field name="br_foreign_matter" readonly="1" />
+                                                    </group>
+                                                    <group string="Physical Properties">
+                                                        <field name="br_avg_length" readonly="1" />
+                                                        <field name="br_head_yield" readonly="1" />
+                                                    </group>
+                                                    <group string="Safety $ Health Standards">
+                                                        <field name="br_yellow_amber" readonly="1" />
+                                                        <field name="br_foreign_odours" readonly="1" />
+                                                        <field name="br_chemical_residues" readonly="1" />
+                                                        <field name="br_aflatoxinsA" readonly="1" />
+                                                        <field name="br_aflatoxins" readonly="1" />
+                                                        <field name="br_living_insects" readonly="1" />
+                                                        <field name="br_Animals_birds" readonly="1" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Observed Values">
+                            <field name="qc_line_ids" readonly="state != 'draft'" context="{'default_is_brown_rice': is_brown_rice}">
+                                <list string="Observed Specification Lines">
+                                    <field name="name" string="Hours / Type" />
+                                    <field name="product_id" />
+                                    <field name="is_brown_rice" column_invisible="1" />
+                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
+                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                </list>
+                                <form string="Observed Specification">
+                                    <sheet>
+                                        <group>
+                                            <group string="Log Info">
+                                                <field name="name" string="Hours / Type" />
+                                                <field name="product_id" readonly="1" />
+                                                <field name="is_brown_rice" invisible="1" />
+                                            </group>
+                                        </group>
+                                        <notebook>
+                                            <page string="Normal Product Specs" invisible="is_brown_rice == True">
+                                                <group>
+                                                    <group string="Basic Parameters">
+                                                        <field name="moisture_percent" />
+                                                        <field name="broken_percent" />
+                                                        <field name="damaged_discolor_percent" />
+                                                    </group>
+                                                    <group string="Matter $ Grains">
+                                                        <field name="foreign_matter_percent" />
+                                                        <field name="paddy_percent" />
+                                                        <field name="red_percent" />
+                                                        <field name="chalky_percent" />
+                                                        <field name="under_milled_grains" />
+                                                        <field name="kett_whiteness" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                            <page string="Brown Rice Specs" invisible="is_brown_rice == False">
+                                                <group>
+                                                    <group string="Grain Quality">
+                                                        <field name="br_purity" />
+                                                        <field name="br_broken" />
+                                                        <field name="br_green_grains" />
+                                                        <field name="br_chalky_grains" />
+                                                        <field name="br_ddkg" />
+                                                        <field name="br_immature_grains" />
+                                                    </group>
+                                                    <group string="Defects $ Foreign Matter">
+                                                        <field name="br_paddy_grains" />
+                                                        <field name="br_red_grains" />
+                                                        <field name="br_other_rices" />
+                                                        <field name="br_moisture" />
+                                                        <field name="br_foreign_matter" />
+                                                    </group>
+                                                    <group string="Physical Properties">
+                                                        <field name="br_avg_length" />
+                                                        <field name="br_head_yield" />
+                                                    </group>
+                                                    <group string="Safety $ Health Standards">
+                                                        <field name="br_yellow_amber" />
+                                                        <field name="br_foreign_odours" />
+                                                        <field name="br_chemical_residues" />
+                                                        <field name="br_aflatoxinsA" />
+                                                        <field name="br_aflatoxins" />
+                                                        <field name="br_living_insects" />
+                                                        <field name="br_Animals_birds" />
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group>
+                        <group>
+                            <field name="shift_supervisor" />
+                        </group>
+                        <group>
+                            <field name="production_head" />
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="production_quality_control_view_tree" model="ir.ui.view">
+        <field name="name">production.quality.control.view.tree</field>
+        <field name="model">production.quality.control</field>
+        <field name="arch" type="xml">
+            <list string="Production Quality Controls" decoration-info="state == 'confirmed'" decoration-muted="state == 'cancel'">
+                <field name="name" />
+                <field name="issue_material_id" />
+                <field name="is_reworking" readonly="state != 'draft'" />
+                <field name="date" />
+                <field name="shift" />
+                <field name="operator_name" />
+                <field name="customer_id" />
+                <field name="brand_name" />
+                <field name="job_order_id" />
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-muted="state == 'cancel'" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_production_quality_control" model="ir.actions.act_window">
+        <field name="name">Production Quality Control</field>
+        <field name="res_model">production.quality.control</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_production_quality_control"
+        name="Production Quality Control"
+        parent="menu_arm_rice_manufacturing"
+        action="action_production_quality_control"
+        sequence="55" />
+
+</odoo>

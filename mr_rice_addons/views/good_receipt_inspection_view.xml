@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_grn_inspection_wizard_form" model="ir.ui.view">
+        <field name="name">grn.inspection.detail.wizard.form</field>
+        <field name="model">grn.inspection.detail.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Inspection Detail">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_grn_inspection_detail_wizard" model="ir.actions.act_window">
+        <field name="name">Inspection Detail Report</field>
+        <field name="res_model">grn.inspection.detail.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Inventory Reporting mein) -->
+    <menuitem id="menu_grn_inspection_detail_report"
+              name="GRN Inspection Detail"
+              parent="stock.menu_warehouse_report"
+              action="action_grn_inspection_detail_wizard"
+              sequence="150"/>
+</odoo>

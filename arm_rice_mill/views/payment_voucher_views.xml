@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- RENAME ONLY "BILLS" TO "PAYMENT VOUCHER"   -->
+    <!-- ========================================== -->
+
+    <!-- 1. Rename the "Bills" Menu Item (Under Vendors) -->
+    <record id="account.menu_action_move_in_invoice_type" model="ir.ui.menu">
+        <field name="name">Payment Voucher</field>
+    </record>
+
+    <!-- 2. Rename the "Bills" Window Action -->
+    <record id="account.action_move_in_invoice_type" model="ir.actions.act_window">
+        <field name="name">Payment Voucher</field>
+    </record>
+
+    <!-- 3. Inherit Vendor Bill Form View -->
+    <record id="view_move_form_payment_voucher_inherit" model="ir.ui.view">
+        <field name="name">account.move.form.payment.voucher.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Rename "Bill Date" to "Payment Voucher Date" -->
+            <xpath expr="//sheet//group//label[@for='invoice_date']" position="attributes">
+                <attribute name="string">Payment Voucher Date</attribute>
+            </xpath>
+
+            <!-- Rename "Bill Reference" to "Remarks" -->
+            <xpath expr="//sheet//group//label[@for='ref']" position="attributes">
+                <attribute name="string">Remarks</attribute>
+            </xpath>
+
+            <!-- Rename "Items" tab to "JV Detail" -->
+            <xpath expr="//notebook//page[@name='invoice_tab']" position="attributes">
+                <attribute name="string">JV Detail</attribute>
+            </xpath>
+
+            <!-- FIX: Add Broker, PC Ref, and Rice PC Amount strictly inside the first group of the sheet -->
+            <xpath expr="//sheet//group[1]/group[1]" position="inside">
+                <field name="broker_id" invisible="move_type != 'in_invoice'" string="Broker"/>
+                <field name="payment_certificate_id" invisible="move_type != 'in_invoice'" string="Payment Certificate Ref"/>
+                <field name="rice_pc_amount" invisible="move_type != 'in_invoice'" string="Rice PC Amount"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

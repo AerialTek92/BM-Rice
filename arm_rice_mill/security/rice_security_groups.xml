@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- USER 1: Commercial / Procurement -->
+        <record id="group_rice_commercial" model="res.groups">
+            <field name="name">Commercial / Procurement (Rice)</field>
+            <!-- Implies standard Purchase User and Billing User rights -->
+            <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_user')), (4, ref('account.group_account_invoice'))]"/>
+        </record>
+
+        <!-- USER 2: Operations / Gate & Lab -->
+        <record id="group_rice_operations" model="res.groups">
+            <field name="name">Operations / Gate &amp; Lab (Rice)</field>
+            <!-- Implies standard Stock User rights so they can view GRNs -->
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+        </record>
+    </data>
+</odoo>
