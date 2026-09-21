@@ -81,12 +81,14 @@
                                 <list string="Standard Specification Lines">
                                     <field name="product_id" />
                                     <field name="is_brown_rice" column_invisible="1" />
-                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
-                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
-                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
-                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                    <!-- FIX: Normal Rice fields (without % in label) -->
+                                    <field name="moisture_percent" string="Moisture" column_invisible="parent.is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken" column_invisible="parent.is_brown_rice == True" />
+                                    <!-- FIX: Brown Rice fields (with % in label) -->
+                                    <field name="br_moisture" string="Moisture (%)" column_invisible="parent.is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken (%)" column_invisible="parent.is_brown_rice == False" />
                                 </list>
-                                
+
                                 <!-- Pop-up Form View (Appears when a user clicks on a line) -->
                                 <form string="Standard Specification">
                                     <sheet>
@@ -164,10 +166,12 @@
                                     <field name="name" string="Hours / Type" />
                                     <field name="product_id" />
                                     <field name="is_brown_rice" column_invisible="1" />
-                                    <field name="moisture_percent" string="Moisture (%)" invisible="is_brown_rice == True" />
-                                    <field name="broken_percent" string="Broken (%)" invisible="is_brown_rice == True" />
-                                    <field name="br_moisture" string="Moisture" invisible="is_brown_rice == False" />
-                                    <field name="br_broken" string="Broken" invisible="is_brown_rice == False" />
+                                    <!-- FIX: Normal Rice fields (without % in label) -->
+                                    <field name="moisture_percent" string="Moisture" column_invisible="parent.is_brown_rice == True" />
+                                    <field name="broken_percent" string="Broken" column_invisible="parent.is_brown_rice == True" />
+                                    <!-- FIX: Brown Rice fields (with % in label) -->
+                                    <field name="br_moisture" string="Moisture (%)" column_invisible="parent.is_brown_rice == False" />
+                                    <field name="br_broken" string="Broken (%)" column_invisible="parent.is_brown_rice == False" />
                                 </list>
 
                                 <!-- Pop-up Form View (Appears when a user clicks on a line) -->
@@ -289,6 +293,6 @@
         name="Production Quality Control"
         parent="menu_arm_rice_manufacturing"
         action="action_production_quality_control"
-        sequence="55" />
+        sequence="45" />
 
 </odoo>

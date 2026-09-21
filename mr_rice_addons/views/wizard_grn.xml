@@ -32,4 +32,9 @@
               parent="stock.menu_warehouse_report"
               action="action_stock_picking_detail_wizard"
               sequence="100"/>
+    <menuitem id="menu_stock_picking_detail_report"
+              name="Good Receipt Report"
+              parent="menu_inventory_reports_section"
+              action="action_stock_picking_detail_wizard"
+              sequence="100"/>
 </odoo>

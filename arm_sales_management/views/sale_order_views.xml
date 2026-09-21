@@ -24,17 +24,22 @@
                         class="btn-secondary" invisible="state not in ('sale', 'done')"/>
             </xpath>
 
-            <!-- Add Broker, Contract, and Type after Customer -->
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="domain">[('partner_assign_type', '=', 'customer')]</attribute>
+                <attribute name="context">{'default_partner_assign_type': 'customer', 'res_partner_search_mode': 'customer'}</attribute>
+            </xpath>
+            <!-- Add Broker after Customer -->
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="broker_id" string="Broker"/>
-                <field name="rice_sales_contract_id" string="Rice Sales Contract"
-                       domain="[('partner_id', '=', partner_id), ('state', 'in', ['confirmed', 'done']), ('contract_type', '=', 'export')]"/>
-                <field name="contract_type" string="Contract Type" readonly="1" widget="badge" decoration-info="contract_type == 'local'" decoration-success="contract_type == 'export'"/>
+                <!-- FIX: Hidden Rice Sales Contract and Contract Type to avoid duplication and confusion -->
+                <field name="rice_sales_contract_id" string="Rice Sales Contract" invisible="1"/>
+                <field name="contract_type" string="Contract Type" invisible="1"/>
             </xpath>
 
             <!-- Rename Quotation Date to Order Date -->
             <xpath expr="//field[@name='date_order']" position="attributes">
                 <attribute name="string">Order Date</attribute>
+                <attribute name="groups">base.group_user</attribute>
             </xpath>
 
             <!-- Add Delivery Date and Sales Memo Ref after Order Date -->
@@ -76,6 +81,7 @@
             <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']" position="after">
                 <field name="additional_weight" string="Add. Wt (g)" optional="show" readonly="1" force_save="1"/>
                 <field name="total_weight" string="Total Wt" optional="show" readonly="1" force_save="1"/>
+                <field name="discount"/>
                 <field name="discount_amount" string="Disct Amt" optional="show"/>
                 <field name="discount_special" string="Disct Sp." optional="show"/>
                 <field name="net_amount" string="Net Amt" optional="show"/>
@@ -85,6 +91,19 @@
             <xpath expr="//sheet//notebook" position="after">
                 <group string="Remarks">
                     <field name="delivery_remarks" nolabel="1" colspan="2" placeholder="Enter delivery remarks..."/>
+                </group>
+            </xpath>
+
+            <!-- Discount display in the footer, inside the native totals structure -->
+<!--            <xpath expr="//field[@name='amount_untaxed']/ancestor::group[1]" position="inside">-->
+<!--                <field name="total_discount_amount" string="Discount Amount"-->
+<!--                       invisible="total_discount_amount == 0"/>-->
+<!--            </xpath>-->
+                        <!-- Discount display: footer block next to Remarks -->
+            <xpath expr="//sheet//notebook" position="after">
+                <group class="oe_subtotal_footer oe_right">
+                    <field name="total_discount_amount" string="Discount Amount"
+                           invisible="total_discount_amount == 0"/>
                 </group>
             </xpath>
 

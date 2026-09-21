@@ -33,4 +33,9 @@
               parent="stock.menu_warehouse_report"
               action="action_stock_picking_product_wizard"
               sequence="110"/>
+    <menuitem id="menu_stock_picking_product_report"
+              name="Product Allowance Actual Vs Billing"
+              parent="menu_inventory_reports_section"
+              action="action_stock_picking_product_wizard"
+              sequence="110"/>
 </odoo>

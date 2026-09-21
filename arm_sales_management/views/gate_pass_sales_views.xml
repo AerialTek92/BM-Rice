@@ -18,7 +18,8 @@
                     ('picking_type_code', '=', 'outgoing'),
                     ('state', 'not in', ['done', 'cancel']),
                     ('partner_id', '=', partner_id if partner_id else -1),
-                    '|', ('contract_type', '=', 'export'), ('is_commercially_validated', '=', True)
+                    '&amp;', ('is_commercially_validated', '=', True),
+                    '|', ('rice_sales_contract_id', '!=', False), ('sale_id', '!=', False)
                 ]</attribute>
             </xpath>
 
@@ -30,10 +31,10 @@
 
             <!-- Hide the Sales Memo fields from the outbound Gate Pass. -->
             <xpath expr="//field[@name='sale_order_id']" position="attributes">
-                <attribute name="invisible">pass_type == 'outbound'</attribute>
+                <attribute name="invisible">pass_type != 'outbound'</attribute>
             </xpath>
             <xpath expr="//field[@name='sale_order_date']" position="attributes">
-                <attribute name="invisible">pass_type == 'outbound'</attribute>
+                <attribute name="invisible">pass_type != 'outbound'</attribute>
             </xpath>
 
             <!-- Create Weighbridge: NEVER visible for Outbound (User 2 creates

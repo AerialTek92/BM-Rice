@@ -4,3 +4,7 @@ access_product_allowance_type,product.allowance.type,model_product_allowance_typ
 access_product_allowance_type_line,product.allowance.type.line,model_product_allowance_type_line,base.group_user,1,1,1,1
 access_brown_rice_specification,brown.rice.specification,model_brown_rice_specification,base.group_user,1,1,1,1
 access_product_specification_line,product.specification.line,model_product_specification_line,base.group_user,1,1,1,1
+access_sesame_seeds_specification,sesame.seeds.specification,model_sesame_seeds_specification,base.group_user,1,1,1,1
+access_corn_specification,corn.specification,model_corn_specification,base.group_user,1,1,1,1
+access_stock_ledger_wizard,stock.ledger.wizard,model_stock_ledger_wizard,base.group_user,1,1,1,1
+access_brand_stock_wizard,brand.stock.wizard,model_brand_stock_wizard,base.group_user,1,1,1,1

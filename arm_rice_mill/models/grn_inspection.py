@@ -76,9 +76,12 @@ class GrnInspection(models.Model):
         domain="[('partner_id', '=', partner_id), ('state', 'in', ['purchase', 'done'])]"
     )
     ref_po_no = fields.Char(string='Ref. PO No.', readonly=True)
-    rice_sales_contract_id = fields.Many2one('rice.sales.contract', string='Sales Contract',
-                                             related='purchase_order_id.rice_sales_contract_id', store=True,
-                                             readonly=True)
+    rice_sales_contract_id = fields.Many2one(
+        'rice.sales.contract',
+        string='Sales Contract',
+        readonly=True,
+        copy=False,
+    )
     partner_id = fields.Many2one('res.partner', string='Party', required=True, tracking=True)
     broker_id = fields.Many2one('res.partner', string='Broker', related='purchase_order_id.broker_id', readonly=True)
     buyer_id = fields.Many2one('hr.employee', string='Buyer', related='purchase_order_id.buyer_id', readonly=True)

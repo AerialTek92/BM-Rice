@@ -17,11 +17,13 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'product', 'contacts', 'mail'],
+    'depends': ['base', 'product', 'contacts', 'mail', 'hr'],
     # always loaded
     'data': [
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',  # Load sequences here
+        'reports/stock_ledger_report.xml',
+        'reports/brand_stock_report.xml',
         'views/res_partner_view.xml',
         'views/product_temp_view.xml',
         'views/transporter_setup_view.xml',

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="material_inspection_view_form" model="ir.ui.view">
+        <field name="name">material.inspection.view.form</field>
+        <field name="model">material.inspection</field>
+        <field name="arch" type="xml">
+            <form string="Material Inspection">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_grn" string="Create GRN" type="object"
+                            class="btn-success" invisible="state != 'confirmed'"/>
+                    <button name="action_mark_done" string="Mark as Done" type="object" class="btn-success"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('draft', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_grns" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="grn_count" string="GRNs" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="purchase_order_id" readonly="state != 'draft'"/>
+                            <field name="po_date"/>
+                            <field name="supplier_id" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="dc_ref_no" readonly="state != 'draft'"/>
+                            <field name="ref_no" readonly="state != 'draft'"/>
+                            <field name="department" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <field name="inspection_line_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="item_code" readonly="1"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="description"/>
+                            <field name="uom_id"/>
+                            <field name="product_qty" string="Quantity"/>
+                            <field name="accepted"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="material_inspection_view_tree" model="ir.ui.view">
+        <field name="name">material.inspection.view.tree</field>
+        <field name="model">material.inspection</field>
+        <field name="arch" type="xml">
+            <list string="Material Inspections">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="purchase_order_id"/>
+                <field name="supplier_id"/>
+                <field name="dc_ref_no"/>
+                <field name="department"/>
+                <field name="grn_count" string="GRNs"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_material_inspection" model="ir.actions.act_window">
+        <field name="name">Material Inspections</field>
+        <field name="res_model">material.inspection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_material_inspection" name="Material Inspections"
+              parent="purchase.menu_purchase_root" action="action_material_inspection" sequence="17"/>
+</odoo>

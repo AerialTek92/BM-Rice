@@ -1,0 +1,38 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_weighbridge_date_wizard_form" model="ir.ui.view">
+        <field name="name">weighbridge.date.wizard.form</field>
+        <field name="model">weighbridge.date.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Weighbridge Date Wise Report">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_weighbridge_date_wizard" model="ir.actions.act_window">
+        <field name="name">Weighbridge Date Wise Report</field>
+        <field name="res_model">weighbridge.date.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Arm Rice Mill Config menu ke under) -->
+    <menuitem id="menu_weighbridge_date_wise_report"
+              name="Weighbridge Date Wise Report"
+              parent="arm_rice_mill.menu_arm_rice_config"
+              action="action_weighbridge_date_wizard"
+              sequence="10"/>
+</odoo>

@@ -21,12 +21,14 @@
                         invisible="not can_user_approve"/>
             </xpath>
 
-            <!-- 2. Hide standard Confirm buttons until approved (Exception for Admin) -->
+            <!-- 2. Hide standard Confirm buttons until approved (admin exception).
+                 Orders WITHOUT approval lines carry no approval requirement:
+                 the button stays available for everyone (server guard agrees). -->
             <xpath expr="//button[@name='button_confirm'][not(@id='bid_confirm')]" position="attributes">
-                <attribute name="invisible">state != 'draft' or (approval_status != 'approved' and not is_admin)</attribute>
+                <attribute name="invisible">state != 'draft' or (approval_line_ids and approval_status != 'approved' and not is_admin)</attribute>
             </xpath>
             <xpath expr="//button[@id='bid_confirm']" position="attributes">
-                <attribute name="invisible">state != 'sent' or (approval_status != 'approved' and not is_admin)</attribute>
+                <attribute name="invisible">state != 'sent' or (approval_line_ids and approval_status != 'approved' and not is_admin)</attribute>
             </xpath>
 
             <!-- 3. Add invisible field at the top of the sheet for proper evaluation -->
@@ -61,6 +63,7 @@
                         <list decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'">
                             <field name="label"/>
                             <field name="employee_id"/>
+                            <field name="group_id" string="Expected Group"/>
                             <field name="status" widget="badge" decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'"/>
                             <field name="time_of_approval"/>
                         </list>

@@ -79,11 +79,10 @@ class GatePassLocalSales(models.Model):
         # Machinery: the SM derived from the D/O.
         self.sale_order_id = picking.sale_id.id
 
-        # If Export, auto-map the Sales Contract from the D/O's Sale Order.
-        if self.is_export and picking.sale_id and 'rice_sales_contract_id' in picking.sale_id._fields:
-            if picking.sale_id.rice_sales_contract_id:
-                self.export_sales_contract_id = picking.sale_id.rice_sales_contract_id.id
-
+        # If Export, auto-map the Sales Contract straight from the Delivery
+        # Order's contract link (export DOs have no Sales Memo).
+        if self.is_export and picking.rice_sales_contract_id:
+            self.export_sales_contract_id = picking.rice_sales_contract_id.id
         line_vals = [(5, 0, 0)]
         for move in picking.move_ids.filtered(lambda m: m.state not in ('done', 'cancel')):
             sale_line = move.sale_line_id
@@ -113,7 +112,7 @@ class GatePassLocalSales(models.Model):
                 continue
             if picking.state in ('done', 'cancel'):
                 continue
-            if picking._is_local_sale_delivery() and not picking.is_commercially_validated:
+            if picking._requires_commercial_approval() and not picking.is_commercially_validated:
                 raise ValidationError(_(
                     "Delivery Order %(picking)s has not been commercially validated yet. "
                     "The Sales user must approve its D/O Qty before a Gate Pass can reference it.",

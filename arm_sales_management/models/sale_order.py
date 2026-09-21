@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
 from typing import Any, Dict, List, Optional
 
@@ -19,8 +19,16 @@ COMBO_PRODUCT_TYPE: str = 'combo'
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # Header level custom fields
-    broker_id = fields.Many2one('res.partner', string='Broker', domain="[('partner_assign_type', '=', 'broker')]")
+    partner_id = fields.Many2one(
+        'res.partner',
+        domain=[('partner_assign_type', '=', 'customer')],
+        context={'default_partner_assign_type': 'customer', 'res_partner_search_mode': 'customer'},
+    )
+    broker_id = fields.Many2one(
+        'res.partner',
+        string='Broker',
+        domain=[('partner_assign_type', '=', 'vendor')],
+    )
     delivery_date = fields.Date(string='Delivery Date')
     delivery_remarks = fields.Text(string='Delivery Remarks')
 
@@ -45,6 +53,23 @@ class SaleOrder(models.Model):
         help="True when every stockable line of the memo has been fully delivered. "
              "The 'Create Invoice' button stays hidden until then.",
     )
+    total_discount_amount = fields.Monetary(
+        string='Total Discount',
+        compute='_compute_total_discount_amount',
+        currency_field='currency_id',
+    )
+
+    @api.depends('order_line.discount_amount', 'order_line.discount_special')
+    def _compute_total_discount_amount(self) -> None:
+        """Footer display: sum of per-line percentage discounts and special
+        (flat) discounts - the amount actually being deducted from the
+        order total."""
+        for order in self:
+            order.total_discount_amount = sum(
+                line.discount_amount + line.discount_special
+                for line in order.order_line
+                if not line.display_type
+            )
 
     @api.depends('order_line.qty_delivered', 'order_line.product_uom_qty',
                  'order_line.display_type', 'order_line.product_id')
@@ -57,12 +82,55 @@ class SaleOrder(models.Model):
                 for line in shippable_lines
             )
 
+    @api.constrains('partner_id', 'broker_id')
+    def _check_partner_assign_types(self) -> None:
+        """Server twin of the picker domains. Legacy export memos reference
+        Export-Customer partners, hence both types are valid here."""
+        for order in self:
+            if order.partner_id and order.partner_id.partner_assign_type not in ('customer', 'export_customer'):
+                raise ValidationError(_(
+                    "The customer on %s must be a Customer-typed partner "
+                    "('%s' is currently '%s').",
+                    order.name, order.partner_id.name, order.partner_id.partner_assign_type))
+            if order.broker_id and order.broker_id.partner_assign_type != 'vendor':
+                raise ValidationError(_(
+                    "The broker on %s must be a Vendor / Broker-typed partner "
+                    "('%s' is currently '%s').",
+                    order.name, order.broker_id.name, order.broker_id.partner_assign_type))
+
     def action_confirm(self) -> Any:
-        """Protocol 2.1 (SRP): Safety net for Delivery Order creation on confirmation."""
+        """Confirmation sequence:
+        1. native confirmation (+ the DO-creation safety net),
+        2. Order Date follows the Delivery Date - written AFTER super
+           because the native confirm flow stamps date_order with the
+           confirmation moment; the last write wins,
+        3. local DO sequence rename (SM/DO/YY/NNN)."""
         res = super().action_confirm()
+
         for order in self:
             if order.order_line and not order.picking_ids:
                 order.order_line._action_launch_stock_rule()
+
+            if order.delivery_date:
+                # Noon timestamp: a midnight conversion can display as the
+                # previous day for negative UTC offsets - noon is safe.
+                order.date_order = fields.Datetime.to_datetime(
+                    f"{order.delivery_date} 12:00:00")
+
+            # Local DO sequence: rename AFTER the stock rule finished
+            # creating and naming the pickings (native WH/OUT).
+            order.picking_ids._apply_local_delivery_sequence()
+        return res
+
+        for order in self:
+            if order.order_line and not order.picking_ids:
+                order.order_line._action_launch_stock_rule()
+
+            # Local DO sequence: rename AFTER the stock rule finished
+            # creating and naming the pickings (native WH/OUT) - this
+            # window is deterministic, unlike the create-override's
+            # post-check on the stock-rule path.
+            order.picking_ids._apply_local_delivery_sequence()
         return res
 
     def action_create_delivery_order(self) -> Dict[str, Any]:
@@ -100,6 +168,7 @@ class SaleOrder(models.Model):
             'location_id': picking_type.default_location_src_id.id,
             'location_dest_id': picking_type.default_location_dest_id.id,
             'origin': self.name,
+            'group_id': self.procurement_group_id.id,
         })
 
         # NOTE: stock.move keeps the field name 'product_uom' in Odoo 19
@@ -128,7 +197,6 @@ class SaleOrder(models.Model):
             'target': 'current',
         }
 
-
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
@@ -146,7 +214,7 @@ class SaleOrderLine(models.Model):
              "on open Delivery Orders (validated or not).",
     )
 
-    discount_amount = fields.Monetary(string='Disct Amt', compute='_compute_net_amount', store=True)
+    discount_amount = fields.Monetary(string='Disct Amt', store=True)
     discount_special = fields.Monetary(string='Disct Sp.')
     net_amount = fields.Monetary(string='Net Amt', compute='_compute_net_amount', store=True)
 
@@ -298,17 +366,93 @@ class SaleOrderLine(models.Model):
     # COMMERCIAL / DISPLAY COMPUTES
     # ==========================================================
 
-    @api.depends('product_uom_qty', 'price_unit', 'discount', 'discount_special')
-    def _compute_net_amount(self) -> None:
+    @api.depends(
+        'product_uom_qty',
+        'price_unit',
+        'discount_amount',
+        'discount_special',
+    )
+    def _compute_net_amount(self):
         for line in self:
             base_amount = line.product_uom_qty * line.price_unit
 
-            if line.discount:
-                line.discount_amount = base_amount * (line.discount / PERCENTAGE_DIVISOR)
-            else:
+            line.net_amount = (
+                    base_amount
+                    - (line.discount_amount or 0.0)
+                    - (line.discount_special or 0.0)
+            )
+
+    @api.onchange(
+        'discount',
+        'product_uom_qty',
+        'price_unit',
+    )
+    def _onchange_discount(self):
+        for line in self:
+            base_amount = line.product_uom_qty * line.price_unit
+
+            if base_amount and line.discount:
+                line.discount_amount = (
+                        base_amount * line.discount / PERCENTAGE_DIVISOR
+                )
+            elif not line.discount:
                 line.discount_amount = 0.0
 
-            line.net_amount = base_amount - (line.discount_amount or 0.0) - (line.discount_special or 0.0)
+    @api.onchange(
+        'discount_amount',
+        'product_uom_qty',
+        'price_unit',
+    )
+    def _onchange_discount_amount(self):
+        for line in self:
+            base_amount = line.product_uom_qty * line.price_unit
+
+            if base_amount and line.discount_amount:
+                line.discount = (
+                        line.discount_amount
+                        / base_amount
+                        * PERCENTAGE_DIVISOR
+                )
+            elif not line.discount_amount:
+                line.discount = 0.0
+
+    @api.depends(
+        'product_uom_qty',
+        'price_unit',
+        'discount',
+        'discount_special',
+        'tax_ids',
+    )
+    def _compute_amount(self):
+        super()._compute_amount()
+
+        for line in self:
+            line.price_subtotal = line.net_amount
+
+    def _prepare_base_line_for_taxes_computation(self, **kwargs):
+        self.ensure_one()
+
+        base_line = super()._prepare_base_line_for_taxes_computation(
+            **kwargs
+        )
+
+        if self.discount_special:
+            quantity = self.product_uom_qty or 1.0
+
+            price_after_discount = base_line['price_unit'] * (
+                    1 - (self.discount / 100.0)
+            )
+
+            price_after_special = (
+                    price_after_discount
+                    - (self.discount_special / quantity)
+            )
+
+            base_line['price_unit'] = price_after_special
+            base_line['discount'] = 0.0
+
+        return base_line
+
 
     @api.depends('product_id', 'product_uom_qty', 'move_ids.state', 'move_ids.quantity', 'move_ids.product_uom',
                  'commercial_delivered_qty')

@@ -87,7 +87,7 @@ class ProductionRecord(models.Model):
 
     # --- Section: Bags & Quality ---
     finished_bags = fields.Integer(string='Finished Bags')
-    empty_bag_weight = fields.Float(string='Empty Bag Weight (MT)')
+    empty_bag_weight = fields.Integer(string='Empty Bag Weight (MT)')
     moisture = fields.Float(string='Moisture %')
     agl = fields.Float(string='AGL (MM)')
 

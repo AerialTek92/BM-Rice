@@ -99,5 +99,5 @@
               name="Planning Schedule"
               parent="menu_arm_rice_manufacturing"
               action="action_planning_schedule"
-              sequence="16"/>
+              sequence="30"/>
 </odoo>

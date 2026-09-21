@@ -22,9 +22,8 @@ class AccountMove(models.Model):
     broker_id = fields.Many2one(
         'res.partner',
         string='Broker',
-        domain="[('partner_assign_type', '=', 'broker')]"
+        domain=[('partner_assign_type', '=', 'vendor')],
     )
-
     purchase_order_id = fields.Many2one(
         'purchase.order',
         string='Primary Purchase Order',
@@ -35,7 +34,8 @@ class AccountMove(models.Model):
     payment_certificate_id = fields.Many2one(
         'payment.certificate',
         string='Payment Certificate Ref',
-        domain="[('broker_id', '=', broker_id), ('state', 'in', ['confirmed', 'paid'])]"
+        domain="[('broker_id', '=', broker_id), ('state', 'in', ['confirmed', 'paid'])]",
+        copy=False,
     )
 
     # Mapped amount from the PC - ALWAYS written directly from the PC,
@@ -44,8 +44,15 @@ class AccountMove(models.Model):
         string='Rice PC Amount',
         currency_field='currency_id',
         readonly=True,
-        store=True
+        store=True,
+        copy=False,
     )
+
+    _sql_constraints = [
+        ('payment_certificate_unique_bill',
+         'unique(payment_certificate_id)',
+         'This Payment Certificate is already linked to another vendor bill.'),
+    ]
 
     # ==========================================================
     # PC -> PAYMENT VOUCHER MAPPING (DRY core)

@@ -85,7 +85,7 @@
                 
                 <!-- Existing dummy button to show status -->
                 <button name="action_dummy" string="Approved - Awaiting Weighbridge" type="object" class="btn-secondary"
-                        invisible="picking_type_code != 'outgoing' or contract_type == 'export' or is_commercially_validated == False or state != 'assigned'"/>
+                        invisible="picking_type_code != 'outgoing' or is_commercially_validated == False or state != 'assigned'"/>
                 <button name="%(arm_sales_management.action_report_delivery_order_single_html)d" string="Print D/O Detail" type="action" class="btn-secondary" invisible="picking_type_code != 'outgoing'"/>
             </xpath>
 

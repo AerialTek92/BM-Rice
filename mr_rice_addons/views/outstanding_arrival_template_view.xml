@@ -1,0 +1,45 @@
+<odoo>
+    <!-- 1. Wizard Form View -->
+    <record id="view_outstanding_corn_arrival_wizard_form" model="ir.ui.view">
+        <field name="name">outstanding.corn.arrival.wizard.form</field>
+        <field name="model">outstanding.corn.arrival.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Outstanding Corn Arrival Report">
+                <group>
+                    <field name="as_on_date"/>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Wizard Action -->
+    <record id="action_outstanding_corn_arrival_wizard" model="ir.actions.act_window">
+        <field name="name">Outstanding Corn Arrival Report</field>
+        <field name="res_model">outstanding.corn.arrival.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Purchase -> Reporting) -->
+    <menuitem id="menu_outstanding_corn_arrival_report_purchase"
+              name="Outstanding Corn Arrival"
+              parent="purchase.purchase_report_main"
+              action="action_outstanding_corn_arrival_wizard"
+              sequence="170"/>
+    <!-- 3. Menu Item (Purchase -> Reporting) -->
+    <menuitem id="menu_outstanding_corn_arrival_report_sale"
+              name="Outstanding Corn Arrival"
+              parent="sale.menu_sale_report"
+              action="action_outstanding_corn_arrival_wizard"
+              sequence="170"/>
+    <!-- 3. Menu Item (Purchase -> Reporting) -->
+    <menuitem id="menu_outstanding_corn_arrival_report_report"
+              name="Outstanding Corn Arrival"
+              parent="menu_purchase_reports_section"
+              action="action_outstanding_corn_arrival_wizard"
+              sequence="170"/>
+</odoo>

@@ -97,13 +97,17 @@ class StockPicking(models.Model):
     # LOCAL SALES: COMMERCIAL VALIDATION (USER A)
     # ==========================================================
 
-    def _is_local_sale_delivery(self) -> bool:
-        """Protocol 4.1 (DRY): Single source of truth for 'local sale' classification."""
+    def _requires_commercial_approval(self) -> bool:
+        """Protocol 4.1 (DRY): single source of truth for the two-phase
+        commercial/physical validation split. Covers BOTH sales flavors:
+        - Local Sales DOs (Sales Memo linked via sale_id)
+        - Export DOs (Sales Contract linked - the RSC flow)
+        First Validate click locks commercial quantities; stock moves only
+        when the Weighbridge confirms with BYPASS_COMMERCIAL_CHECK."""
         self.ensure_one()
         return (
             self.picking_type_code == 'outgoing'
-            and bool(self.sale_id)
-            and self.sale_id.contract_type != EXPORT_CONTRACT_TYPE
+            and (bool(self.sale_id) or bool(self.rice_sales_contract_id))
         )
 
     def button_validate(self) -> Any:
@@ -111,7 +115,7 @@ class StockPicking(models.Model):
         happens later, triggered by the Weighbridge with BYPASS_COMMERCIAL_CHECK."""
         for picking in self:
             is_awaiting_commercial_approval = (
-                picking._is_local_sale_delivery()
+                picking._requires_commercial_approval()
                 and not picking.is_commercially_validated
                 and not self.env.context.get(BYPASS_COMMERCIAL_CHECK)
             )
@@ -132,15 +136,16 @@ class StockPicking(models.Model):
             if move.quantity <= 0:
                 continue  # Product not on this truck: stays 0, the backorder covers the rest.
 
-            remaining_qty = self._get_remaining_commercial_qty(move.sale_line_id)
-            if float_compare(move.quantity, remaining_qty, precision_digits=QUANTITY_PRECISION) > 0:
-                raise UserError(_(
-                    "D/O Qty for %(product)s (%(requested)s kg) exceeds the remaining memo quantity "
-                    "(%(remaining)s kg). Over-delivery is not allowed on Local Sales.",
-                    product=move.product_id.display_name,
-                    requested=move.quantity,
-                    remaining=remaining_qty,
-                ))
+            if move.sale_line_id:
+                remaining_qty = self._get_remaining_commercial_qty(move.sale_line_id)
+                if float_compare(move.quantity, remaining_qty, precision_digits=QUANTITY_PRECISION) > 0:
+                    raise UserError(_(
+                        "D/O Qty for %(product)s (%(requested)s kg) exceeds the remaining memo quantity "
+                        "(%(remaining)s kg). Over-delivery is not allowed.",
+                        product=move.product_id.display_name,
+                        requested=move.quantity,
+                        remaining=remaining_qty,
+                    ))
             move.commercial_quantity = move.quantity
 
         self.write({

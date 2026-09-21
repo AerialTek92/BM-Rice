@@ -78,6 +78,12 @@ class WeighbridgeTicketOutbound(models.Model):
                 # on programmatic creation).
                 if rec.gate_pass_ids and not rec.line_ids:
                     rec._sync_lines_from_gate_passes()
+                    # Vehicle No + Truck Type follow the GPs on programmatic
+                    # creation too.
+                    if not rec.vehicle_number:
+                        rec.vehicle_number = rec.gate_pass_ids[0].vehicle_number
+                    if not rec.truck_type:
+                        rec.truck_type = rec.gate_pass_ids[0].truck_type.id
                 rec._resolve_outbound_do_lines()
         return records
 
@@ -130,36 +136,59 @@ class WeighbridgeTicketOutbound(models.Model):
     @api.onchange('gate_pass_ids')
     def _onchange_gate_pass_ids_outbound(self) -> None:
         """Protocol 2.1: Gate Passes selected -> one line per GP line, each
-        mapped to its own Delivery Order. Customers follow the GPs."""
+        mapped to its own Delivery Order. Customers and Vehicle No follow
+        the Gate Passes (one truck = one vehicle)."""
         if self.weighbridge_type != OUTBOUND_WEIGHBRIDGE_TYPE:
             return
 
         if not self.gate_pass_ids:
             self.line_ids = [COMMAND_CLEAR_ALL]
             self.partner_id = False
+            self.vehicle_number = False
+            self.truck_type = False
             return
 
         # Machinery: base partner = first GP's customer (record consistency).
         self.partner_id = self.gate_pass_ids[0].partner_id.id
+
+        # Vehicle No and Truck Type follow the selected Gate Passes: several
+        # GPs on one ticket were carried by the same truck - mapped from the
+        # first GP. Truck Type also drives the Weighbridge Charges compute.
+        self.vehicle_number = self.gate_pass_ids[0].vehicle_number
+        self.truck_type = self.gate_pass_ids[0].truck_type.id
+
         self.line_ids = self._build_lines_from_gate_passes()
         self._resolve_outbound_do_lines()
 
     def _resolve_outbound_do_lines(self) -> None:
-        """Protocol 2.1 (SRP): map each line to its OWN Delivery Order's move
-        (the line carries the D/O from its Gate Pass):
-        - do_qty:        the approved commercial D/O Qty (what User A entered)
-        - do_demand_qty: the move's demand - the allocation ceiling."""
+        """Protocol 2.1 (SRP): map each line to its OWN Delivery Order's move:
+        - local lines (with a Sale Line) match by Sale Line;
+        - export lines (no memo) match by product on memo-less moves.
+        Open moves only, newest first (a partial validation leaves the
+        original move done and the backorder's move open) - fixes the
+        unfiltered move search (M31)."""
         self.ensure_one()
 
         for line in self.line_ids:
             do_picking = line.delivery_picking_id
-            if not do_picking or not line.sale_line_id:
+            if not do_picking:
                 continue
 
-            do_move = self.env['stock.move'].search([
-                ('picking_id', '=', do_picking.id),
-                ('sale_line_id', '=', line.sale_line_id.id)
-            ], limit=1)
+            if line.sale_line_id:
+                move_domain = [
+                    ('picking_id', '=', do_picking.id),
+                    ('sale_line_id', '=', line.sale_line_id.id),
+                ]
+            else:
+                move_domain = [
+                    ('picking_id', '=', do_picking.id),
+                    ('sale_line_id', '=', False),
+                    ('product_id', '=', line.product_id.id),
+                ]
+
+            do_move = self.env['stock.move'].search(
+                move_domain + [('state', 'not in', ('done', 'cancel'))],
+                limit=1, order='id desc')
 
             if do_move:
                 line.write({
@@ -189,6 +218,22 @@ class WeighbridgeTicketOutbound(models.Model):
             rec._sync_gate_pass_weights()
             rec._process_delivery_validations()
             rec.state = 'confirmed'
+
+    def action_confirm(self) -> Dict[str, Any]:
+        """Safety net: an Outbound ticket linked via the m2m (Weighbridge-first
+        flow) confirmed through ANY generic path runs the full outbound
+        pipeline instead of the base branch that leaves GPs untouched."""
+        outbound_m2m = self.filtered(
+            lambda ticket: ticket.weighbridge_type == OUTBOUND_WEIGHBRIDGE_TYPE
+            and ticket.gate_pass_ids
+        )
+        if outbound_m2m:
+            outbound_m2m.action_confirm_outbound()
+            remaining = self - outbound_m2m
+            if remaining:
+                return super(WeighbridgeTicketOutbound, remaining).action_confirm()
+            return {'type': 'ir.actions.act_window_close'}
+        return super().action_confirm()
 
     def _check_outbound_confirmation_readiness(self) -> None:
         """Protocol 2.1: Ordered fast-fail checklist, each with a specific, actionable message."""
@@ -222,7 +267,7 @@ class WeighbridgeTicketOutbound(models.Model):
             raise UserError(_("Allocate a positive Net Weight to at least one line before confirming."))
 
         for picking in allocated_pickings:
-            if not picking._is_local_sale_delivery():
+            if not picking._requires_commercial_approval():
                 continue
             if not picking.is_commercially_validated:
                 raise UserError(_(
@@ -287,35 +332,30 @@ class WeighbridgeTicketOutbound(models.Model):
                 })
 
     def _sync_gate_pass_weights(self) -> None:
-        """Protocol 2.1 (SRP): per-product weights on every selected Gate Pass's
-        lines, then mark each Confirmed Gate Pass as Exited."""
+        """Protocol 2.1 (SRP): the Weighbridge's weights onto every selected
+        Gate Pass's LINES, then mark each Confirmed Gate Pass Exited.
+
+        Shared-truck rule (requirement): the truck's loaded gross and net
+        weights are divided EQUALLY by the number of selected Gate Passes -
+        one selected Gate Pass therefore receives the full weights. Each
+        Gate Pass's share lands on its lines (split by what was actually
+        loaded for each); the header totals are computed sums of the lines."""
         self.ensure_one()
 
-        for gate_pass in self.gate_pass_ids:
-            gp_picking = gate_pass.delivery_picking_id
-            for gp_line in gate_pass.gate_pass_line_ids:
-                wb_line = self.line_ids.filtered(
-                    lambda line: line.allocated_weight > 0
-                    and (not gp_picking or line.delivery_picking_id == gp_picking)
-                    and (line.sale_line_id == gp_line.sale_line_id
-                         or (not line.sale_line_id and line.product_id == gp_line.product_id))
-                )[:1]
-                if wb_line:
-                    gp_line.gross = wb_line.allocated_weight
-                    gp_line.net = wb_line.allocated_weight
+        self.gate_pass_ids.apply_divided_ticket_weights(self)
 
+        for gate_pass in self.gate_pass_ids:
             if gate_pass.state == GATE_PASS_CONFIRMED_STATE:
                 gate_pass.action_mark_exited()
 
     def _process_delivery_validations(self) -> None:
-        """Protocol 2.1 (SRP): validate EVERY allocated Delivery Order.
-        Local sales DOs: bypassed validation + commercial accumulation +
-        backorder recompute, each per its own allocated weights.
-        Export DOs: untouched here (native manual validation), as before."""
+        """Protocol 2.1 (SRP): validate EVERY allocated Delivery Order - both
+        sales flavors. Local DOs additionally run the commercial accumulation
+        and backorder recompute (no-ops for export: no SM lines)."""
         self.ensure_one()
 
         for picking in self._get_allocated_delivery_pickings():
-            if not picking._is_local_sale_delivery():
+            if not picking._requires_commercial_approval():
                 continue
             self._process_delivery_validation(picking)
             self._accumulate_commercial_quantities(picking)
@@ -347,7 +387,8 @@ class WeighbridgeTicketOutbound(models.Model):
 
     def _accumulate_commercial_quantities(self, picking: 'stock.picking') -> None:
         """Per-product accumulation for ONE Delivery Order - fixes
-        double-counting on multi-product / split-move DOs."""
+        double-counting on multi-product / split-move DOs. No-op for export
+        DOs (their moves carry no sale line)."""
         self.ensure_one()
         delivered_moves = picking.move_ids.filtered(
             lambda move: move.state == 'done' and move.sale_line_id and move.commercial_quantity > 0
@@ -357,7 +398,8 @@ class WeighbridgeTicketOutbound(models.Model):
 
     def _refresh_open_delivery_demand(self, picking: 'stock.picking') -> None:
         """Invariant A as a recompute for ONE Delivery Order's Sale lines:
-        open demand = memo qty - commercial delivered. Idempotent."""
+        open demand = memo qty - commercial delivered. Idempotent. No-op for
+        export DOs (no SM lines to recompute)."""
         self.ensure_one()
         sale_lines = picking.move_ids.mapped('sale_line_id')
 

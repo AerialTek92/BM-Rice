@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Order menu ka naam change karna -->
+        <record id="sale.menu_sale_order" model="ir.ui.menu">
+            <field name="name">Sale Memo</field>
+        </record>
+        <!-- List View aur Form ka title change karna -->
+        <record id="sale.action_quotations" model="ir.actions.act_window">
+            <field name="name">Sale Memo</field>
+        </record>
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="name">Sale Memo</field>
+        </record>
+
+        <!-- Form View Inheritance -->
+        <record id="view_sale_order_custom_form" model="ir.ui.view">
+            <field name="name">sale.order.custom.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Header Fields -->
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="broker_id" string="Broker"/>
+                </xpath>
+
+                <!-- 1. Quotation Date ko hamesha Order Date rakhna -->
+                <xpath expr="//field[@name='date_order']" position="attributes">
+                    <attribute name="string">Order Date</attribute>
+                </xpath>
+
+                <!-- Delivery Date add karna -->
+                <xpath expr="//field[@name='date_order']" position="after">
+                    <field name="delivery_date" string="Delivery Date"/>
+                </xpath>
+
+                <!-- 2. Expiration (validity_date) ko hide karna -->
+                <xpath expr="//field[@name='validity_date']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- Remarks field add karna -->
+                <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="delivery_remarks" string="Remarks"/>
+                </xpath>
+
+                <!-- Line Fields -->
+                <xpath expr="//field[@name='order_line']//field[@name='product_template_id']" position="after">
+                    <field name="pcs" string="Pcs" optional="show"/>
+                    <field name="ctn" string="Ctn" optional="show"/>
+                </xpath>
+
+                <xpath expr="//field[@name='order_line']//field[@name='product_uom_qty']" position="attributes">
+                    <attribute name="string">Qty (Kgs)</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='order_line']//field[@name='price_unit']" position="attributes">
+                    <attribute name="string">Rate (Kgs)</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='order_line']//field[@name='discount']" position="attributes">
+                    <attribute name="string">Disct %</attribute>
+                </xpath>
+
+                <!-- 3. Taxes (tax_ids) ko line mein hide karna -->
+                <xpath expr="//field[@name='order_line']//field[@name='tax_ids']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='order_line']//field[@name='price_subtotal']" position="after">
+                    <field name="discount_amount" string="Disct Amt" optional="show"/>
+                    <field name="discount_special" string="Disct Sp." optional="show"/>
+                    <field name="net_amount" string="Net Amt" optional="show"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

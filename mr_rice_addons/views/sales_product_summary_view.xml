@@ -35,4 +35,10 @@
               parent="sale.menu_sale_report"
               action="action_sales_product_summary_wizard"
               sequence="10"/>
+    <!-- 3. Menu Item (Sales -> Reporting) -->
+    <menuitem id="menu_sales_product_summary_report_sale"
+              name="Sales Product Summary"
+              parent="menu_sales_reports_section"
+              action="action_sales_product_summary_wizard"
+              sequence="10"/>
 </odoo>

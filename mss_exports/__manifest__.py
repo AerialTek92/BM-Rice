@@ -1,0 +1,25 @@
+{
+    'name': 'BM Export',
+    'version': '19.0.1.0.0',
+    'category': 'Sales',
+    'summary': 'Export Management and Customizations',
+    'author': 'Muhammad Salman Shahid Bagha',
+    'depends': [
+        'sale','arm_rice_mill',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/sequence.xml',
+        'views/export_menu.xml',
+        'views/container_release_order_views.xml',
+        'views/vessel_booking_views.xml',
+        'views/loading_container_views.xml',
+        'views/bank_application_views.xml',
+        'views/custom_book_document_views.xml',
+        'views/bl_approval_views.xml',
+        'views/payment_cleaning_views.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}

@@ -28,7 +28,7 @@
                                     <strong>Date:</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.date"/>
+                                    <span t-field="o.date" t-options='{"format": "dd/MM/yyyy"}'/>
                                 </td>
                                 <td style="width:25%;">
                                     <strong>Commodity:</strong>
@@ -44,12 +44,12 @@
                                 <td>
                                     <span t-field="o.job_order_id.name"/>
                                 </td>
-                                <td>
-                                    <strong>Rice Variety:</strong>
-                                </td>
-                                <td>
-                                    <span t-field="o.rice_variety"/>
-                                </td>
+<!--                                <td>-->
+<!--                                    <strong>Rice Variety:</strong>-->
+<!--                                </td>-->
+<!--                                <td>-->
+<!--                                    <span t-field="o.rice_variety"/>-->
+<!--                                </td>-->
                             </tr>
                             <tr>
                                 <td>

@@ -126,5 +126,5 @@
               name="Rice Recovery"
               parent="menu_arm_rice_manufacturing"
               action="action_production_record"
-              sequence="40"/>
+              sequence="55"/>
 </odoo>

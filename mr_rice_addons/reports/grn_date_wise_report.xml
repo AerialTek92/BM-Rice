@@ -14,7 +14,7 @@
     <record id="action_report_grn_date_wise" model="ir.actions.report">
         <field name="name">Goods Receipt Date Wise</field>
         <field name="model">stock.picking</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_grn_date_wise_template</field>
         <field name="report_file">mr_rice_addons.report_grn_date_wise_template</field>
         <field name="print_report_name">'GRN_DateWise_Report'</field>

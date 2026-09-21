@@ -35,4 +35,10 @@
               parent="sale.menu_sale_report"
               action="action_invoice_date_wizard"
               sequence="20"/>
+    <!-- 3. Menu Item (Sales -> Reporting) -->
+    <menuitem id="menu_invoice_date_wise_report_rice"
+              name="Invoice Date Wise"
+              parent="menu_sales_reports_section"
+              action="action_invoice_date_wizard"
+              sequence="20"/>
 </odoo>

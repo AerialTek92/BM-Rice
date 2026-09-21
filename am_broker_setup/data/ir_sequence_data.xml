@@ -31,5 +31,13 @@
             <field name="prefix">TRN-</field>
             <field name="padding">4</field>
         </record>
+
+                <!-- Sequence for Export Customers -->
+        <record id="seq_partner_export_customer" model="ir.sequence">
+            <field name="name">Partner Export Customer</field>
+            <field name="code">res.partner.expc</field>
+            <field name="prefix">EXPC-</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>

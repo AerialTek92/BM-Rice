@@ -35,4 +35,10 @@
               parent="stock.menu_warehouse_report"
               action="action_rice_deduction_wizard"
               sequence="140"/>
+    <!-- 3. Menu Item (Inventory Reporting mein) -->
+    <menuitem id="menu_rice_deduction_report_inventory"
+              name="Rice Allowance Deduction"
+              parent="menu_sales_reports_section"
+              action="action_rice_deduction_wizard"
+              sequence="140"/>
 </odoo>

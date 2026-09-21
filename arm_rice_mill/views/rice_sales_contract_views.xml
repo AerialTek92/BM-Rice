@@ -34,11 +34,11 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id" />
-                            <field name="contract_date" />
-                            <field name="contract_type" />
-                            <field name="quality_description" />
-<!--                            <field name="contract_term" />-->
+                            <field name="partner_id" options="{'no_quick_create': True}"/>
+                            <field name="contract_date"/>
+                            <field name="contract_type"/>
+                            <field name="quality_description"/>
+                            <!--                            <field name="contract_term" />-->
                         </group>
                         <group>
                             <field name="company_id" groups="base.group_multi_company" />

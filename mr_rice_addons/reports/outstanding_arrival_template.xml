@@ -1,0 +1,112 @@
+<odoo>
+    <!-- Paper Format (Landscape) -->
+    <record id="paperformat_outstanding_arrival" model="report.paperformat">
+        <field name="name">Outstanding Arrival Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_outstanding_corn_arrival" model="ir.actions.report">
+        <field name="name">Outstanding Corn Arrival Report</field>
+        <field name="model">outstanding.corn.arrival.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_outstanding_corn_arrival_template</field>
+        <field name="report_file">mr_rice_addons.report_outstanding_corn_arrival_template</field>
+        <field name="print_report_name">'Outstanding_Arrival_Report'</field>
+        <field name="paperformat_id" ref="paperformat_outstanding_arrival"/>
+    </record>
+
+    <!-- PDF Template -->
+    <template id="report_outstanding_corn_arrival_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 11px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="font-weight: bold; text-decoration: underline; margin-top: 10px;">
+                            OUTSTANDING ARRIVAL OF CORN AS ON:
+                            <span t-esc="data['as_on_date']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                        </h5>
+                    </div>
+
+                    <!-- Main Table (Exact 9 Columns with both Dates) -->
+                    <table class="table table-sm table-bordered" style="width: 100%; margin-top: 20px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2; text-align: center;">
+                                <th style="width: 8%;">P/O No</th>
+                                <th style="width: 8%;">P/O Date</th>
+                                <th style="width: 16%;">Broker Name</th>
+                                <th style="width: 8%;">Truck No</th>
+                                <th style="width: 10%;">Qty (M/Tons)</th>
+                                <th style="width: 9%;">Purchase Rate</th>
+                                <th style="width: 11%;">Arrival Date From</th>
+                                <th style="width: 11%;">Arrival Date To</th>
+                                <th style="width: 10%;">Soda Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="lines" t-as="l">
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['po_no']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-if="l['po_date']" t-esc="l['po_date']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="l['broker']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['trucks']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['rate'])"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-if="l['date_from']" t-esc="l['date_from']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-if="l['date_to']" t-esc="l['date_to']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['soda_type']"/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                            <!-- Total Row -->
+                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 13px; background-color: #f9f9f9;">
+                                <td colspan="3" style="text-align: right;">TOTAL:</td>
+                                <td style="text-align: center;">
+                                    <span t-esc="grand_total_trucks"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.2f}'.format(grand_total_qty)"/>
+                                </td>
+                                <td colspan="4"></td> <!-- Baqi columns khali -->
+                            </tr>
+
+                            <tr t-if="not lines">
+                                <td colspan="9" class="text-center">No Outstanding Arrivals Found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

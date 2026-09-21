@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- List View -->
+    <!-- ========================================================= -->
+
+    <record id="view_vessel_booking_list" model="ir.ui.view">
+        <field name="name">vessel.booking.list</field>
+        <field name="model">vessel.booking</field>
+        <field name="arch" type="xml">
+
+            <list string="Vessel Bookings">
+
+                <field name="name"/>
+                <field name="vessel_name_voyage"/>
+                <field name="shipping_line"/>
+                <field name="booking_type"/>
+                <field name="cnf_basis"/>
+                <field name="pob"/>
+                <field name="port_of_loading"/>
+                <field name="port_of_discharge"/>
+                <field name="etd"/>
+                <field name="container_count"/>
+                <field name="cro_id"/>
+                <field name="state"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Form View -->
+    <!-- ========================================================= -->
+
+    <record id="view_vessel_booking_form" model="ir.ui.view">
+        <field name="name">vessel.booking.form</field>
+        <field name="model">vessel.booking</field>
+        <field name="arch" type="xml">
+
+            <form string="Vessel Booking">
+
+                <header>
+
+                    <button
+                            name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                    />
+
+                    <field
+                            name="state"
+                            widget="statusbar"
+                            statusbar_visible="draft,confirmed"
+                    />
+
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group>
+                            <field name="vessel_name_voyage"/>
+                            <field name="cro_id"/>
+                            <field name="shipping_line"/>
+                            <field name="booking_type"/>
+                            <field name="cnf_basis"/>
+                            <field name="pob"/>
+                        </group>
+
+                        <group>
+                            <field name="port_of_loading"/>
+                            <field name="port_of_discharge"/>
+                            <field name="etd"/>
+                            <field name="container_count"/>
+                        </group>
+
+                    </group>
+
+                    <group string="Contract Information">
+                        <field name="contract_no"/>
+                    </group>
+
+                </sheet>
+
+                <chatter/>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Window Action -->
+    <!-- ========================================================= -->
+
+    <record id="action_vessel_booking" model="ir.actions.act_window">
+        <field name="name">Vessel Bookings</field>
+        <field name="res_model">vessel.booking</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Menu -->
+    <!-- ========================================================= -->
+
+    <menuitem
+            id="menu_vessel_booking"
+            name="Vessel Bookings (POB / CNF)"
+            parent="menu_bm_export_root"
+            action="action_vessel_booking"
+            sequence="20"
+    />
+
+</odoo>

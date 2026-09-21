@@ -1,7 +1,7 @@
 <odoo>
-    <!-- Paper Format (Landscape for wide table) -->
-    <record id="paperformat_stock_picking_landscape" model="report.paperformat">
-        <field name="name">Stock Picking Landscape</field>
+    <!-- Paper Format (Landscape for more space) -->
+    <record id="paperformat_outstanding_arrival" model="report.paperformat">
+        <field name="name">Outstanding Arrival Landscape</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
         <field name="orientation">Landscape</field>
@@ -10,15 +10,105 @@
         <field name="margin_left">7</field>
         <field name="margin_right">7</field>
     </record>
-    <!-- 1. Report Action -->
-    <record id="action_report_corn_future_contract" model="ir.actions.report">
-        <field name="name">Corn Future Contract Summary</field>
-        <field name="model">purchase.order</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">mr_rice_addons.report_corn_future_contract_template</field>
-        <field name="report_file">mr_rice_addons.report_corn_future_contract_template</field>
-        <field name="print_report_name">'Corn_Future_Contract_Summary'</field>
-        <field name="binding_type">report</field>
-        <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
+
+    <!-- Report Action -->
+    <record id="action_report_outstanding_arrival" model="ir.actions.report">
+        <field name="name">Outstanding Arrival Report</field>
+        <field name="model">outstanding.arrival.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_outstanding_arrival_template</field>
+        <field name="report_file">mr_rice_addons.report_outstanding_arrival_template</field>
+        <field name="print_report_name">'Outstanding_Arrival_Report'</field>
+        <field name="paperformat_id" ref="paperformat_outstanding_arrival"/>
     </record>
+
+    <!-- PDF Template -->
+    <template id="report_outstanding_arrival_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+
+                    <!-- Report Header -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="font-weight: bold; text-decoration: underline; margin-top: 10px;">
+                            OUTSTANDING ARRIVAL OF CORN AS ON:
+                            <span t-esc="data['as_on_date']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                        </h5>
+                    </div>
+
+                    <!-- Main Table -->
+                    <table class="table table-sm table-bordered" style="width: 100%; margin-top: 20px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2; text-align: center;">
+                                <th style="width: 30%;">Broker Name</th>
+                                <th style="width: 10%;">No of Trucks</th>
+                                <th style="width: 12%;">Qty (MT)</th>
+                                <th style="width: 10%;">Rate</th>
+                                <th style="width: 19%;">Arrival Date From</th>
+                                <th style="width: 19%;">Arrival Date To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="grouped_data" t-as="g">
+                                <!-- Broker ki details row -->
+                                <tr t-foreach="g['items']" t-as="l" style="border-bottom: 1px solid #ddd;">
+                                    <!-- Broker ka naam sirf pehli row mein show hoga -->
+                                    <td>
+                                        <span t-if="l_index == 0" t-esc="l['broker']"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="l['trucks']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['qty'])"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(l['rate'])"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-if="l['date_from']" t-esc="l['date_from']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-if="l['date_to']" t-esc="l['date_to']"
+                                              t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                </tr>
+
+                                <!-- Broker ka Sub-Total Row -->
+                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
+                                    <td style="text-align: right;">Total (<span t-esc="g['broker']"/>):
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-esc="g['sub_total_trucks']"/>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-esc="'{0:,.2f}'.format(g['sub_total_qty'])"/>
+                                    </td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </t>
+
+                            <!-- Grand Total Row -->
+                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 13px; background-color: #e8e8e8;">
+                                <td style="text-align: right;">GRAND TOTAL:</td>
+                                <td style="text-align: center;">
+                                    <span t-esc="grand_total_trucks"/>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span t-esc="'{0:,.2f}'.format(grand_total_qty)"/>
+                                </td>
+                                <td colspan="3"></td>
+                            </tr>
+
+                            <tr t-if="not grouped_data">
+                                <td colspan="6" class="text-center">No Outstanding Arrivals Found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
 </odoo>

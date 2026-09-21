@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_ledger_wizard_view_form" model="ir.ui.view">
+        <field name="name">stock.ledger.wizard.view.form</field>
+        <field name="model">stock.ledger.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Stock Ledger">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group>
+                        <field name="product_id" options="{'no_create': True}"
+                               placeholder="Leave empty for ALL products"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_view" string="View" type="object" class="btn-primary"/>
+                    <button name="action_print" string="Print" type="object" class="btn-secondary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_ledger_wizard" model="ir.actions.act_window">
+        <field name="name">Stock Ledger</field>
+        <field name="res_model">stock.ledger.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_stock_ledger_report"
+              name="Stock Ledger"
+              parent="stock.menu_warehouse_report"
+              action="action_stock_ledger_wizard"
+              sequence="10"/>
+
+    <record id="action_report_stock_ledger_html" model="ir.actions.report">
+        <field name="name">Stock Ledger</field>
+        <field name="model">stock.ledger.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">am_broker_setup.report_stock_ledger</field>
+        <field name="report_file">am_broker_setup.report_stock_ledger</field>
+    </record>
+
+    <record id="action_report_stock_ledger_pdf" model="ir.actions.report">
+        <field name="name">Stock Ledger</field>
+        <field name="model">stock.ledger.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">am_broker_setup.report_stock_ledger</field>
+        <field name="report_file">am_broker_setup.report_stock_ledger</field>
+        <field name="print_report_name">'Stock Ledger'</field>
+    </record>
+
+    <template id="report_stock_ledger">
+        <t t-call="web.html_container">
+            <t t-foreach="data.get('sections') or []" t-as="section">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 15px;">
+                    <div style="text-align: center; margin-bottom: 6px;">
+                        <div style="font-size: 14px; font-weight: bold;">Bulk Management (Pakistan) Pvt. Ltd.</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 4px;">
+                            <t t-esc="section['product_name']"/>
+                        </div>
+                        <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">
+                            Stock Ledger - <t t-esc="data['date_from']"/> to
+                            <t t-esc="data['date_to']"/>
+                        </div>
+                    </div>
+                    <table class="table table-bordered" style="width: 100%; border: 1px solid black; border-collapse: collapse; font-size: 11px;">
+                        <thead style="background-color: #f2f2f2; font-weight: bold;">
+                            <tr>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: left; width: 12%;">Date</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: left; width: 18%;">Ref No</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: left;">Description</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 14%;">Qty In (Mt)</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 14%;">Qty Out (Mt)</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 14%;">Balance (Mt)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="section['rows']" t-as="row">
+                                <tr t-att-style="'font-weight: bold;' if row['description'] in ('OPENING', 'BALANCE') else ''"
+                                    t-att-class="'table-active' if row['description'] in ('OPENING', 'BALANCE') else ''">
+                                    <td style="border: 1px solid black; padding: 2px 6px;">
+                                        <t t-if="row['date']" t-esc="row['date']"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px;">
+                                        <t t-esc="row['ref_no']"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px;">
+                                        <t t-esc="row['description']"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-if="row['qty_in']" t-esc="'{:,.3f}'.format(row['qty_in'])"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-if="row['qty_out']" t-esc="'{:,.3f}'.format(row['qty_out'])"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-esc="'{:,.3f}'.format(row['balance'])"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <div style="page-break-after: always;"/>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -49,5 +49,29 @@
             <field name="company_id" eval="False"/>
         </record>
 
+        <record id="seq_purchase_indent" model="ir.sequence">
+            <field name="name">Purchase Indent</field>
+            <field name="code">purchase.indent</field>
+            <field name="prefix">IND/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_material_issue_note" model="ir.sequence">
+            <field name="name">Material Issue Note</field>
+            <field name="code">material.issue.note</field>
+            <field name="prefix">MIN/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_material_inspection" model="ir.sequence">
+            <field name="name">Material Inspection</field>
+            <field name="code">material.inspection</field>
+            <field name="prefix">MI/%(y)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
     </data>
 </odoo>

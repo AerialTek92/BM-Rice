@@ -26,3 +26,15 @@ access_master_destination_user,master.destination.user,model_master_destination,
 access_master_crop_year_user,master.crop.year.user,model_master_crop_year,base.group_user,1,1,1,1
 access_rice_shipment_schedule_comm,rice.shipment.schedule.commercial,model_rice_shipment_schedule,group_rice_commercial,1,1,1,1
 access_rice_shipment_schedule_ops,rice.shipment.schedule.operations,model_rice_shipment_schedule,group_rice_operations,1,0,0,0
+access_purchase_indent_comm,purchase.indent.commercial,model_purchase_indent,group_rice_commercial,1,1,1,1
+access_purchase_indent_ops,purchase.indent.operations,model_purchase_indent,group_rice_operations,1,0,0,0
+access_purchase_indent_line_comm,purchase.indent.line.commercial,model_purchase_indent_line,group_rice_commercial,1,1,1,1
+access_purchase_indent_line_ops,purchase.indent.line.operations,model_purchase_indent_line,group_rice_operations,1,0,0,0
+access_material_issue_note_comm,material.issue.note.commercial,model_material_issue_note,group_rice_commercial,1,1,1,1
+access_material_issue_note_ops,material.issue.note.operations,model_material_issue_note,group_rice_operations,1,0,0,0
+access_material_issue_note_line_comm,material.issue.note.line.commercial,model_material_issue_note_line,group_rice_commercial,1,1,1,1
+access_material_issue_note_line_ops,material.issue.note.line.operations,model_material_issue_note_line,group_rice_operations,1,0,0,0
+access_material_inspection_comm,material.inspection.commercial,model_material_inspection,group_rice_commercial,1,1,1,1
+access_material_inspection_ops,material.inspection.operations,model_material_inspection,group_rice_operations,1,0,0,0
+access_material_inspection_line_comm,material.inspection.line.commercial,model_material_inspection_line,group_rice_commercial,1,1,1,1
+access_material_inspection_line_ops,material.inspection.line.operations,model_material_inspection_line,group_rice_operations,1,0,0,0

@@ -109,6 +109,9 @@
                             <field name="grn_date" readonly="has_payment_cert"/>
                             <field name="partner_id" string="Company / Vendor"/>
                             <field name="buyer_id"/>
+                            <field name="purchase_indent_id" string="Source: Purchase Indent"
+                                   invisible="not purchase_indent_id"/>
+                            <field name="material_inspection_id" invisible="not material_inspection_id"/>
                             <field name="product_id"/>
                             <field name="bags"/>
                             <field name="filling_bags" readonly="has_payment_cert"/>
@@ -214,6 +217,18 @@
         <field name="view_mode">list</field>
         <field name="act_window_id" ref="stock.action_picking_tree_incoming"/>
         <field name="view_id" ref="view_picking_tree_rice_receipts"/>
+    </record>
+
+    <!-- RICE GATE: the Receipts menu excludes pickings still awaiting their
+         Weighbridge (internal machinery until the WB confirms and takes
+         them over). Indent, WB-linked and inspection-linked receipts show. -->
+    <record id="stock.action_picking_tree_incoming" model="ir.actions.act_window">
+        <field name="domain">['|', '|', '|', '|',
+            ('picking_type_code', '!=', 'incoming'),
+            ('purchase_id', '=', False),
+            ('purchase_indent_id', '!=', False),
+            ('weighbridge_id', '!=', False),
+            ('grn_inspection_id', '!=', False)]</field>
     </record>
 
     <!-- ========================================== -->

@@ -57,8 +57,8 @@
                             <!-- FIX: Made partner_id editable in draft so user can select Customer first -->
                             <field name="is_export" string="Export" invisible="pass_type != 'outbound'"/>
                             <field name="partner_id" readonly="state != 'draft'" force_save="1"/>
+                            <field name="partner_id_domain" invisible="1"/>
                             <field name="vehicle_number" readonly="state == 'confirmed'"/>
-                            <field name="driver_name" readonly="state == 'confirmed'"/>
                         </group>
                         <!-- FIX: Escaped ampersand in string -->
                         <group string="References &amp; Logistics">
@@ -98,6 +98,15 @@
                             <field name="bilty_no" readonly="state == 'confirmed'"/>
                             <field name="container_no" readonly="state == 'confirmed'"/>
                             <field name="seal_no" readonly="state == 'confirmed'"/>
+                        </group>
+                    </group>
+
+                    <!-- DRIVER SECTION: Export Outbound only -->
+                    <group string="Driver Details">
+                        <group>
+                            <field name="driver_name"/>
+                            <field name="driver_cnic"/>
+                            <field name="driver_cell_phone"/>
                         </group>
                     </group>
 

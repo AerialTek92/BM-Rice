@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_bl_approval_list" model="ir.ui.view">
+        <field name="name">bl.approval.list</field>
+        <field name="model">bl.approval</field>
+        <field name="arch" type="xml">
+
+            <list string="BL Approvals">
+
+                <field name="name"/>
+                <field name="bl_draft_ref"/>
+                <field name="booking_no"/>
+                <field name="approval_status"/>
+                <field name="approved_by"/>
+                <field name="approval_date"/>
+                <field name="remarks"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- Form View -->
+    <record id="view_bl_approval_form" model="ir.ui.view">
+        <field name="name">bl.approval.form</field>
+        <field name="model">bl.approval</field>
+        <field name="arch" type="xml">
+
+            <form string="BL Approval">
+
+                <header>
+
+                    <button
+                        name="action_approve"
+                        string="Approve"
+                        type="object"
+                        class="btn-primary"
+                        invisible="approval_status != 'pending'"
+                    />
+
+                    <button
+                        name="action_reject"
+                        string="Reject"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="approval_status != 'pending'"
+                    />
+
+                    <button
+                        name="action_reset_to_pending"
+                        string="Reset to Pending"
+                        type="object"
+                        invisible="approval_status == 'pending'"
+                    />
+
+                    <field
+                        name="approval_status"
+                        widget="statusbar"
+                        statusbar_visible="pending,approved,rejected"
+                    />
+
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group string="BL Information">
+
+                            <field name="bl_draft_ref"/>
+
+                            <field name="booking_no"/>
+
+                        </group>
+
+                        <group string="Approval Information">
+
+                            <field name="approval_status"/>
+
+                            <field
+                                name="approved_by"
+                                readonly="1"
+                            />
+
+                            <field
+                                name="approval_date"
+                                readonly="1"
+                            />
+
+                        </group>
+
+                    </group>
+
+                    <group string="Remarks / Corrections">
+
+                        <field
+                            name="remarks"
+                            placeholder="Enter remarks or corrections..."
+                        />
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Action -->
+    <record id="action_bl_approval" model="ir.actions.act_window">
+        <field name="name">BL Approvals</field>
+        <field name="res_model">bl.approval</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- Menu -->
+    <menuitem
+        id="menu_bl_approval"
+        name="BL Approval"
+        parent="menu_bm_export_root"
+        action="action_bl_approval"
+        sequence="50"
+    />
+
+</odoo>

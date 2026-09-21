@@ -8,6 +8,8 @@ from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
 import re
 
+from .gate_pass import GATE_PASS_CONFIRMED_STATE
+
 # Phase 5 Fix: Protocol 1.3 (Searchable Constants)
 WEIGHT_PATTERN_REGEX: str = r'(\d+(?:\.\d+)?)'
 SERIAL_PORT: str = 'COM6'
@@ -482,12 +484,37 @@ class WeighbridgeTicket(models.Model):
         self.state = 'confirmed'
         gate_pass = self.env['gate.pass'].create(self._prepare_return_gate_pass_vals())
         self.gate_pass_id = gate_pass.id
+        # The return Gate Pass carries its returned weights from creation.
+        # gate_pass.apply_line_weight_totals()
 
         return_picking = self._create_return_picking(gate_pass)
         return_picking.action_confirm()
         return_picking.action_assign()
 
         return self._open_form_view('gate.pass', gate_pass.id, 'Return Gate Pass')
+
+    # ==========================================================
+    # GATE PASS FINALIZATION (requirement: weights FIRST,
+    # Exit state SECOND - in that order, on every confirm path)
+    # ==========================================================
+
+    def _finalize_gate_pass(self) -> None:
+        """Requirement: completing a ticket completes its Gate Pass -
+        line weights FIRST, Exit state SECOND (in that order).
+
+        The Weighbridge's allocated weights land on the Gate Pass lines
+        (apply_ticket_line_weights); the header totals follow automatically
+        (computed). Covers every single-Gate-Pass confirmation path:
+        procurement, manufacturing, and the single-GP outbound branch. The
+        multi-GP outbound ticket (sales) maps per-GP in its own
+        _sync_gate_pass_weights."""
+        for ticket in self:
+            gate_pass = ticket.gate_pass_id
+            if not gate_pass:
+                continue
+            gate_pass.apply_ticket_line_weights(ticket)
+            if gate_pass.state == GATE_PASS_CONFIRMED_STATE:
+                gate_pass.action_mark_exited()
 
     def action_confirm(self) -> Dict[str, Any]:
         self.ensure_one()
@@ -503,14 +530,14 @@ class WeighbridgeTicket(models.Model):
             if self.gross_weight <= 0 or self.tare_weight <= 0:
                 raise UserError(_("Please capture both First and Second weights before confirming."))
 
-        # FIX: Outbound flow - Simply confirm and update Gate Pass to Exited
+        # FIX: Outbound flow - map the truck's weights onto the Gate Pass,
+        # then exit it (weights first, state second).
         if self.weighbridge_type == 'outbound':
-            if self.gate_pass_id and self.gate_pass_id.state == 'confirmed':
-                self.gate_pass_id.action_mark_exited()
             self.state = 'confirmed'
+            self._finalize_gate_pass()
             return {'type': 'ir.actions.act_window_close'}
 
-        # Procurement Flow
+        # Procurement / Manufacturing Flow
         picking_ids_updated: List[int] = []
         unique_pos = self.line_ids.mapped('purchase_order_id')
         for po in unique_pos:
@@ -518,11 +545,11 @@ class WeighbridgeTicket(models.Model):
             self._update_picking_for_po(picking)
             picking_ids_updated.append(picking.id)
 
-        # Auto-mark the Gate Pass as Exited because the truck has successfully left
-        if self.gate_pass_id and self.gate_pass_id.state == 'confirmed':
-            self.gate_pass_id.action_mark_exited()
-
         self.state = 'confirmed'
+        # Requirement: the Gate Pass receives the truck's gross and net
+        # weights, and only then is marked Exited.
+        self._finalize_gate_pass()
+
         action = self.env['ir.actions.act_window']._for_xml_id('stock.action_picking_tree_incoming')
         action['domain'] = [('id', 'in', picking_ids_updated)]
         action['name'] = _('Updated GRNs')

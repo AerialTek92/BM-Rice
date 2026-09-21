@@ -7,7 +7,7 @@
         Service Bills Payment Cycle Report and generate it.
     """,
     'category': 'Accounting/Reporting',
-    'depends': ['base', 'stock', 'arm_rice_mill', 'purchase', 'account', 'arm_rice_manufacturing',],
+    'depends': ['base', 'stock', 'arm_rice_mill', 'purchase', 'account', 'arm_rice_manufacturing', ],
     'data': [
         'security/ir.model.access.csv',
         'reports/weighbridge_report.xml',
@@ -33,8 +33,9 @@
         'reports/invoice_report_template.xml',
         'reports/sales_product_summary_template.xml',
         'reports/sales_return_detail_template.xml',
+        'reports/outstanding_arrival_template.xml',
+        'views/menu.xml',
         'views/weighbridge_view.xml',
-        'views/wizard_view.xml',
         'views/wizard_grn.xml',
         'views/product_allowance_view.xml',
         'views/purchase_summary_view.xml',
@@ -49,6 +50,8 @@
         'views/invoice_report_view.xml',
         'views/sales_product_summary_view.xml',
         'views/sales_return_detail_view.xml',
+        'views/outstanding_arrival_template_view.xml',
+        'views/wizard_view.xml',
     ],
     'installable': True,
     'application': False,

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!-- ===================================================== -->
+    <!-- FORM VIEW                                             -->
+    <!-- ===================================================== -->
+
+    <record id="view_custom_book_document_form" model="ir.ui.view">
+        <field name="name">custom.book.document.form</field>
+        <field name="model">custom.book.document</field>
+        <field name="arch" type="xml">
+
+            <form string="Custom Book Document">
+
+                <sheet>
+
+                    <group>
+
+                        <group>
+                            <field name="name"/>
+                            <field name="gd_no"/>
+                            <field name="hs_code"/>
+                            <field name="custom_station"/>
+                            <field name="filing_date"/>
+                        </group>
+
+                        <group>
+                            <field name="filed_by"/>
+                            <field name="export_registration_no"/>
+                            <field name="duty_tax_status"/>
+                            <field name="fiu_application_id"/>
+                            <field name="fiu_no"/>
+                        </group>
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- ===================================================== -->
+    <!-- LIST VIEW                                             -->
+    <!-- ===================================================== -->
+
+    <record id="view_custom_book_document_list" model="ir.ui.view">
+        <field name="name">custom.book.document.list</field>
+        <field name="model">custom.book.document</field>
+        <field name="arch" type="xml">
+
+            <list string="Custom Book Documents">
+
+                <field name="name"/>
+                <field name="gd_no"/>
+                <field name="hs_code"/>
+                <field name="custom_station"/>
+                <field name="filing_date"/>
+                <field name="filed_by"/>
+                <field name="export_registration_no"/>
+                <field name="duty_tax_status"/>
+                <field name="fiu_no"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- ===================================================== -->
+    <!-- ACTION                                                -->
+    <!-- ===================================================== -->
+
+    <record id="action_custom_book_document" model="ir.actions.act_window">
+        <field name="name">Custom Book Documents</field>
+        <field name="res_model">custom.book.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- ===================================================== -->
+    <!-- MENU                                                   -->
+    <!-- ===================================================== -->
+
+    <menuitem
+        id="menu_custom_book_document"
+        name="Custom Book Documents"
+        parent="menu_bm_export_root"
+        action="action_custom_book_document"
+        sequence="50"
+    />
+    
+</odoo>

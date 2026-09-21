@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_payment_cleaning_list" model="ir.ui.view">
+        <field name="name">payment.cleaning.list</field>
+        <field name="model">payment.cleaning</field>
+        <field name="arch" type="xml">
+
+            <list string="Payment / Cleaning">
+
+                <field name="name"/>
+                <field name="invoice_no"/>
+                <field name="payment_received_date"/>
+                <field name="amount_received"/>
+                <field name="currency_id"/>
+                <field name="bank_reference_no"/>
+                <field name="document_set_sent_date"/>
+                <field name="cleaning_status"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- Form View -->
+    <record id="view_payment_cleaning_form" model="ir.ui.view">
+        <field name="name">payment.cleaning.form</field>
+        <field name="model">payment.cleaning</field>
+        <field name="arch" type="xml">
+
+            <form string="Payment / Cleaning">
+
+                <header>
+
+                    <button
+                        name="action_mark_done"
+                        string="Mark Done"
+                        type="object"
+                        class="btn-primary"
+                        invisible="cleaning_status == 'done'"
+                    />
+
+                    <button
+                        name="action_mark_pending"
+                        string="Mark Pending"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="cleaning_status == 'pending'"
+                    />
+
+                    <field
+                        name="cleaning_status"
+                        widget="statusbar"
+                        statusbar_visible="pending,done"
+                    />
+
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group string="Payment Information">
+
+                            <field name="invoice_no"/>
+
+                            <field name="payment_received_date"/>
+
+                            <field name="amount_received"/>
+
+                            <field name="currency_id"/>
+
+                            <field name="bank_reference_no"/>
+
+                        </group>
+
+                        <group string="Document Cleaning">
+
+                            <field name="document_set_sent_date"/>
+
+                            <field name="cleaning_status"/>
+
+                        </group>
+
+                    </group>
+
+                    <group string="Remarks">
+
+                        <field
+                            name="remarks"
+                            placeholder="Enter any payment or reconciliation remarks..."
+                        />
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Action -->
+    <record id="action_payment_cleaning" model="ir.actions.act_window">
+        <field name="name">Payment / Cleaning</field>
+        <field name="res_model">payment.cleaning</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- Menu -->
+    <menuitem
+        id="menu_payment_cleaning"
+        name="Payment / Cleaning"
+        parent="menu_bm_export_root"
+        action="action_payment_cleaning"
+        sequence="60"
+    />
+
+</odoo>

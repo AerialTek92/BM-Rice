@@ -35,4 +35,10 @@
               parent="stock.menu_warehouse_report"
               action="action_delivery_order_date_wizard"
               sequence="170"/>
+    <!-- 3. Menu Item (Inventory -> Reporting) -->
+    <menuitem id="menu_do_date_wise_report_inventory"
+              name="Delivery Order Date Wise"
+              parent="menu_inventory_reports_section"
+              action="action_delivery_order_date_wizard"
+              sequence="170"/>
 </odoo>
