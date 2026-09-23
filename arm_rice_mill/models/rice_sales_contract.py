@@ -5,7 +5,9 @@ from odoo.exceptions import ValidationError, UserError
 from typing import Dict, Any, List, Tuple
 
 PERCENTAGE_DIVISOR = 100.0
-COMMAND_CREATE_NEW: int = 0
+# COMMAND_CREATE_NEW: int = 0
+
+PICKING_OUTGOING: str = 'outgoing'
 
 
 class RiceSalesContract(models.Model):
@@ -18,14 +20,22 @@ class RiceSalesContract(models.Model):
     name = fields.Char(string='Contract No.', index=True, readonly=True, copy=False, default=lambda self: _('New'))
     external_contract_no = fields.Char(string='External Contract No')
     contract_date = fields.Date(string='Order Date', default=fields.Date.today(), required=True, tracking=True)
-    partner_id = fields.Many2one('res.partner', string='Customer', required=True, tracking=True,
-                                 domain=[('customer_rank', '>', 0)])
+
+    # Export contracts are headed by Export Customers only: the domain
+    # filters the picker, the context default types contacts created from
+    # this field, and _check_partner_is_export_customer is the server twin.
+    partner_id = fields.Many2one(
+        'res.partner', string='Export Customer', required=True, tracking=True,
+        domain=[('partner_assign_type', '=', 'export_customer')],
+        context={'default_partner_assign_type': 'export_customer'},
+    )
+
     company_id = fields.Many2one('res.company', string='Seller / Exporter', default=lambda self: self.env.company,
                                  required=True)
 
     quality_description = fields.Char(string='Quality Description')
-    contract_term = fields.Selection([('contract', 'Contract'), ('spot', 'Spot Sales')], string='Term',
-                                     default='contract')
+    # contract_term = fields.Selection([('contract', 'Contract'), ('spot', 'Spot Sales')], string='Term',
+    #                                  default='contract')
 
     # Contract Categorization
     contract_type = fields.Selection([
@@ -64,8 +74,7 @@ class RiceSalesContract(models.Model):
     ], string='Status', default='draft', tracking=True)
 
     # --- Smart Button Counts ---
-    purchase_order_count = fields.Integer(string='Purchase Orders', compute='_compute_purchase_order_count')
-    sale_order_count = fields.Integer(string='Sales Memos', compute='_compute_sale_order_count')
+    # purchase_order_count = fields.Integer(string='Purchase Orders', compute='_compute_purchase_order_count')
     delivery_order_count = fields.Integer(string='Delivery Orders', compute='_compute_delivery_order_count')
 
     @api.model_create_multi
@@ -74,6 +83,18 @@ class RiceSalesContract(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('rice.sales.contract') or _('New')
         return super().create(vals_list)
+
+    @api.constrains('partner_id')
+    def _check_partner_is_export_customer(self) -> None:
+        """Server twin of the picker domain: an export contract's partner
+        must be typed 'Export Customer' - covers imports and RPC writes,
+        where view domains do not apply."""
+        for rec in self:
+            if rec.partner_id and rec.partner_id.partner_assign_type != 'export_customer':
+                raise ValidationError(_(
+                    "The customer on contract %s must be an Export Customer. "
+                    "Partner %s is currently typed as '%s'.",
+                    rec.name, rec.partner_id.name, rec.partner_id.partner_assign_type))
 
     # --- Calculation: Line -> Header ---
     @api.depends('contract_line_ids.quantity', 'contract_line_ids.unit_price')
@@ -85,116 +106,127 @@ class RiceSalesContract(models.Model):
             rec.header_unit_price = rate_sum
             rec.total_amount = qty_sum * rate_sum
 
-    def _compute_purchase_order_count(self) -> None:
-        for rec in self:
-            rec.purchase_order_count = self.env['purchase.order'].search_count([
-                ('rice_sales_contract_id', '=', rec.id)
-            ])
-
-    def _compute_sale_order_count(self) -> None:
-        for rec in self:
-            rec.sale_order_count = self.env['sale.order'].search_count([
-                ('rice_sales_contract_id', '=', rec.id)
-            ])
+    # def _compute_purchase_order_count(self) -> None:
+    #     for rec in self:
+    #         rec.purchase_order_count = self.env['purchase.order'].search_count([
+    #             ('rice_sales_contract_id', '=', rec.id)
+    #         ])
 
     def _compute_delivery_order_count(self) -> None:
         for rec in self:
+            # Direct contract link (new export flow) OR the legacy
+            # memo-based link (contracts confirmed before this change).
             rec.delivery_order_count = self.env['stock.picking'].search_count([
+                '|',
+                ('rice_sales_contract_id', '=', rec.id),
                 ('sale_id.rice_sales_contract_id', '=', rec.id),
-                ('picking_type_code', '=', 'outgoing')
+                ('picking_type_code', '=', 'outgoing'),
             ])
 
     def action_confirm(self) -> None:
-        """Protocol 2.1: Confirm contract and auto-generate draft PO/SO based on type."""
+        """Protocol 2.1: Confirm contract. Export contracts spawn their
+        Delivery Order DIRECTLY - the Sales Memo is the local sales
+        document only (RSC -> DO for export; SM -> DO for local)."""
         for rec in self:
             if not rec.contract_line_ids:
                 raise ValidationError(_("You must add at least one product line before confirming."))
 
             rec.state = 'confirmed'
 
-            # Auto-create documents only if they don't already exist
+            # Auto-create the Delivery Order only if none exists yet
             if rec.contract_type == 'export' and rec.delivery_order_count == 0:
-                rec._create_and_confirm_export_sale_order()
+                rec._create_export_delivery_order()
 
-    def _create_draft_purchase_order(self) -> None:
-        """Protocol 2.1 (SRP): Create a draft Purchase Order mapping lines from the RSC."""
+    # def _create_draft_purchase_order(self) -> None:
+    #     """Protocol 2.1 (SRP): Create a draft Purchase Order mapping lines from the RSC.
+    #
+    #     NOTE: currently dormant (POs are linked to contracts manually) -
+    #     kept because the RSC <-> PO relationship is a live manual flow and
+    #     a future 'generate PO' feature builds on this mapping."""
+    #     self.ensure_one()
+    #     order_lines: List[Tuple[int, int, Dict[str, Any]]] = []
+    #     for line in self.contract_line_ids.filtered(lambda l: l.product_id):
+    #         order_lines.append((COMMAND_CREATE_NEW, 0, {
+    #             'product_id': line.product_id.id,
+    #             'name': line.product_id.display_name or line.product_id.name,
+    #             'product_qty': line.quantity,
+    #             'price_unit': line.unit_price,
+    #             'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
+    #             'crop_year': line.crop_year.id,
+    #             'moisture_percent': line.moisture_percent_max,
+    #             'broken_percent': line.broken_percent_max,
+    #             'rice_contract_line_id': line.id,
+    #         }))
+    #
+    #     self.env['purchase.order'].create({
+    #         'partner_id': self.partner_id.id,
+    #         'rice_sales_contract_id': self.id,
+    #         'origin': self.name,
+    #         'date_order': self.contract_date,
+    #         'delivery_date_from': self.delivery_date_from,
+    #         'delivery_date_to': self.delivery_date_to,
+    #         'remarks': self.remarks,
+    #         'order_line': order_lines,
+    #     })
+
+    def _get_export_delivery_picking_type(self) -> 'stock.picking.type':
+        """Protocol 2.1 (SRP): the outgoing operation type for export
+        Delivery Orders (the project's standard company-level lookup)."""
         self.ensure_one()
-        order_lines: List[Tuple[int, int, Dict[str, Any]]] = []
-        for line in self.contract_line_ids.filtered(lambda l: l.product_id):
-            order_lines.append((COMMAND_CREATE_NEW, 0, {
-                'product_id': line.product_id.id,
-                'name': line.product_id.display_name or line.product_id.name,
-                'product_qty': line.quantity,
-                'price_unit': line.unit_price,
-                'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
-                'crop_year': line.crop_year.id,
-                'moisture_percent': line.moisture_percent_max,
-                'broken_percent': line.broken_percent_max,
-                'rice_contract_line_id': line.id,
-            }))
+        return self.env['stock.picking.type'].search([
+            ('code', '=', PICKING_OUTGOING),
+            ('company_id', '=', self.company_id.id),
+        ], limit=1)
 
-        self.env['purchase.order'].create({
+    def _create_export_delivery_order(self) -> 'stock.picking':
+        """Requirement (Export flow): RSC -> Delivery Order directly, no
+        Sales Memo. One Delivery Order carries the full contracted demand;
+        partial shipments split into backorders (which keep the contract
+        link). Quantities are passed exactly as the memo-based flow passed
+        them - the unit audit (H23) governs any conversion separately."""
+        self.ensure_one()
+
+        picking_type = self._get_export_delivery_picking_type()
+        if not picking_type:
+            raise UserError(_("Please configure an outgoing operation type for this company."))
+
+        product_lines = self.contract_line_ids.filtered(lambda line: line.product_id)
+        if not product_lines:
+            raise ValidationError(_("The contract has no product lines to deliver."))
+
+        picking = self.env['stock.picking'].create({
             'partner_id': self.partner_id.id,
-            'rice_sales_contract_id': self.id,
+            'picking_type_id': picking_type.id,
+            'location_id': picking_type.default_location_src_id.id,
+            'location_dest_id': picking_type.default_location_dest_id.id,
             'origin': self.name,
-            'date_order': self.contract_date,
-            'delivery_date_from': self.delivery_date_from,
-            'delivery_date_to': self.delivery_date_to,
-            'remarks': self.remarks,
-            'order_line': order_lines,
+            'rice_sales_contract_id': self.id,
         })
 
-    def _create_draft_sale_order(self) -> None:
-        """Protocol 2.1 (SRP): Create a draft Sales Memo mapping lines from the RSC."""
-        self.ensure_one()
-        order_lines: List[Tuple[int, int, Dict[str, Any]]] = []
-        for line in self.contract_line_ids.filtered(lambda l: l.product_id):
-            order_lines.append((COMMAND_CREATE_NEW, 0, {
-                'product_id': line.product_id.id,
-                'name': line.product_id.display_name or line.product_id.name,
-                'product_uom_qty': line.quantity,
-                'price_unit': line.unit_price,
-                'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
-            }))
-
-        self.env['sale.order'].create({
-            'partner_id': self.partner_id.id,
-            'rice_sales_contract_id': self.id,
+        move_vals = [{
+            'picking_id': picking.id,
+            'picking_type_id': picking.picking_type_id.id,
+            'product_id': line.product_id.id,
+            'product_uom': line.product_id.uom_id.id,
+            'product_uom_qty': line.quantity,
+            'location_id': picking.location_id.id,
+            'location_dest_id': picking.location_dest_id.id,
             'origin': self.name,
-            'date_order': self.contract_date,
-            'validity_date': False,
-            'order_line': order_lines,
-        })
+        } for line in product_lines]
+        self.env['stock.move'].create(move_vals)
 
-    def _create_and_confirm_export_sale_order(self) -> None:
-        """Protocol 2.1 (SRP): Create a hidden, auto-confirmed Sales Memo for Export contracts."""
-        self.ensure_one()
-        order_lines: List[Tuple[int, int, Dict[str, Any]]] = []
-        for line in self.contract_line_ids.filtered(lambda l: l.product_id):
-            order_lines.append((COMMAND_CREATE_NEW, 0, {
-                'product_id': line.product_id.id,
-                'name': line.product_id.display_name or line.product_id.name,
-                'product_uom_qty': line.quantity,
-                'price_unit': line.unit_price,
-                'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
+        picking.action_confirm()
+        picking.action_assign()
+        return picking
 
-            }))
-
-        sale_order = self.env['sale.order'].create({
-            'partner_id': self.partner_id.id,
-            'rice_sales_contract_id': self.id,
-            'origin': self.name,
-            'date_order': self.contract_date,
-            'validity_date': False,
-            'order_line': order_lines,
-            'is_export_hidden': False,  # FIX: Use custom field to hide from standard list view
-        })
-
-        # Auto-confirm the Sales Memo to trigger native Delivery Order creation
-        sale = self.env['sale.order'].browse(sale_order.id)
-
-        # raise UserError("Sale Order: " + str(sale_order))
-        sale.action_confirm()
+    @api.depends('name', 'partner_id.name')
+    def _compute_display_name(self) -> None:
+        if self.env.context.get('prs_contract_view'):
+            for rec in self:
+                partner_name = rec.partner_id.name or ''
+                rec.display_name = f"{rec.name or ''} | {partner_name}" if rec.name else _('New')
+        else:
+            super()._compute_display_name()
 
     def action_complete(self) -> None:
         for rec in self: rec.state = 'done'
@@ -205,27 +237,16 @@ class RiceSalesContract(models.Model):
     def action_reset_to_draft(self) -> None:
         for rec in self: rec.state = 'draft'
 
-    def action_view_purchase_orders(self) -> Dict[str, Any]:
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Purchase Orders',
-            'res_model': 'purchase.order',
-            'view_mode': 'list,form',
-            'domain': [('rice_sales_contract_id', '=', self.id)],
-            'context': {'default_rice_sales_contract_id': self.id, 'default_contract_type': 'procurement'}
-        }
-
-    def action_view_sale_orders(self) -> Dict[str, Any]:
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Sales Memos',
-            'res_model': 'sale.order',
-            'view_mode': 'list,form',
-            'domain': [('rice_sales_contract_id', '=', self.id)],
-            'context': {'default_rice_sales_contract_id': self.id, 'default_contract_type': self.contract_type}
-        }
+    # def action_view_purchase_orders(self) -> Dict[str, Any]:
+    #     self.ensure_one()
+    #     return {
+    #         'type': 'ir.actions.act_window',
+    #         'name': 'Purchase Orders',
+    #         'res_model': 'purchase.order',
+    #         'view_mode': 'list,form',
+    #         'domain': [('rice_sales_contract_id', '=', self.id)],
+    #         'context': {'default_rice_sales_contract_id': self.id, 'default_contract_type': 'procurement'}
+    #     }
 
     def action_view_delivery_orders(self) -> Dict[str, Any]:
         self.ensure_one()
@@ -234,7 +255,10 @@ class RiceSalesContract(models.Model):
             'name': 'Delivery Orders',
             'res_model': 'stock.picking',
             'view_mode': 'list,form',
-            'domain': [('sale_id.rice_sales_contract_id', '=', self.id), ('picking_type_code', '=', 'outgoing')],
+            'domain': ['|',
+                       ('rice_sales_contract_id', '=', self.id),
+                       ('sale_id.rice_sales_contract_id', '=', self.id),
+                       ('picking_type_code', '=', 'outgoing')],
             'context': {'default_picking_type_code': 'outgoing'}
         }
 
@@ -285,7 +309,7 @@ class RiceSalesContractLine(models.Model):
     br_yellow_amber = fields.Float(string='Yellow/Amber Kernels')
     br_foreign_odours = fields.Float(string="Foreign odours/smell")
     br_chemical_residues = fields.Float(string="Chemical Residues and Radioactivity")
-    br_aflatoxinsA = fields.Float(string="Aflatoxins B1")
+    br_aflatoxinsA = fields.Float(string='Aflatoxins B1')
     br_aflatoxins = fields.Float(string='Aflatoxins B1+B2+G1+G2')
     br_living_insects = fields.Float(string='Insects Live/Dead')
     br_Animals_birds = fields.Float(string='Animals Birds')

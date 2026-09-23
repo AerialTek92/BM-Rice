@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================================================
+         OVERTIME SETUP FORM VIEW
+    ========================================================== -->
+
+    <record id="overtime_setup_view_form" model="ir.ui.view">
+        <field name="name">overtime.setup.form</field>
+        <field name="model">overtime.setup</field>
+        <field name="arch" type="xml">
+
+            <form string="Over Time Setup">
+
+                <sheet>
+
+                    <!-- =================================================
+                         HEADER
+                    ================================================== -->
+
+                    <group>
+                        <field name="name"/>
+                    </group>
+
+
+                    <!-- =================================================
+                         OVERTIME SETUP LINES
+                    ================================================== -->
+
+                    <separator string="Overtime Setup Lines"/>
+
+                    <field name="line_ids"
+                           nolabel="1">
+
+                        <list editable="bottom">
+
+                            <!-- =================================================
+                                 PERIOD
+                            ================================================== -->
+
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+
+
+                            <!-- =================================================
+                                 SALARY RANGE
+                            ================================================== -->
+
+                            <field name="salary_start"/>
+                            <field name="salary_end"/>
+
+
+                            <!-- =================================================
+                                 CALCULATION
+                            ================================================== -->
+
+                            <field name="calculation_type"/>
+
+                            <field name="percentage"
+                                   readonly="calculation_type == 'amount'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 1
+                            ================================================== -->
+
+                            <field name="setup_1_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_1_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 2
+                            ================================================== -->
+
+                            <field name="setup_2_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_2_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 3
+                            ================================================== -->
+
+                            <field name="setup_3_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_3_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 4
+                            ================================================== -->
+
+                            <field name="setup_4_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_4_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 5
+                            ================================================== -->
+
+                            <field name="setup_5_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_5_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+
+                            <!-- =================================================
+                                 SETUP 6
+                            ================================================== -->
+
+                            <field name="setup_6_hours"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                            <field name="setup_6_rate"
+                                   readonly="calculation_type == 'calculation'"/>
+
+                        </list>
+
+                    </field>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- =========================================================
+         OVERTIME SETUP LIST VIEW
+    ========================================================== -->
+
+    <record id="overtime_setup_view_list" model="ir.ui.view">
+        <field name="name">overtime.setup.list</field>
+        <field name="model">overtime.setup</field>
+        <field name="arch" type="xml">
+
+            <list string="Over Time Setups">
+
+                <field name="name"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- =========================================================
+         ACTION
+    ========================================================== -->
+
+    <record id="action_overtime_setup" model="ir.actions.act_window">
+
+        <field name="name">Over Time Setup</field>
+
+        <field name="res_model">overtime.setup</field>
+
+        <field name="view_mode">list,form</field>
+
+    </record>
+
+
+    <!-- =========================================================
+         MENU ITEM
+    ========================================================== -->
+
+    <menuitem id="menu_overtime_setup"
+              name="Over Time Setup"
+              parent="hr_work_entry_enterprise.menu_hr_payroll_configuration"
+              action="action_overtime_setup"
+              sequence="22"/>
+
+</odoo>

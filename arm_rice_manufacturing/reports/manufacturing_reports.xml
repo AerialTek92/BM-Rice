@@ -16,24 +16,25 @@
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.basic_layout">
                     <div class="page"
-                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                         style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
                         <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
-                            PLANNING SHEET</h4>
+                            PLANNING SHEET
+                        </h4>
 
                         <table class="table table-sm table-borderless"
-                            style="width:100%; margin-bottom:20px;">
+                               style="width:100%; margin-bottom:20px;">
                             <tr>
                                 <td style="width:25%;">
                                     <strong>Date:</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.date" />
+                                    <span t-field="o.date" t-options='{"format": "dd/MM/yyyy"}'/>
                                 </td>
                                 <td style="width:25%;">
                                     <strong>Commodity:</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.commodity" />
+                                    <span t-field="o.commodity"/>
                                 </td>
                             </tr>
                             <tr>
@@ -41,27 +42,27 @@
                                     <strong>Job Order No.:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.name" />
+                                    <span t-field="o.job_order_id.name"/>
                                 </td>
-                                <td>
-                                    <strong>Rice Variety:</strong>
-                                </td>
-                                <td>
-                                    <span t-field="o.rice_variety" />
-                                </td>
+<!--                                <td>-->
+<!--                                    <strong>Rice Variety:</strong>-->
+<!--                                </td>-->
+<!--                                <td>-->
+<!--                                    <span t-field="o.rice_variety"/>-->
+<!--                                </td>-->
                             </tr>
                             <tr>
                                 <td>
                                     <strong>Customer Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.customer_id.name" />
+                                    <span t-field="o.customer_id.name"/>
                                 </td>
                                 <td>
                                     <strong>Milling Date:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.milling_date" t-options='{"widget": "date"}' />
+                                    <span t-field="o.milling_date"/>
                                 </td>
                             </tr>
                             <tr>
@@ -69,7 +70,7 @@
                                     <strong>Brand:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.brand" />
+                                    <span t-field="o.brand"/>
                                 </td>
                                 <td></td>
                                 <td></td>
@@ -89,16 +90,16 @@
                                 <!-- FIX: Loop directly through the Planning Lines -->
                                 <tr t-foreach="o.planning_line_ids" t-as="line">
                                     <td>
-                                        <span t-field="line.sequence" />
+                                        <span t-field="line.sequence"/>
                                     </td>
                                     <td>
-                                        <span t-field="line.parameter" />
+                                        <span t-field="line.parameter"/>
                                     </td>
                                     <td>
-                                        <span t-field="line.uom" />
+                                        <span t-field="line.uom"/>
                                     </td>
                                     <td>
-                                        <span t-field="line.value" />
+                                        <span t-field="line.value"/>
                                     </td>
                                 </tr>
                                 <tr t-if="not o.planning_line_ids">
@@ -108,19 +109,19 @@
                         </table>
 
                         <table class="table table-sm table-borderless"
-                            style="width:100%; margin-top:20px;">
+                               style="width:100%; margin-top:20px;">
                             <tr>
                                 <td style="width:25%;">
                                     <strong>No of Bags:</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.no_of_bags" />
+                                    <span t-field="o.no_of_bags"/>
                                 </td>
                                 <td style="width:25%;">
                                     <strong>Packing (Material):</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.packing_material" />
+                                    <span t-field="o.packing_material"/>
                                 </td>
                             </tr>
                             <tr>
@@ -128,12 +129,15 @@
                                     <strong>Empty Bag Weight:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.empty_bag_weight" />
+                                    <span t-field="o.empty_bag_weight"/>
                                 </td>
                                 <td>
                                     <strong>Total Quantity:</strong>
                                 </td>
-                                <td><span t-field="o.total_quantity" /> MT</td>
+                                <td>
+                                    <span t-field="o.total_quantity"/>
+                                    MT
+                                </td>
                             </tr>
                         </table>
 
@@ -142,16 +146,16 @@
                             <table style="width: 100%; border: none;">
                                 <tr>
                                     <td
-                                        style="width: 50%; text-align: left; vertical-align: bottom; padding-left: 20px;">
+                                            style="width: 50%; text-align: left; vertical-align: bottom; padding-left: 20px;">
                                         <div
-                                            style="border-top: 1px solid black; width: 80%; padding-top: 5px; font-weight: bold; font-size: 11px;">
+                                                style="border-top: 1px solid black; width: 80%; padding-top: 5px; font-weight: bold; font-size: 11px;">
                                             Prepared By
                                         </div>
                                     </td>
                                     <td
-                                        style="width: 50%; text-align: right; vertical-align: bottom; padding-right: 20px;">
+                                            style="width: 50%; text-align: right; vertical-align: bottom; padding-right: 20px;">
                                         <div
-                                            style="border-top: 1px solid black; width: 80%; margin-left: auto; padding-top: 5px; font-weight: bold; font-size: 11px;">
+                                                style="border-top: 1px solid black; width: 80%; margin-left: auto; padding-top: 5px; font-weight: bold; font-size: 11px;">
                                             Approved By
                                         </div>
                                     </td>
@@ -170,7 +174,7 @@
     <record id="action_report_rice_recovery" model="ir.actions.report">
         <field name="name">Rice Recovery Report (PRD-4-001)</field>
         <field name="model">production.record</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">arm_rice_manufacturing.report_rice_recovery_template</field>
         <field name="report_file">arm_rice_manufacturing.report_rice_recovery_template</field>
     </record>
@@ -179,19 +183,25 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.basic_layout">
-                    <div class="page"
-                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
-                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">RICE
-                            RECOVERY REPORT</h4>
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
 
-                        <table class="table table-sm table-borderless"
-                            style="width:100%; margin-bottom:20px;">
+                        <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold; text-decoration: underline;">
+                            RICE RECOVERY REPORT
+                        </h4>
+                        <br></br>
+                        <h6 style="text-align:center; margin-bottom: 20px; ">
+                            <strong>Production Period:
+                                <span t-field="o.production_date"/>
+                            </strong>
+                        </h6>
+
+                        <table class="table table-sm table-borderless" style="width:100%; margin-bottom:20px;">
                             <tr>
-                                <td style="width:20%;">
-                                    <strong>Production Period:</strong>
+                                <td>
+                                    <strong>1st Job Order No:</strong>
                                 </td>
-                                <td style="width:30%;">
-                                    <span t-field="o.production_date" />
+                                <td>
+                                    <span t-field="o.job_order_id.name"/>
                                 </td>
                                 <td style="width:20%;">
                                     <strong>2nd Job Order No:</strong>
@@ -200,10 +210,10 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <strong>1st Job Order No:</strong>
+                                    <strong>1st Customer Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.name" />
+                                    <span t-field="o.job_order_id.partner_id.name"/>
                                 </td>
                                 <td>
                                     <strong>2nd Customer Name:</strong>
@@ -212,68 +222,81 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <strong>1st Customer Name:</strong>
+                                    <strong>Input Quantity (Mton):</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.partner_id.name" />
+                                    <span t-field="o.raw_material_weight"/>
                                 </td>
                                 <td>
                                     <strong>Brand Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.product_id.name" />
+                                    <span t-field="o.job_order_id.product_id.name"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td>
-                                    <strong>Input Quantity (Mton):</strong>
-                                </td>
-                                <td>
-                                    <span t-field="o.raw_material_weight" />
-                                </td>
+
                                 <td>
                                     <strong>Recovery:</strong>
                                 </td>
-                                <td><span t-field="o.recovery_pct" /> %</td>
+                                <td>
+                                    <span t-field="o.recovery_pct"/>
+                                    %
+                                </td>
                             </tr>
                         </table>
 
                         <table class="table table-bordered" style="width:100%; margin-top:20px;">
                             <thead>
-                                <tr style="background-color:#f2f2f2;">
+                                <tr style="background-color:#f2f2f2; text-align:center;">
                                     <th style="width:5%;">S No.</th>
-                                    <th style="width:45%;">Output</th>
-                                    <th style="width:20%;">Quantity (Mton)</th>
+                                    <th style="width:35%;">Output</th>
+                                    <th style="width:15%;">Quantity (Mton)</th>
                                     <th style="width:15%;">No. of Bags</th>
                                     <th style="width:15%;">Recovery (%)</th>
+                                    <th style="width:15%;">Remarks</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="o.byproduct_line_ids" t-as="line">
                                     <tr>
-                                        <td>
-                                            <span t-esc="line_index + 1" />
+                                        <td style="text-align:center;">
+                                            <span t-esc="line_index + 1"/>
                                         </td>
                                         <td>
-                                            <span t-field="line.product_id.name" />
+                                            <span t-field="line.product_id.name"/>
                                         </td>
-                                        <td>
-                                            <span t-field="line.qty" />
+                                        <td style="text-align:right;">
+                                            <span t-field="line.qty"/>
                                         </td>
-                                        <td>
-                                            <span t-field="line.bags" />
+                                        <td style="text-align:right;">
+                                            <span t-field="line.bags"/>
                                         </td>
-                                        <td>
+                                        <td style="text-align:right;">
                                             <span t-if="o.raw_material_weight &gt; 0"
-                                                t-esc="((line.qty / o.raw_material_weight) * 100.0)"
-                                                t-options='{"widget": "float", "precision": 2}' /> % </td>
+                                                  t-esc="((line.qty / o.raw_material_weight) * 100.0)"
+                                                  t-options='{"widget": "float", "precision": 2}'/>
+                                            %
+                                        </td>
+                                        <td><span t-field="o.remarks"/></td>
                                     </tr>
                                 </t>
+
+                                <!-- Picture ke mutabiq khali rows add ki hain manual entry ke liye -->
+<!--                                <t t-foreach="range(1, 6)" t-as="i">-->
+<!--                                    <tr style="height: 25px;">-->
+<!--                                        <td></td>-->
+<!--                                        <td></td>-->
+<!--                                        <td></td>-->
+<!--                                        <td></td>-->
+<!--                                        <td></td>-->
+<!--                                        <td></td>-->
+<!--                                    </tr>-->
+<!--                                </t>-->
                             </tbody>
                         </table>
 
-                        <div
-                            style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
+                        <div style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
                             <div>
                                 <strong>Prepared By: ___________________</strong>
                             </div>
@@ -303,18 +326,19 @@
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.basic_layout">
                     <div class="page"
-                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                         style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
                         <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
-                            QUALITY REPORT</h4>
+                            QUALITY REPORT
+                        </h4>
 
                         <table class="table table-sm table-borderless"
-                            style="width:100%; margin-bottom:20px;">
+                               style="width:100%; margin-bottom:20px;">
                             <tr>
                                 <td style="width:25%;">
                                     <strong>Name of Operator:</strong>
                                 </td>
                                 <td style="width:25%;">
-                                    <span t-field="o.operator_name" />
+                                    <span t-field="o.operator_name"/>
                                 </td>
                                 <td style="width:25%;">
                                     <strong>Customer Contract No:</strong>
@@ -326,13 +350,13 @@
                                     <strong>Customer Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.partner_id.name" />
+                                    <span t-field="o.job_order_id.partner_id.name"/>
                                 </td>
                                 <td>
                                     <strong>Specifications:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.process_rice_spec_id.name" />
+                                    <span t-field="o.job_order_id.process_rice_spec_id.name"/>
                                 </td>
                             </tr>
                             <tr>
@@ -340,13 +364,13 @@
                                     <strong>Brand Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.product_id.name" />
+                                    <span t-field="o.job_order_id.product_id.name"/>
                                 </td>
                                 <td>
                                     <strong>JOB ORDER NO:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.name" />
+                                    <span t-field="o.job_order_id.name"/>
                                 </td>
                             </tr>
                             <tr>
@@ -354,13 +378,13 @@
                                     <strong>DATE:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.production_date" />
+                                    <span t-field="o.production_date"/>
                                 </td>
                                 <td>
                                     <strong>DAY:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.day" />
+                                    <span t-field="o.day"/>
                                 </td>
                             </tr>
                             <tr>
@@ -368,7 +392,7 @@
                                     <strong>SHIFT:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.shift" />
+                                    <span t-field="o.shift"/>
                                 </td>
                                 <td></td>
                                 <td></td>
@@ -398,35 +422,35 @@
                                     <td></td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_broken_percent" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_broken_percent"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_damaged_discolor_percent" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_damaged_discolor_percent"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_moisture_percent" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_moisture_percent"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_foreign_food_grains" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_foreign_food_grains"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_foreign_matter_percent" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_foreign_matter_percent"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_paddy_percent" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_paddy_percent"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_under_milled_grains" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_under_milled_grains"/>
                                     </td>
                                     <td>
                                         <span
-                                            t-field="o.job_order_id.process_rice_spec_id.n_kett_whiteness" />
+                                                t-field="o.job_order_id.process_rice_spec_id.n_kett_whiteness"/>
                                     </td>
                                     <td></td>
                                 </tr>
@@ -436,14 +460,14 @@
                                     <td></td>
                                     <td></td>
                                     <td>
-                                        <span t-field="o.moisture" />
+                                        <span t-field="o.moisture"/>
                                     </td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
                                     <td>
-                                        <span t-field="o.agl" />
+                                        <span t-field="o.agl"/>
                                     </td>
                                     <td></td>
                                 </tr>
@@ -464,7 +488,7 @@
                         </table>
 
                         <div
-                            style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
+                                style="margin-top: 80px; width: 100%; display: flex; justify-content: space-between;">
                             <div>
                                 <strong>Shift Supervisor: ___________________</strong>
                             </div>
@@ -494,24 +518,25 @@
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.basic_layout">
                     <div class="page"
-                        style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
+                         style="font-family: Arial, sans-serif; font-size: 12px; color: black;">
                         <h4 style="text-align:center; margin-bottom: 20px; font-weight:bold;">PRODUCTION
-                            LOG SHEET</h4>
+                            LOG SHEET
+                        </h4>
 
                         <table class="table table-sm table-borderless"
-                            style="width:100%; margin-bottom:20px;">
+                               style="width:100%; margin-bottom:20px;">
                             <tr>
                                 <td style="width:20%;">
                                     <strong>Date:</strong>
                                 </td>
                                 <td style="width:30%;">
-                                    <span t-field="o.production_date" />
+                                    <span t-field="o.production_date"/>
                                 </td>
                                 <td style="width:20%;">
                                     <strong>Operator Name:</strong>
                                 </td>
                                 <td style="width:30%;">
-                                    <span t-field="o.operator_name" />
+                                    <span t-field="o.operator_name"/>
                                 </td>
                             </tr>
                             <tr>
@@ -519,13 +544,13 @@
                                     <strong>Day:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.day" />
+                                    <span t-field="o.day"/>
                                 </td>
                                 <td>
                                     <strong>1st Customer Name:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.partner_id.name" />
+                                    <span t-field="o.job_order_id.partner_id.name"/>
                                 </td>
                             </tr>
                             <tr>
@@ -533,13 +558,13 @@
                                     <strong>Shift:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.shift" />
+                                    <span t-field="o.shift"/>
                                 </td>
                                 <td>
                                     <strong>1st Job Order No.:</strong>
                                 </td>
                                 <td>
-                                    <span t-field="o.job_order_id.name" />
+                                    <span t-field="o.job_order_id.name"/>
                                 </td>
                             </tr>
                         </table>
@@ -559,7 +584,7 @@
                             <tbody>
                                 <tr t-foreach="range(1, 8)" t-as="i">
                                     <td>
-                                        <span t-esc="i" />
+                                        <span t-esc="i"/>
                                     </td>
                                     <td></td>
                                     <td></td>
@@ -584,7 +609,7 @@
                             <tbody>
                                 <tr t-foreach="range(1, 9)" t-as="i">
                                     <td>
-                                        <span t-esc="i" />
+                                        <span t-esc="i"/>
                                     </td>
                                     <td></td>
                                     <td></td>
@@ -612,7 +637,7 @@
                                     <tbody>
                                         <tr t-foreach="range(1, 9)" t-as="i">
                                             <td>
-                                                <span t-esc="i" />
+                                                <span t-esc="i"/>
                                             </td>
                                             <td></td>
                                             <td></td>
@@ -640,17 +665,17 @@
                                     <tbody>
                                         <tr t-foreach="o.byproduct_line_ids" t-as="line">
                                             <td>
-                                                <span t-esc="line_index + 1" />
+                                                <span t-esc="line_index + 1"/>
                                             </td>
                                             <td>
-                                                <span t-field="line.product_id.name" />
+                                                <span t-field="line.product_id.name"/>
                                             </td>
                                             <td>
-                                                <span t-field="line.bags" />
+                                                <span t-field="line.bags"/>
                                             </td>
                                             <td></td>
                                             <td>
-                                                <span t-field="line.qty" />
+                                                <span t-field="line.qty"/>
                                             </td>
                                             <td></td>
                                         </tr>
@@ -660,7 +685,7 @@
                         </div>
 
                         <div
-                            style="margin-top: 60px; width: 100%; display: flex; justify-content: space-between;">
+                                style="margin-top: 60px; width: 100%; display: flex; justify-content: space-between;">
                             <div>
                                 <strong>Prepared By: ___________________</strong>
                             </div>

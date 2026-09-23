@@ -1,34 +1,45 @@
 <odoo>
     <!-- 1. Wizard Form View -->
-        <record id="view_corn_future_contract_wizard_form" model="ir.ui.view">
-            <field name="name">corn.future.contract.wizard.form</field>
-            <field name="model">corn.future.contract.wizard</field>
-            <field name="arch" type="xml">
-                <form string="Print Corn Future Contract Summary">
-                    <group>
-                        <group><field name="date_from"/></group>
-                        <group><field name="date_to"/></group>
-                    </group>
-                    <footer>
-                        <button name="action_print_report" string="Print Summary" type="object" class="btn-primary"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
+    <record id="view_outstanding_arrival_wizard_form" model="ir.ui.view">
+        <field name="name">outstanding.arrival.wizard.form</field>
+        <field name="model">outstanding.arrival.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Outstanding Arrival Report">
+                <group>
+                    <field name="as_on_date"/>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 
-        <!-- 2. Wizard Action -->
-        <record id="action_corn_future_contract_wizard" model="ir.actions.act_window">
-            <field name="name">Corn Future Contract Summary</field>
-            <field name="res_model">corn.future.contract.wizard</field>
-            <field name="view_mode">form</field>
-            <field name="target">new</field>
-        </record>
+    <!-- 2. Wizard Action -->
+    <record id="action_outstanding_arrival_wizard" model="ir.actions.act_window">
+        <field name="name">Outstanding Arrival Report</field>
+        <field name="res_model">outstanding.arrival.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
 
-        <!-- 3. Menu Item (Purchase Reporting mein) -->
-        <menuitem id="menu_corn_future_contract_report"
-                  name="Corn Future Contract Summary"
-                  parent="purchase.purchase_report_main"
-                  action="action_corn_future_contract_wizard"
-                  sequence="130"/>
+    <!-- 3. Menu Item (Purchase -> Reporting) -->
+    <menuitem id="menu_outstanding_arrival_report_purchase"
+              name="Outstanding Arrival"
+              parent="purchase.purchase_report_main"
+              action="action_outstanding_arrival_wizard"
+              sequence="160"/>
+    <!-- 3. Menu Item (Purchase -> Reporting) -->
+    <menuitem id="menu_outstanding_arrival_report_sale"
+              name="Outstanding Arrival"
+              parent="sale.menu_sale_report"
+              action="action_outstanding_arrival_wizard"
+              sequence="160"/>
+    <!-- 3. Menu Item (Rice Reports -> Reporting) -->
+    <menuitem id="menu_outstanding_arrival_report_purchase_report"
+              name="Outstanding Arrival"
+              parent="menu_purchase_reports_section"
+              action="action_outstanding_arrival_wizard"
+              sequence="160"/>
 </odoo>

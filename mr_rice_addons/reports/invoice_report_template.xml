@@ -1,138 +1,186 @@
 <odoo>
-    <!-- Paper Format (Landscape) -->
+    <!-- 1. Paper Format (Top Gap Khatam karne ke liye) -->
     <record id="paperformat_invoice_landscape" model="report.paperformat">
-        <field name="name">Invoice Landscape</field>
+        <field name="name">Invoice Landscape Exact Final</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
         <field name="orientation">Landscape</field>
-        <field name="margin_top">10</field>
-        <field name="margin_bottom">10</field>
+        <field name="margin_top">5</field>
+        <field name="margin_bottom">5</field>
         <field name="margin_left">5</field>
         <field name="margin_right">5</field>
+        <field name="header_spacing">0</field>
     </record>
 
-    <!-- Report Action -->
+    <!-- 2. Report Action -->
     <record id="action_report_invoice_date_wise" model="ir.actions.report">
         <field name="name">Invoice Date Wise</field>
         <field name="model">invoice.date.wizard</field>
         <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_invoice_date_wise_template</field>
         <field name="report_file">mr_rice_addons.report_invoice_date_wise_template</field>
-        <field name="print_report_name">'Invoice_DateWise_Report'</field>
+        <field name="print_report_name">'Invoice_Report'</field>
         <field name="paperformat_id" ref="paperformat_invoice_landscape"/>
     </record>
 
-    <!-- PDF Template -->
+    <!-- 3. Final Template -->
     <template id="report_invoice_date_wise_template">
         <t t-call="web.html_container">
             <t t-call="web.basic_layout">
-                <div class="page" style="font-size: 9px; font-family: sans-serif; color: black;">
+                <style>
+                    /* Force Reset - No Odoo default borders */
+                    .page {
+                    font-family: "Times New Roman", Times, serif !important;
+                    color: black !important;
+                    font-size: 11px !important;
+                    }
 
-                    <!-- Report Header -->
-                    <div class="text-center" style="margin-bottom: 10px;">
-                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
-                        <h5 style="font-weight: bold;">Invoice Report</h5>
+                    .header-section {
+                    text-align: center;
+                    margin-bottom: 10px;
+                    }
+
+                    .company-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                    text-decoration: underline;
+                    }
+
+                    /* Table CSS - Strictly No Borders by default */
+                    .report-table {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    border: none !important;
+                    }
+
+                    /* Header: Box borders like image */
+                    .report-table thead tr {
+                    border-top: 2px solid black !important;
+                    border-bottom: 2px solid black !important;
+                    }
+                    .report-table thead th {
+                    border: 1px solid black !important;
+                    padding: 4px;
+                    text-align: center;
+                    font-weight: bold;
+                    }
+
+                    /* Body: Remove ALL borders from rows and cells */
+                    .report-table tbody tr,
+                    .report-table tbody td {
+                    border: none !important;
+                    padding: 2px 4px;
+                    vertical-align: top;
+                    }
+
+                    /* THE SEPARATOR: Only applied to the last row of each bill group */
+                    .bill-group-end td {
+                    border-bottom: 1.5px solid black !important;
+                    }
+
+                    /* Grand Total row */
+                    .grand-total-border {
+                    border-top: 2px solid black !important;
+                    border-bottom: 2px solid black !important;
+                    font-weight: bold;
+                    }
+
+                    .text-right { text-align: right !important; }
+                    .text-center { text-align: center !important; }
+                </style>
+
+                <div class="page">
+
+
+                    <div class="header-section">
+                        <div class="company-title">Bulk Management (Pakistan) Pvt. Ltd.</div>
+                        <div style="font-weight: bold; font-size: 14px;">Invoice Detail</div>
                         <div style="font-weight: bold;">
+                            From:
                             <span t-esc="data['date_from']"/>
-                            TO
+                            To:
                             <span t-esc="data['date_to']"/>
                         </div>
                     </div>
 
-                    <!-- Main Table (12 Columns) -->
-                    <table class="table table-sm"
-                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                    <table class="report-table">
                         <thead>
-                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
-                                <th style="width: 7%;">Bill No</th>
-                                <th style="width: 7%;">Date</th>
-                                <th style="width: 12%;">Customer</th>
-                                <th style="width: 15%;">Item Name</th>
-                                <th style="width: 5%; text-align: right;">Bag</th>
-                                <th style="width: 5%; text-align: right;">Ctn</th>
-                                <th style="width: 7%; text-align: right;">Qty (Kgs)</th>
-                                <th style="width: 6%; text-align: right;">Rate</th>
-                                <th style="width: 5%; text-align: right;">Disct %</th>
-                                <th style="width: 7%; text-align: right;">Disct Sp.</th>
-                                <th style="width: 8%; text-align: right;">Net Amount</th>
-                                <th style="width: 8%; text-align: center;">D/O No</th>
+                            <tr>
+                                <th style="width: 9%;">Bill No</th>
+                                <th style="width: 8%;">Date</th>
+                                <th style="width: 13%;">Customer</th>
+                                <th style="width: 21%;">Item Name</th>
+                                <th style="width: 4%;">Bag</th>
+                                <th style="width: 4%;">Ctn</th>
+                                <th style="width: 7%;">Qty (Kgs)</th>
+                                <th style="width: 7%;">Rate</th>
+                                <th style="width: 6%;">Disct %</th>
+                                <th style="width: 6%;">Disct Sp.</th>
+                                <th style="width: 9%;">Net Amount</th>
+                                <th style="width: 8%;">D/O No</th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="grouped_data" t-as="g">
-                                <!-- Customer Items -->
-                                <tr t-foreach="g['items']" t-as="l" style="border-bottom: 1px solid #ddd;">
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['bill_no']"/>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['date']"/>
-                                    </td>
-                                    <td>
-                                        <span t-esc="l['customer']"/>
-                                    </td>
-                                    <td>
-                                        <span t-esc="l['item_name']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['bags']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['ctn']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['qty']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['rate']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['disct_per']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['disct_sp']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="l['net_amount']"/>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['do_no']"/>
-                                    </td>
-                                </tr>
-                                <!-- Customer Sub Total -->
-                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
-                                    <td colspan="4" style="text-align: right;">Total:</td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['total_bags']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['total_ctn']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['total_qty']"/>
-                                    </td>
-                                    <td colspan="3"></td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['total_net']"/>
-                                    </td>
-                                    <td></td>
-                                </tr>
+                                <t t-foreach="g['items']" t-as="l">
+                                    <!-- 'bill-group-end' class sirf tab aayegi jab invoice ke saare items khatam honge -->
+                                    <tr t-att-class="'bill-group-end' if l_last else ''">
+                                        <td class="text-center">
+                                            <span t-if="l_first" t-esc="l['bill_no']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-if="l_first" t-esc="l['date']"/>
+                                        </td>
+                                        <td>
+                                            <span t-if="l_first" t-esc="l['customer']"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="l['item_name']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="l['bags']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="l['ctn']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(float(l['qty'])) if l['qty'] else ''"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.2f}'.format(float(l['rate'])) if l['rate'] else ''"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <t t-if="l['disct_per']"><span t-esc="l['disct_per']"/>%
+                                            </t>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="l['disct_sp']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(float(l['net_amount'])) if l['net_amount'] else ''"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="l['do_no']"/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </t>
-                            <!-- Grand Total -->
-                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 11px;">
-                                <td colspan="4" style="text-align: right;">GRAND TOTAL:</td>
-                                <td style="text-align: right;">
+
+                            <!-- Grand Totals Row -->
+                            <tr class="grand-total-border">
+                                <td colspan="4"></td>
+                                <td class="text-right">
                                     <span t-esc="grand_total_bags"/>
                                 </td>
-                                <td style="text-align: right;">
+                                <td class="text-right">
                                     <span t-esc="grand_total_ctn"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_qty"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(float(grand_total_qty)) if grand_total_qty else ''"/>
                                 </td>
                                 <td colspan="3"></td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_net"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(float(grand_total_net)) if grand_total_net else ''"/>
                                 </td>
                                 <td></td>
                             </tr>

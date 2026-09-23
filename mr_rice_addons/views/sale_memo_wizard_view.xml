@@ -1,0 +1,44 @@
+<odoo>
+    <record id="view_sale_memo_rice_wizard_form" model="ir.ui.view">
+        <field name="name">sale.memo.rice.wizard.form</field>
+        <field name="model">sale.memo.rice.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sale Memo Rice Date Wise">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="partner_id" options="{'no_create': True}"/>
+                        <field name="product_id" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                        <field name="broker_id" options="{'no_create': True}"/>
+                        <field name="category_id" string="Item Group" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="Print" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_memo_rice_wizard" model="ir.actions.act_window">
+        <field name="name">Sale Memo Rice Date Wise</field>
+        <field name="res_model">sale.memo.rice.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_sale_memo_detail_report"
+              name="Sale Memo Rice Deta Wise"
+              parent="sale.menu_sale_report"
+              action="action_sale_memo_rice_wizard"
+              sequence="25"/>
+    <menuitem id="menu_sale_memo_detail_report_rice"
+              name="Sale Memo Rice Deta Wise"
+              parent="menu_sales_reports_section"
+              action="action_sale_memo_rice_wizard"
+              sequence="25"/>
+</odoo>

@@ -9,12 +9,13 @@
         <field name="margin_bottom">10</field>
         <field name="margin_left">7</field>
         <field name="margin_right">7</field>
+        <field name="header_spacing">0</field>
     </record>
     <!-- 1. Report Action -->
     <record id="action_report_grn_date_wise" model="ir.actions.report">
         <field name="name">Goods Receipt Date Wise</field>
         <field name="model">stock.picking</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_grn_date_wise_template</field>
         <field name="report_file">mr_rice_addons.report_grn_date_wise_template</field>
         <field name="print_report_name">'GRN_DateWise_Report'</field>
@@ -25,97 +26,145 @@
     <template id="report_grn_date_wise_template">
         <t t-call="web.html_container">
             <t t-call="web.basic_layout">
-                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+                <style>
+                    .page {
+                    font-family: "Times New Roman", serif !important;
+                    color: black !important;
+                    }
+                    .report-title {
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    margin-top: 10px;
+                    }
+                    .report-dates {
+                    text-align: center;
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin-bottom: 20px;
+                    }
+                    /* Table Base Styles */
+                    .table-main {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    table-layout: fixed; /* Columns width control ke liye */
+                    }
+                    /* Header Borders: All sides box style */
+                    .table-main thead th {
+                    border: 1.5px solid black !important;
+                    border-top: 2.5px solid black !important;
+                    border-bottom: 2.5px solid black !important;
+                    text-align: center;
+                    vertical-align: middle;
+                    font-size: 13px;
+                    padding: 4px;
+                    }
+                    /* Body Styles: Sirf Horizontal Bottom Line */
+                    .table-main tbody td {
+                    border-bottom: 1.5px solid black !important;
+                    border-left: none !important;
+                    border-right: none !important;
+                    padding: 5px 2px;
+                    font-size: 12px;
+                    vertical-align: top;
+                    line-height: 1.2;
+                    }
+                    .text-right { text-align: right !important; }
+                    .text-center { text-align: center !important; }
+                    .text-left { text-align: left !important; }
+                </style>
 
-                    <!-- Report Header -->
-                    <div class="text-center" style="margin-bottom: 10px;">
-                        <h4 style="font-weight: bold;">Goods Receipt Date Wise</h4>
-                        <div style="font-weight: bold; font-size: 15px;">
-                            <span t-esc="date_from"/>
-                            -
-                            <span t-esc="date_to"/>
-                        </div>
+                <div class="page">
+                    <!-- Header -->
+                    <div class="report-title">Goods Receipt Date Wise</div>
+                    <div class="report-dates">
+                        <span t-esc="date_from"/>
+                        -
+                        <span t-esc="date_to"/>
                     </div>
 
-                    <!-- Main Table -->
-                    <table class="table table-sm"
-                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                    <!-- Table -->
+                    <table class="table-main">
                         <thead>
-                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
+                            <tr>
                                 <th style="width: 12%;">GRN No<br/>Date / Location
                                 </th>
                                 <th style="width: 12%;">P/O No<br/>Inspection
                                 </th>
-                                <th style="width: 18%;">Party Name<br/>Broker Name
+                                <th style="width: 22%;">Party Name<br/>Broker Name
                                 </th>
                                 <th style="width: 12%;">Product<br/>Name
                                 </th>
                                 <th style="width: 10%;">Broken (%)<br/>Moisture (%)
                                 </th>
-                                <th style="width: 12%;">Truck No<br/>Billty No
+                                <th style="width: 10%;">Truck No<br/>Billty No
                                 </th>
-                                <th style="width: 12%; text-align: right;">Gross Wt (Kgs)<br/>Net Wt (Kgs)
+                                <th style="width: 12%;">Gross Wt (Kgs)<br/>Net Wt (Kgs)
                                 </th>
-                                <th style="width: 10%; text-align: right;">No of Bags<br/>Fill Bags
+                                <th style="width: 10%;">No of Bags<br/>Fill Bags
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="docs" t-as="o">
-                                <tr style="border-bottom: 1px solid #ddd;">
-                                    <!-- GRN No / Date / Location -->
-                                    <td>
+                                <tr>
+                                    <!-- column 1 -->
+                                    <td class="text-left">
                                         <span t-field="o.name"/>
                                         <br/>
-                                        <span t-field="o.grn_date" style="padding-right: 50px;"
+                                        <span t-field="o.grn_date"
                                               t-options='{"widget": "date", "format": "dd/MM/yy"}'/>
-                                        <span t-field="o.location_dest_id.name"/>
+                                        <span style="margin-left:5px;" t-field="o.location_dest_id.name"/>
                                     </td>
-                                    <!-- P/O No / Inspection -->
-                                    <td>
+                                    <!-- column 2 -->
+                                    <td class="text-left">
                                         <span t-field="o.origin"/>
                                         <br/>
                                         <span t-field="o.grn_inspection_id.name"/>
                                     </td>
-                                    <!-- Party / Broker -->
-                                    <td>
-                                        <span t-field="o.partner_id.name"/>
-                                        <br/>
+                                    <!-- column 3 -->
+                                    <td class="text-left">
+                                        <div style="text-transform: uppercase;">
+                                            <span t-field="o.partner_id.name"/>
+                                        </div>
                                         <t t-if="o.purchase_id and o.purchase_id.broker_id">
                                             <span t-field="o.purchase_id.broker_id.name"/>
                                         </t>
+                                        <t t-if="o.note">
+                                            <div style="font-size: 10px; font-weight: bold;">
+                                                <span t-field="o.note"/>
+                                            </div>
+                                        </t>
                                     </td>
-                                    <!-- Product Name / TLS -->
-                                    <td>
+                                    <!-- column 4 -->
+                                    <td class="text-left">
                                         <span t-field="o.product_id.name"/>
                                         <br/>
-                                        <t t-if="o.grn_inspection_id">
-                                            <span t-esc="'%.1f' % o.grn_inspection_id.inspection_line_ids[0].grn_insp_tls if o.grn_inspection_id.inspection_line_ids else '0.0'"/>
+                                        <t t-if="o.grn_inspection_id and o.grn_inspection_id.inspection_line_ids">
+                                            <span t-esc="o.grn_inspection_id.inspection_line_ids[0].grn_insp_tls"/>
                                             TLS
                                         </t>
                                     </td>
-                                    <!-- Broken / Moisture -->
+                                    <!-- column 5 -->
                                     <td class="text-center">
-                                        <span t-field="o.actual_broken"
-                                              t-options='{"widget": "float", "precision": 2}'/>%
+                                        <span t-esc="'%.2f' % o.actual_broken"/>%
                                         <br/>
-                                        <span t-field="o.actual_moisture"
-                                              t-options='{"widget": "float", "precision": 2}'/>%
+                                        <span t-esc="'%.2f' % o.actual_moisture"/>%
                                     </td>
-                                    <!-- Truck / Bilty -->
-                                    <td>
+                                    <!-- column 6 -->
+                                    <td class="text-left">
                                         <span t-field="o.vehicle_number"/>
                                         <br/>
                                         <span t-field="o.bilty_no"/>
                                     </td>
-                                    <!-- Weights -->
-                                    <td style="text-align: right;">
-                                        <span t-field="o.gross_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                    <!-- column 7 -->
+                                    <td class="text-right">
+                                        <span t-esc="'{0:,.2f}'.format(o.gross_weight)"/>
                                         <br/>
-                                        <span t-field="o.net_weight" t-options='{"widget": "float", "precision": 2}'/>
+                                        <span t-esc="'{0:,.2f}'.format(o.net_weight)"/>
                                     </td>
-                                    <!-- Bags -->
-                                    <td style="text-align: right;">
+                                    <!-- column 8 -->
+                                    <td class="text-right">
                                         <span t-field="o.bags"/>
                                         <br/>
                                         <span t-field="o.filling_bags"/>

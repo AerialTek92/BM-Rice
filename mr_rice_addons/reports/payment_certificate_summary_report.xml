@@ -14,11 +14,183 @@
     <record id="action_report_payment_certificate_summary" model="ir.actions.report">
         <field name="name">Payment Certificate Summary</field>
         <field name="model">account.payment</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_payment_certificate_template</field>
         <field name="report_file">mr_rice_addons.report_payment_certificate_template</field>
         <field name="print_report_name">'Payment Certificate Summary'</field>
         <field name="binding_type">report</field>
         <field name="paperformat_id" ref="paperformat_stock_picking_landscape"/>
     </record>
+
+    <!-- Template -->
+    <template id="report_payment_certificate_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-family: sans-serif; font-size: 11px;">
+
+                    <!-- Header -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 5px;">
+                            <strong>Payment Certificate Summary</strong>
+                        </h4>
+                        <div>
+                            PC Date From:
+                            <t t-esc="data['date_from']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                            To:
+                            <t t-esc="data['date_to']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                        </div>
+                        <div class="text-right" style="font-size: 10px;">
+                            Print On:
+                            <t t-esc="print_date"/>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <table class="table table-sm table-bordered"
+                           style="border: 2px solid black !important; table-layout: fixed; width: 100%;">
+                        <thead style="display: table-header-group; border-bottom: 2px solid black;">
+                            <tr style="background-color: #f2f2f2;">
+                                <th rowspan="2" class="text-center align-middle"
+                                    style="width: 15%; border: 1px solid black;">Broker Name
+                                </th>
+                                <th rowspan="2" class="text-center align-middle"
+                                    style="width: 7%; border: 1px solid black;">Net Wt<br/>(Kgs)
+                                </th>
+                                <th rowspan="2" class="text-center align-middle"
+                                    style="width: 5%; border: 1px solid black;">Bags
+                                </th>
+                                <th rowspan="2" class="text-center align-middle"
+                                    style="width: 8%; border: 1px solid black;">Amount<br/>(Rs)
+                                </th>
+                                <th colspan="5" class="text-center" style="border: 1px solid black;">Deduction Charges
+                                    (Amount)
+                                </th>
+                                <th colspan="4" class="text-center" style="border: 1px solid black;">Addition Amount
+                                </th>
+                                <th rowspan="2" class="text-center align-middle"
+                                    style="width: 9%; border: 1px solid black;">Net Amount
+                                </th>
+                            </tr>
+                            <tr style="background-color: #f2f2f2; font-size: 9px;">
+                                <th class="text-center" style="border: 1px solid black;">Moisture</th>
+                                <th class="text-center" style="border: 1px solid black;">Broken</th>
+                                <th class="text-center" style="border: 1px solid black;">Fill Bag</th>
+                                <th class="text-center" style="border: 1px solid black;">Damage</th>
+                                <th class="text-center" style="border: 1px solid black;">Other</th>
+                                <th class="text-center" style="border: 1px solid black;">WHT</th>
+                                <th class="text-center" style="border: 1px solid black;">Brokerage</th>
+                                <th class="text-center" style="border: 1px solid black;">Transport</th>
+                                <th class="text-center" style="border: 1px solid black;">Other</th>
+                            </tr>
+                        </thead>
+                        <tbody style="border-left: 0px hidden !important; border-right: 0px hidden !important; ">
+                            <t t-set="t_net_wt" t-value="0"/>
+                            <t t-set="t_bags" t-value="0"/>
+                            <t t-set="t_gross" t-value="0"/>
+                            <t t-set="t_moist" t-value="0"/>
+                            <t t-set="t_dmg" t-value="0"/>
+                            <t t-set="t_oded" t-value="0"/>
+                            <t t-set="t_wht" t-value="0"/>
+                            <t t-set="t_brk" t-value="0"/>
+                            <t t-set="t_oadd" t-value="0"/>
+                            <t t-set="t_net" t-value="0"/>
+
+                            <t t-foreach="broker_summary" t-as="broker">
+                                <t t-set="b" t-value="broker_summary[broker]"/>
+                                <tr>
+                                    <td style="border: 1px solid #ccc;">
+                                        <t t-esc="broker"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['net_weight'])"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['bags'])"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['amount'])"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['moisture']) if b['moisture'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['broken']) if b['broken'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['fill_bag']) if b['fill_bag'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['damage']) if b['damage'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['other_ded']) if b['other_ded'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['wht']) if b['wht'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['brokerage']) if b['brokerage'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['transport']) if b['transport'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <t t-esc="'{0:,.0f}'.format(b['other_add']) if b['other_add'] > 0 else ''"/>
+                                    </td>
+                                    <td class="text-right" style="border: 1px solid #ccc;">
+                                        <strong>
+                                            <t t-esc="'{0:,.0f}'.format(b['net_amount'])"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                                <t t-set="t_net_wt" t-value="t_net_wt + b['net_weight']"/>
+                                <t t-set="t_bags" t-value="t_bags + b['bags']"/>
+                                <t t-set="t_gross" t-value="t_gross + b['amount']"/>
+                                <t t-set="t_dmg" t-value="t_dmg + b['damage']"/>
+                                <t t-set="t_oded" t-value="t_oded + b['other_ded']"/>
+                                <t t-set="t_wht" t-value="t_wht + b['wht']"/>
+                                <t t-set="t_brk" t-value="t_brk + b['brokerage']"/>
+                                <t t-set="t_oadd" t-value="t_oadd + b['other_add']"/>
+                                <t t-set="t_net" t-value="t_net + b['net_amount']"/>
+                            </t>
+                        </tbody>
+                        <tfoot style="border-top: 2px solid black; border-left: 0px hidden !important; border-right: 0px hidden !important; font-weight: bold; background-color: #f9f9f9;">
+                            <tr>
+                                <td class="text-right">Total:-</td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_net_wt)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_bags)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_gross)"/>
+                                </td>
+                                <td colspan="3"></td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_dmg)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_oded)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_wht)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_brk)"/>
+                                </td>
+                                <td></td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_oadd)"/>
+                                </td>
+                                <td class="text-right">
+                                    <t t-esc="'{0:,.0f}'.format(t_net)"/>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
 </odoo>

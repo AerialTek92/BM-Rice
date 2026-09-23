@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Standard bag weights (the old hard-coded selection, seeded as records) -->
+        <record id="bag_weight_5" model="master.bag.weight">
+            <field name="weight_kg">5</field>
+        </record>
+        <record id="bag_weight_20" model="master.bag.weight">
+            <field name="weight_kg">20</field>
+        </record>
+        <record id="bag_weight_22_5" model="master.bag.weight">
+            <field name="weight_kg">22.5</field>
+        </record>
+        <record id="bag_weight_25" model="master.bag.weight">
+            <field name="weight_kg">25</field>
+        </record>
+        <record id="bag_weight_50" model="master.bag.weight">
+            <field name="weight_kg">50</field>
+        </record>
+    </data>
+</odoo>

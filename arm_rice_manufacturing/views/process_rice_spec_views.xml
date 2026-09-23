@@ -1,129 +1,240 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
     <record id="process_rice_spec_view_form" model="ir.ui.view">
         <field name="name">process.rice.spec.view.form</field>
         <field name="model">process.rice.spec</field>
         <field name="arch" type="xml">
-            <form string="Process Rice Specification">
+            <form string="Process Specification">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
-                        invisible="state != 'draft'" />
-                    <button name="action_create_job_order" string="Create Job Order" type="object"
-                        class="btn-warning" invisible="state != 'confirmed'"/>
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_job_order" string="Create Job Order" type="object" class="btn-warning"
+                            invisible="state != 'confirmed'"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                        invisible="state in ('draft', 'cancel')" />
-                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
-                        class="btn-secondary" invisible="state != 'cancel'" />
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" />
+                            invisible="state in ('draft', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_job_orders" type="object" class="oe_stat_button"
-                            icon="fa-file-text-o">
-                            <field name="job_order_count" string="Job Orders" widget="statinfo" />
+                                icon="fa-file-text-o">
+                            <field name="job_order_count" string="Job Orders" widget="statinfo"/>
                         </button>
                     </div>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" readonly="1" />
+                            <span invisible="commodity_group != 'rice'">Process Rice Specification:</span>
+                            <span invisible="commodity_group != 'commodity'">Process Commodity Specification:</span>
+                            <field name="name" readonly="1" class="oe_inline"/>
                         </h1>
                     </div>
+
+                    <!-- Radio Button with better spacing -->
+                    <div class="alert alert-info text-center" role="alert"
+                         style="margin-bottom:15px; padding: 12px 20px;">
+                        <strong style="margin-right: 20px; font-size: 14px;">Type:</strong>
+                        <field name="commodity_group" widget="radio" options="{'horizontal': true}" nolabel="1"
+                               style="display: inline-block;"/>
+                    </div>
+
                     <group>
-                        <group>
-                            <field name="date" />
-                            <field name="rice_type" widget="radio" options="{'horizontal': true}"
-                                readonly="state != 'draft'" />
-                            <field name="production_on" />
-                            <field name="rice_sales_contract_id" />
-                            <field name="partner_id" readonly="1" />
+                        <group string="Reference">
+                            <!-- FIX: Hidden main field for logic evaluation -->
+                            <field name="rice_type" invisible="1"/>
+
+                            <!-- FIX: Sirf 2 options show honge Rice mein -->
+                            <field name="rice_type_rice"
+                                   invisible="commodity_group != 'rice'"/>
+
+                            <!-- FIX: Sirf 2 options show honge Commodity mein -->
+                            <field name="rice_type_commodity"
+                                   invisible="commodity_group != 'commodity'"/>
+
+                            <field name="date"/>
+                            <field name="production_on"/>
+                            <field name="rice_sales_contract_id"
+                                   context="{'prs_contract_view': True}"
+                                   options="{'no_create': True}"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="destination_country_id" options="{'no_create': True}"/>
                         </group>
-                        <group>
-                            <field name="product_id"/>
-                            <field name="is_brown_rice" invisible="1" />
-                            <field name="process_rice_qty" />
-                            <field name="total_quantity" />
-                            <field name="est_recovery_pct" />
-                            <field name="no_of_bags" />
-                            <field name="packing" />
-                            <field name="pp_bag_uom" widget="radio" options="{'horizontal': true}"/>
-                            <field name="pp_bag_kg" invisible="pp_bag_uom != 'kg'"/>
-                            <field name="pp_bag_lb" invisible="pp_bag_uom != 'lb'"/>
-                            <!-- <field name="pp_bags_kgs" /> -->
+
+                        <group string="Process Rice" invisible="commodity_group != 'rice'">
+                            <field name="product_id" string="Process Rice"
+                                   domain="[('is_basmati', '=', True)]"
+                                   invisible="rice_type != 'basmati'"
+                                   options="{'no_create': True}"/>
+
+                            <field name="process_rice_line_ids"
+                                   invisible="rice_type != 'irri'" nolabel="1" colspan="2">
+                                <list editable="bottom">
+                                    <field name="product_id" string="Process Rice"
+                                           domain="[('is_irri', '=', True)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="qty_mt" string="Qty (MT)" sum="Total"/>
+                                </list>
+                            </field>
+                            <field name="process_rice_qty" string="Total Process Rice QTY"
+                                   readonly="rice_type == 'irri'"/>
+                            <field name="brand_id" string="Brand" invisible="rice_type == 'irri'"
+                                   options="{'no_create': True}"/>
+                            <field name="brand_ids" string="Brand" widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   invisible="rice_type != 'irri'"
+                                   placeholder="Select the Brands"/>
+                            <field name="is_brown_rice" invisible="1"/>
+                        </group>
+
+                        <group string="Process Commodity" invisible="commodity_group != 'commodity'">
+                            <field name="product_id" string="Process Commodity"
+                                   domain="[('is_sesame_seeds', '=', True)]"
+                                   invisible="rice_type != 'sesame seeds'"
+                                   options="{'no_create': True}"/>
+
+                            <field name="product_id" string="Process Commodity"
+                                   domain="[('is_corn', '=', True)]"
+                                   invisible="rice_type != 'corn'"
+                                   options="{'no_create': True}"/>
+
+                            <field name="process_rice_qty" string="Total Process Commodity QTY"/>
+                            <field name="brand_id" string="Brand" options="{'no_create': True}"/>
                         </group>
                     </group>
+
+                    <group>
+                        <group string="Raw Rice Summary" invisible="commodity_group != 'rice'">
+                            <field name="total_quantity" string="Total Quantity (Raw Rice MT)"/>
+                            <field name="est_recovery_pct"/>
+                            <field name="no_of_bags" string="No of Bags (Raw Rice)"/>
+                        </group>
+                        <group string="Commodity Summary" invisible="commodity_group != 'commodity'">
+                            <field name="total_quantity" string="Total Quantity (Commodity MT)"/>
+                            <field name="est_recovery_pct"/>
+                            <field name="no_of_bags" string="No of Bags (Commodity)"/>
+                        </group>
+
+                        <group string="Packing (Process Rice)" invisible="commodity_group != 'rice'">
+                            <field name="packing" string="Packing Material (Process Rice)"/>
+                            <field name="pp_bag_uom" widget="radio" options="{'horizontal': true}"/>
+                            <field name="pp_bag_kg" invisible="pp_bag_uom != 'kg'"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="pp_bag_lb" invisible="pp_bag_uom != 'lb'"/>
+                        </group>
+                        <group string="Packing (Process Commodity)" invisible="commodity_group != 'commodity'">
+                            <field name="packing" string="Packing Material (Process Commodity)"/>
+                            <field name="pp_bag_uom" widget="radio" options="{'horizontal': true}"/>
+                            <field name="pp_bag_kg" invisible="pp_bag_uom != 'kg'"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="pp_bag_lb" invisible="pp_bag_uom != 'lb'"/>
+                        </group>
+                    </group>
+
                     <notebook>
-                        <!-- TAB 1: Product Details (Raw / Process Rice) -->
-                        <page string="Product Details">
+                        <page string="Raw Rice Details" name="raw_rice_details" invisible="commodity_group != 'rice'">
                             <field name="spec_line_ids">
                                 <list editable="bottom">
-                                    <field name="product_id" />
-                                    <field name="crop_year" />
-                                    <field name="quantity" />
+                                    <field name="product_id" string="Raw Rice" options="{'no_create': True}"/>
+                                    <field name="crop_year"/>
+                                    <field name="quantity" string="Qty (MT)" sum="Total Raw Rice"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Commodity Details" name="raw_commodity_details"
+                              invisible="commodity_group != 'commodity'">
+                            <field name="spec_line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id" string="Commodity" options="{'no_create': True}"/>
+                                    <field name="crop_year"/>
+                                    <field name="quantity" string="Qty (MT)" sum="Total Commodity"/>
                                 </list>
                             </field>
                         </page>
 
-                        <!-- TAB 2: Specifications -->
                         <page string="Specifications">
-                            <!-- Normal Rice Specs (ONLY hidden if is_brown_rice is True) -->
-                            <group invisible="is_brown_rice == True">
-                                <group string="Basic Parameters">
-                                    <field name="n_moisture_percent" />
-                                    <field name="n_broken_percent" />
-                                    <field name="n_damaged_discolor_percent" />
+                            <!-- Rice Specs -->
+                            <group invisible="commodity_group != 'rice' or is_brown_rice == True">
+                                <group string="Moisture &amp; Broken">
+                                    <field name="n_moisture_percent"/>
+                                    <field name="n_broken_percent"/>
+                                    <field name="n_damaged_discolor_percent"/>
                                 </group>
                                 <group string="Matter &amp; Grains">
-                                    <field name="n_foreign_matter_percent" />
-                                    <field name="n_paddy_percent" />
-                                    <field name="n_red_percent" />
-                                    <field name="n_chalky_percent" />
-                                    <field name="n_immature" />
+                                    <field name="n_foreign_matter_percent"/>
+                                    <field name="n_paddy_percent"/>
+                                    <field name="n_red_percent"/>
+                                    <field name="n_chalky_percent"/>
+                                    <field name="n_immature"/>
                                 </group>
                                 <group string="Inspection &amp; Quality">
-                                    <field name="n_cooking" />
-                                    <field name="n_insect_damage_grains" />
-                                    <field name="n_foreign_food_grains" />
-                                    <field name="n_under_milled_grains" />
-                                    <field name="n_contrasting_varieties" />
+                                    <field name="n_cooking"/>
+                                    <field name="n_insect_damage_grains"/>
+                                    <field name="n_foreign_food_grains"/>
+                                    <field name="n_under_milled_grains"/>
+                                    <field name="n_contrasting_varieties"/>
                                 </group>
                                 <group string="Final Checks">
-                                    <field name="n_living_insects_mites" />
-                                    <field name="n_polish" />
-                                    <field name="n_agl" />
-                                    <field name="n_kett_whiteness" />
+                                    <field name="n_living_insects_mites"/>
+                                    <field name="n_polish"/>
+                                    <field name="n_agl"/>
+                                    <field name="n_kett_whiteness"/>
                                 </group>
                             </group>
 
-                            <!-- Brown Rice Specs (ONLY visible if is_brown_rice is True) -->
-                            <group invisible="is_brown_rice == False" string="Brown Rice Specifications">
+                            <group invisible="commodity_group != 'rice' or is_brown_rice == False">
+                                <group string="Brown Rice Specifications">
+                                    <field name="br_purity"/>
+                                    <field name="br_broken"/>
+                                    <field name="br_green_grains"/>
+                                    <field name="br_chalky_grains"/>
+                                    <field name="br_ddkg"/>
+                                    <field name="br_immature_grains"/>
+                                    <field name="br_paddy_grains"/>
+                                    <field name="br_red_grains"/>
+                                </group>
+                                <group string="Brown Rice Specifications (cont.)">
+                                    <field name="br_other_rices"/>
+                                    <field name="br_moisture"/>
+                                    <field name="br_avg_length"/>
+                                    <field name="br_head_yield"/>
+                                    <field name="br_foreign_matter"/>
+                                    <field name="br_yellow_amber"/>
+                                    <field name="br_foreign_odours"/>
+                                </group>
+                                <group string="Safety &amp; Health Standards">
+                                    <field name="br_chemical_residues"/>
+                                    <field name="br_aflatoxinsA"/>
+                                    <field name="br_aflatoxins"/>
+                                    <field name="br_living_insects"/>
+                                    <field name="br_Animals_birds"/>
+                                </group>
+                            </group>
+
+                            <!-- Commodity Specs -->
+                            <group string="Sesame Seeds Specifications" invisible="rice_type != 'sesame seeds'">
                                 <group>
-                                    <field name="br_purity" />
-                                    <field name="br_broken" />
-                                    <field name="br_green_grains" />
-                                    <field name="br_chalky_grains" />
-                                    <field name="br_ddkg" />
-                                    <field name="br_immature_grains" />
-                                    <field name="br_paddy_grains" />
-                                    <field name="br_red_grains" />
-                                    <field name="br_other_rices" />
-                                    <field name="br_moisture" />
-                                    <field name="br_avg_length" />
-                                    <field name="br_head_yield" />
-                                    <field name="br_foreign_matter" />
+                                    <field name="ss_oil_contents"/>
+                                    <field name="ss_ffa"/>
+                                    <field name="ss_moisture"/>
+                                    <field name="ss_purity"/>
                                 </group>
                                 <group>
-                                    <field name="br_yellow_amber" />
-                                    <field name="br_foreign_odours" />
-                                    <field name="br_chemical_residues" />
-                                    <field name="br_aflatoxinsA" />
-                                    <field name="br_aflatoxins" />
-                                    <field name="br_living_insects" />
-                                    <field name="br_Animals_birds" />
+                                    <field name="ss_admixture"/>
+                                    <field name="ss_foreign_matter"/>
+                                </group>
+                            </group>
+                            <group string="Corn Specifications" invisible="rice_type != 'corn'">
+                                <group>
+                                    <field name="n_moisture_percent" string="Moisture (%) Max"/>
+                                    <field name="n_broken_percent" string="Broken (%) Max"/>
+                                </group>
+                                <group>
+                                    <field name="n_foreign_matter_percent" string="Foreign Matter (%) Max"/>
                                 </group>
                             </group>
                         </page>
 
-                        <!-- NEW: Additional Specifications Tab -->
                         <page string="Additional Specifications" name="additional_specs">
                             <field name="additional_spec_line_ids">
                                 <list editable="bottom">
@@ -134,13 +245,12 @@
                             </field>
                         </page>
 
-                        <!-- TAB 3: Remarks -->
                         <page string="Remarks">
-                            <field name="remarks" nolabel="1" colspan="2" />
+                            <field name="remarks" nolabel="1" colspan="2"/>
                         </page>
                     </notebook>
                 </sheet>
-                <chatter />
+                <chatter/>
             </form>
         </field>
     </record>
@@ -149,13 +259,23 @@
         <field name="name">process.rice.spec.view.tree</field>
         <field name="model">process.rice.spec</field>
         <field name="arch" type="xml">
-            <list string="Process Rice Specs">
-                <field name="name" />
-                <field name="date" />
-                <field name="rice_type" />
-                <field name="partner_id" />
-                <field name="product_id" />
-                <field name="state" widget="badge" />
+            <list string="Process Rice Specs" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="commodity_group" string="Category" widget="badge"/>
+                <field name="rice_type" widget="badge"
+                       decoration-info="rice_type == 'irri'"
+                       decoration-success="rice_type == 'basmati'"/>
+                <field name="display_process_rice" string="Process Rice" optional="show"/>
+                <field name="raw_rice_ids" string="Raw Rice" widget="many2many_tags"
+                       optional="show" options="{'no_create': True}"/>
+                <field name="partner_id"/>
+                <field name="process_rice_qty" string="Process Rice QTY" optional="show" sum="Total"/>
+                <field name="est_recovery_pct" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-muted="state == 'cancel'"/>
             </list>
         </field>
     </record>
@@ -167,8 +287,252 @@
     </record>
 
     <menuitem id="menu_process_rice_spec"
-        name="Process Rice Specs"
-        parent="menu_arm_rice_manufacturing"
-        action="action_process_rice_spec"
-        sequence="10" />
+              name="Process Rice Specs"
+              parent="menu_arm_rice_manufacturing"
+              action="action_process_rice_spec"
+              sequence="10"/>
 </odoo>
+
+
+        <!--<odoo>-->
+
+        <!--    <record id="process_rice_spec_view_form" model="ir.ui.view">-->
+        <!--        <field name="name">process.rice.spec.view.form</field>-->
+        <!--        <field name="model">process.rice.spec</field>-->
+        <!--        <field name="arch" type="xml">-->
+        <!--            <form string="Process Rice Specification">-->
+        <!--                <header>-->
+        <!--                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"-->
+        <!--                            invisible="state != 'draft'"/>-->
+        <!--                    <button name="action_create_job_order" string="Create Job Order" type="object" class="btn-warning"-->
+        <!--                            invisible="state != 'confirmed'"/>-->
+        <!--                    <button name="action_cancel" string="Cancel" type="object"-->
+        <!--                            invisible="state in ('draft', 'cancel')"/>-->
+        <!--                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"-->
+        <!--                            invisible="state != 'cancel'"/>-->
+        <!--                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>-->
+        <!--                </header>-->
+        <!--                <sheet>-->
+        <!--                    <div class="oe_button_box" name="button_box">-->
+        <!--                        <button name="action_view_job_orders" type="object" class="oe_stat_button"-->
+        <!--                                icon="fa-file-text-o">-->
+        <!--                            <field name="job_order_count" string="Job Orders" widget="statinfo"/>-->
+        <!--                        </button>-->
+        <!--                    </div>-->
+        <!--                    <div class="oe_title">-->
+        <!--                        <h1>-->
+        <!--                            <field name="name" readonly="1"/>-->
+        <!--                        </h1>-->
+        <!--                    </div>-->
+        <!--                    <group>-->
+        <!--                        <group string="Reference">-->
+        <!--                            <field name="rice_type" widget="badge"-->
+        <!--                                   decoration-info="rice_type == 'irri'"-->
+        <!--                                   decoration-success="rice_type == 'basmati'"-->
+        <!--                                   invisible="not is_rice_type_locked"/>-->
+        <!--                            <field name="rice_type" invisible="is_rice_type_locked"/>-->
+        <!--                            <field name="is_rice_type_locked" invisible="1"/>-->
+        <!--                            <field name="date"/>-->
+        <!--                            <field name="production_on"/>-->
+        <!--                            <field name="rice_sales_contract_id"-->
+        <!--                                   context="{'prs_contract_view': True}"-->
+        <!--                                   options="{'no_create': True}"/>-->
+        <!--                            <field name="partner_id" readonly="1"/>-->
+        <!--                            <field name="destination_country_id" options="{'no_create': True}"/>-->
+        <!--                        </group>-->
+
+        <!--                        <group string="Process">-->
+        <!--                            &lt;!&ndash; ========================================== &ndash;&gt;-->
+        <!--                            &lt;!&ndash; CHANGED: Replaced single product_id with multiple instances for static reliable domains &ndash;&gt;-->
+        <!--                            &lt;!&ndash; ========================================== &ndash;&gt;-->
+        <!--                            <field name="product_id" string="Process Rice"-->
+        <!--                                   domain="[('is_basmati', '=', True)]"-->
+        <!--                                   invisible="rice_type != 'basmati'"-->
+        <!--                                   options="{'no_create': True}"/>-->
+
+        <!--                            <field name="product_id" string="Process Rice"-->
+        <!--                                   domain="[('is_sesame_seeds', '=', True)]"-->
+        <!--                                   invisible="rice_type != 'sesame seeds'"-->
+        <!--                                   options="{'no_create': True}"/>-->
+
+        <!--                            <field name="product_id" string="Process Rice"-->
+        <!--                                   domain="[('is_corn', '=', True)]"-->
+        <!--                                   invisible="rice_type != 'corn'"-->
+        <!--                                   options="{'no_create': True}"/>-->
+
+        <!--                            <field name="process_rice_line_ids"-->
+        <!--                                   invisible="rice_type != 'irri'" nolabel="1" colspan="2">-->
+        <!--                                <list editable="bottom">-->
+        <!--                                    <field name="product_id" string="Process Rice"-->
+        <!--                                           domain="[('is_irri', '=', True)]"-->
+        <!--                                           options="{'no_create': True}"/>-->
+        <!--                                    <field name="qty_mt" string="Qty (MT)" sum="Total"/>-->
+        <!--                                </list>-->
+        <!--                            </field>-->
+        <!--                            <field name="process_rice_qty" string="Total Process Rice QTY"-->
+        <!--                                   readonly="rice_type == 'irri'"/>-->
+        <!--                            <field name="brand_id" string="Brand" invisible="rice_type == 'irri'"-->
+        <!--                                   options="{'no_create': True}"/>-->
+        <!--                            <field name="brand_ids" string="Brand" widget="many2many_tags"-->
+        <!--                                   options="{'no_create': True}"-->
+        <!--                                   invisible="rice_type != 'irri'"-->
+        <!--                                   placeholder="Select the Brands"/>-->
+        <!--                            <field name="is_brown_rice" invisible="1"/>-->
+        <!--                        </group>-->
+        <!--                    </group>-->
+
+        <!--                    <group>-->
+        <!--                        <group string="Raw Rice Summary">-->
+        <!--                            <field name="total_quantity"/>-->
+        <!--                            <field name="est_recovery_pct"/>-->
+        <!--                            <field name="no_of_bags"/>-->
+        <!--                        </group>-->
+
+        <!--                        <group string="Packing (Process Rice)">-->
+        <!--                            <field name="packing"/>-->
+        <!--                            <field name="pp_bag_uom" widget="radio" options="{'horizontal': true}"/>-->
+        <!--                            <field name="pp_bag_kg" invisible="pp_bag_uom != 'kg'"-->
+        <!--                                   options="{'no_quick_create': True}"/>-->
+        <!--                            <field name="pp_bag_lb" invisible="pp_bag_uom != 'lb'"/>-->
+        <!--                        </group>-->
+        <!--                    </group>-->
+
+        <!--                    <notebook>-->
+        <!--                        <page string="Raw Rice Details" name="raw_rice_details">-->
+        <!--                            <field name="spec_line_ids">-->
+        <!--                                <list editable="bottom">-->
+        <!--                                    <field name="product_id" options="{'no_create': True}"/>-->
+        <!--                                    <field name="crop_year"/>-->
+        <!--                                    <field name="quantity" string="Qty (MT)" sum="Total Raw Rice"/>-->
+        <!--                                </list>-->
+        <!--                            </field>-->
+        <!--                        </page>-->
+
+        <!--                        <page string="Specifications">-->
+        <!--                            <group invisible="is_brown_rice == True or rice_type in ('sesame seeds', 'corn')">-->
+        <!--                                <group string="Moisture &amp; Broken">-->
+        <!--                                    <field name="n_moisture_percent"/>-->
+        <!--                                    <field name="n_broken_percent"/>-->
+        <!--                                    <field name="n_damaged_discolor_percent"/>-->
+        <!--                                </group>-->
+        <!--                                <group string="Matter &amp; Grains">-->
+        <!--                                    <field name="n_foreign_matter_percent"/>-->
+        <!--                                    <field name="n_paddy_percent"/>-->
+        <!--                                    <field name="n_red_percent"/>-->
+        <!--                                    <field name="n_chalky_percent"/>-->
+        <!--                                    <field name="n_immature"/>-->
+        <!--                                </group>-->
+        <!--                                <group string="Inspection &amp; Quality">-->
+        <!--                                    <field name="n_cooking"/>-->
+        <!--                                    <field name="n_insect_damage_grains"/>-->
+        <!--                                    <field name="n_foreign_food_grains"/>-->
+        <!--                                    <field name="n_under_milled_grains"/>-->
+        <!--                                    <field name="n_contrasting_varieties"/>-->
+        <!--                                </group>-->
+        <!--                                <group string="Final Checks">-->
+        <!--                                    <field name="n_living_insects_mites"/>-->
+        <!--                                    <field name="n_polish"/>-->
+        <!--                                    <field name="n_agl"/>-->
+        <!--                                    <field name="n_kett_whiteness"/>-->
+        <!--                                </group>-->
+        <!--                            </group>-->
+
+        <!--                            <group invisible="is_brown_rice == False or rice_type in ('sesame seeds', 'corn')">-->
+        <!--                                <group string="Brown Rice Specifications">-->
+        <!--                                    <field name="br_purity"/>-->
+        <!--                                    <field name="br_broken"/>-->
+        <!--                                    <field name="br_green_grains"/>-->
+        <!--                                    <field name="br_chalky_grains"/>-->
+        <!--                                    <field name="br_ddkg"/>-->
+        <!--                                    <field name="br_immature_grains"/>-->
+        <!--                                    <field name="br_paddy_grains"/>-->
+        <!--                                    <field name="br_red_grains"/>-->
+        <!--                                </group>-->
+        <!--                                <group string="Brown Rice Specifications (cont.)">-->
+        <!--                                    <field name="br_other_rices"/>-->
+        <!--                                    <field name="br_moisture"/>-->
+        <!--                                    <field name="br_avg_length"/>-->
+        <!--                                    <field name="br_head_yield"/>-->
+        <!--                                    <field name="br_foreign_matter"/>-->
+        <!--                                    <field name="br_yellow_amber"/>-->
+        <!--                                    <field name="br_foreign_odours"/>-->
+        <!--                                </group>-->
+        <!--                                <group string="Safety &amp; Health Standards">-->
+        <!--                                    <field name="br_chemical_residues"/>-->
+        <!--                                    <field name="br_aflatoxinsA"/>-->
+        <!--                                    <field name="br_aflatoxins"/>-->
+        <!--                                    <field name="br_living_insects"/>-->
+        <!--                                    <field name="br_Animals_birds"/>-->
+        <!--                                </group>-->
+        <!--                            </group>-->
+
+        <!--                            <group string="Sesame Seeds Specifications" invisible="rice_type != 'sesame seeds'">-->
+        <!--                                <group>-->
+        <!--                                    <field name="ss_oil_contents"/>-->
+        <!--                                    <field name="ss_ffa"/>-->
+        <!--                                    <field name="ss_moisture"/>-->
+        <!--                                    <field name="ss_purity"/>-->
+        <!--                                </group>-->
+        <!--                                <group>-->
+        <!--                                    <field name="ss_admixture"/>-->
+        <!--                                    <field name="ss_foreign_matter"/>-->
+        <!--                                </group>-->
+        <!--                            </group>-->
+        <!--                        </page>-->
+
+        <!--                        <page string="Additional Specifications" name="additional_specs">-->
+        <!--                            <field name="additional_spec_line_ids">-->
+        <!--                                <list editable="bottom">-->
+        <!--                                    <field name="parameter"/>-->
+        <!--                                    <field name="value"/>-->
+        <!--                                    <field name="uom"/>-->
+        <!--                                </list>-->
+        <!--                            </field>-->
+        <!--                        </page>-->
+
+        <!--                        <page string="Remarks">-->
+        <!--                            <field name="remarks" nolabel="1" colspan="2"/>-->
+        <!--                        </page>-->
+        <!--                    </notebook>-->
+        <!--                </sheet>-->
+        <!--                <chatter/>-->
+        <!--            </form>-->
+        <!--        </field>-->
+        <!--    </record>-->
+
+        <!--    <record id="process_rice_spec_view_tree" model="ir.ui.view">-->
+        <!--        <field name="name">process.rice.spec.view.tree</field>-->
+        <!--        <field name="model">process.rice.spec</field>-->
+        <!--        <field name="arch" type="xml">-->
+        <!--            <list string="Process Rice Specs" decoration-muted="state == 'cancel'">-->
+        <!--                <field name="name"/>-->
+        <!--                <field name="date"/>-->
+        <!--                <field name="rice_type" widget="badge"-->
+        <!--                       decoration-info="rice_type == 'irri'"-->
+        <!--                       decoration-success="rice_type == 'basmati'"/>-->
+        <!--                <field name="display_process_rice" string="Process Rice" optional="show"/>-->
+        <!--                <field name="raw_rice_ids" string="Raw Rice" widget="many2many_tags"-->
+        <!--                       optional="show" options="{'no_create': True}"/>-->
+        <!--                <field name="partner_id"/>-->
+        <!--                <field name="process_rice_qty" string="Process Rice QTY" optional="show" sum="Total"/>-->
+        <!--                <field name="est_recovery_pct" optional="hide"/>-->
+        <!--                <field name="state" widget="badge"-->
+        <!--                       decoration-info="state == 'draft'"-->
+        <!--                       decoration-success="state == 'confirmed'"-->
+        <!--                       decoration-muted="state == 'cancel'"/>-->
+        <!--            </list>-->
+        <!--        </field>-->
+        <!--    </record>-->
+
+        <!--    <record id="action_process_rice_spec" model="ir.actions.act_window">-->
+        <!--        <field name="name">Process Rice Specifications</field>-->
+        <!--        <field name="res_model">process.rice.spec</field>-->
+        <!--        <field name="view_mode">list,form</field>-->
+        <!--    </record>-->
+
+        <!--    <menuitem id="menu_process_rice_spec"-->
+        <!--              name="Process Rice Specs"-->
+        <!--              parent="menu_arm_rice_manufacturing"-->
+        <!--              action="action_process_rice_spec"-->
+        <!--              sequence="10"/>-->
+        <!--</odoo>-->

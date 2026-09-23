@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+        <!-- ========================================== -->
+    <!-- BULK ACTION: Confirm Payment Certificates  -->
+    <!-- (Action menu on list selection - the same  -->
+    <!-- pattern as Odoo's native bulk operations)  -->
+    <!-- ========================================== -->
+    <record id="action_payment_certificate_confirm" model="ir.actions.server">
+        <field name="name">Confirm Payment Certificates</field>
+        <field name="model_id" ref="arm_rice_mill.model_payment_certificate"/>
+        <field name="state">code</field>
+        <field name="code">if records:
+    action = records.action_confirm()</field>
+        <field name="binding_model_id" ref="arm_rice_mill.model_payment_certificate"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+
     <record id="payment_certificate_view_form" model="ir.ui.view">
         <field name="name">payment.certificate.view.form</field>
         <field name="model">payment.certificate</field>
@@ -7,10 +24,14 @@
             <form string="Payment Certificate">
                 <header>
                     <!-- Standard PC Buttons -->
-                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft' or (approval_status != 'approved' and not is_admin)"/>
-                    <button name="action_mark_paid" string="Mark as Paid" type="object" class="btn-success" invisible="state != 'confirmed'"/>
-                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="state == 'draft'"/>
-                    <button name="%(arm_rice_mill.action_report_payment_certificate_arm)d" string="Print COP" type="action" class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                            invisible="state != 'draft' or (approval_line_ids and approval_status != 'approved' and not is_admin)"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object" class="btn-success"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state in ('draft', 'paid')"/>
+                    <button name="%(arm_rice_mill.action_report_payment_certificate_arm)d" string="Print COP"
+                            type="action" class="oe_highlight" invisible="state != 'confirmed'"/>
 
                     <!-- NEW: Dynamic Approval Buttons -->
                     <button name="action_approve" string="Verify" type="object" class="oe_highlight"
@@ -65,6 +86,8 @@
                             <field name="purchase_order_date" invisible="not purchase_id" readonly="1"/>
                             <field name="po_due_date" invisible="not purchase_id" readonly="1"/>
                             <field name="rice_sales_contract_id" invisible="not rice_sales_contract_id" readonly="1"/>
+                            <field name="purchase_indent_id" string="Source: Purchase Indent"
+                                   invisible="not purchase_indent_id"/>
                         </group>
                         <group>
                             <field name="date"/>
@@ -157,6 +180,7 @@
                                 <list decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'">
                                     <field name="label"/>
                                     <field name="employee_id"/>
+                                    <field name="group_id" string="Expected Group"/>
                                     <field name="status" widget="badge" decoration-success="status == 'done'" decoration-danger="status == 'refuse'" decoration-warning="status == 'waiting'"/>
                                     <field name="time_of_approval"/>
                                 </list>

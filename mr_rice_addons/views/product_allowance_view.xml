@@ -1,18 +1,37 @@
 <odoo>
-    <!-- 2. Wizard Form View -->
+    <!-- Wizard Form View (Reference Layout Style) -->
     <record id="view_stock_picking_product_wizard_form" model="ir.ui.view">
         <field name="name">stock.picking.product.wizard.form</field>
         <field name="model">stock.picking.product.wizard</field>
         <field name="arch" type="xml">
-            <form string="Print Product Allowance">
-                <group>
+            <form string="Print Product Allowance Actual Vs Billing">
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
+
                     <group>
-                        <field name="date_to"/>
+                        <group string="Filters">
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Settings">
+                            <field name="picking_type_code" widget="radio" options="{'horizontal': true}"/>
+                            <field name="report_type" widget="radio"/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -31,6 +50,11 @@
     <menuitem id="menu_stock_picking_product"
               name="Product Allowance Actual Vs Billing"
               parent="stock.menu_warehouse_report"
+              action="action_stock_picking_product_wizard"
+              sequence="110"/>
+    <menuitem id="menu_stock_picking_product_report"
+              name="Product Allowance Actual Vs Billing"
+              parent="menu_inventory_reports_section"
               action="action_stock_picking_product_wizard"
               sequence="110"/>
 </odoo>

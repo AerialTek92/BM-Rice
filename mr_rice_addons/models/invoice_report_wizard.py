@@ -8,12 +8,21 @@ class InvoiceDateWizard(models.TransientModel):
     _name = 'invoice.date.wizard'
     _description = 'Invoice Date Wise Report Wizard'
 
-    date_from = fields.Date(string='Date From', required=True)
-    date_to = fields.Date(string='Date To', required=True)
+    date_from = fields.Date(string='From Date', required=True)
+    date_to = fields.Date(string='To Date', required=True)
+    partner_id = fields.Many2one('res.partner', string='Customer', domain=[('partner_assign_type', '=', 'customer')])
+    product_id = fields.Many2one('product.product', string='Product')
+    category_id = fields.Many2one('product.category', string='Item Group')
 
     def action_print_report(self):
         self.ensure_one()
-        data = {'date_from': self.date_from, 'date_to': self.date_to}
+        data = {
+            'date_from': self.date_from,
+            'date_to': self.date_to,
+            'partner_id': self.partner_id.id if self.partner_id else False,
+            'product_id': self.product_id.id if self.product_id else False,
+            'category_id': self.category_id.id if self.category_id else False,
+        }
         return self.env.ref('mr_rice_addons.action_report_invoice_date_wise').report_action(self, data=data)
 
 
@@ -23,32 +32,42 @@ class ReportInvoiceDateWise(models.AbstractModel):
 
     @api.model
     def _get_report_values(self, docids, data=None):
-        # Ab data sale.order se fetch hoga (account.move nahi)
+        # 1. Domain setup
         domain = [
             ('state', 'in', ['sale', 'done']),
             ('date_order', '>=', data['date_from']),
             ('date_order', '<=', data['date_to']),
         ]
 
-        sale_orders = self.env['sale.order'].search(domain, order='partner_id, date_order')
-        report_lines = []
+        # Partner Filter
+        if data.get('partner_id'):
+            domain.append(('partner_id', '=', data['partner_id']))
 
+        sale_orders = self.env['sale.order'].search(domain, order='partner_id asc, date_order asc')
+
+        all_lines = []
         for order in sale_orders:
-            # Delivery Order se Bag aur D/O No fetch kar rahe hain
+            # Delivery Info
             picking = order.picking_ids[:1] if order.picking_ids else False
-            bags = picking.bags if picking and picking.bags else 0.0
             do_no = picking.name if picking else ''
 
-            # Agar invoice bana hua hai toh uska number, warna Sale Order ka number
+            # Bill No logic
             bill_no = order.invoice_ids[:1].name if order.invoice_ids else order.name
 
-            for line in order.order_line.filtered(lambda l: l.product_id and not l.display_type):
-                report_lines.append({
+            # Line filtering (Product & Category)
+            lines = order.order_line.filtered(lambda l: not l.display_type and l.product_id)
+            if data.get('product_id'):
+                lines = lines.filtered(lambda l: l.product_id.id == data['product_id'])
+            if data.get('category_id'):
+                lines = lines.filtered(lambda l: l.product_id.categ_id.id == data['category_id'])
+
+            for line in lines:
+                all_lines.append({
                     'bill_no': bill_no,
-                    'date': order.date_order,
-                    'customer': order.partner_id.name or '',
+                    'date': order.date_order.date(),
+                    'customer': order.partner_id.name or 'Unknown',
                     'item_name': line.product_id.name,
-                    'bags': bags,
+                    'bags': line.pcs or 0.0,
                     'ctn': line.ctn or 0.0,
                     'qty': line.product_uom_qty or 0.0,
                     'rate': line.price_unit or 0.0,
@@ -58,11 +77,11 @@ class ReportInvoiceDateWise(models.AbstractModel):
                     'do_no': do_no,
                 })
 
-        # Customer ke hisaab se grouping
-        report_lines.sort(key=itemgetter('customer'))
+        # 2. Grouping Logic (Matching your XML)
         grouped_data = []
+        all_lines.sort(key=itemgetter('customer'))
 
-        for key, group in groupby(report_lines, key=itemgetter('customer')):
+        for key, group in groupby(all_lines, key=itemgetter('customer')):
             g_lines = list(group)
             grouped_data.append({
                 'customer': key,
@@ -73,7 +92,7 @@ class ReportInvoiceDateWise(models.AbstractModel):
                 'total_net': sum(x['net_amount'] for x in g_lines),
             })
 
-        # Grand Totals
+        # 3. Grand Totals
         grand_total_bags = sum(x['total_bags'] for x in grouped_data)
         grand_total_ctn = sum(x['total_ctn'] for x in grouped_data)
         grand_total_qty = sum(x['total_qty'] for x in grouped_data)

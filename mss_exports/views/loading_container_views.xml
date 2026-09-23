@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!-- Packing List List View -->
+    <record id="view_loading_container_packing_list_list" model="ir.ui.view">
+        <field name="name">loading.container.packing.list.list</field>
+        <field name="model">loading.container.packing.list</field>
+        <field name="arch" type="xml">
+            <list string="Packing Lists">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="export_registration_no"/>
+                <field name="invoice_no"/>
+                <field name="bl_no"/>
+                <field name="contract_no"/>
+                <field name="booking_id"/>
+                <field name="vessel_name_voyage"/>
+                <field name="shipping_line"/>
+                <field name="port_of_loading"/>
+                <field name="port_of_discharge"/>
+                <field name="etd"/>
+                <field name="expected_container_count"/>
+                <field name="loaded_container_count"/>
+                <field name="remaining_container_count"/>
+                <field name="extra_container_count"/>
+                <field name="total_bags"/>
+                <field name="quantity_metric_tons"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+
+    <!-- Packing List Form View -->
+    <record id="view_loading_container_packing_list_form" model="ir.ui.view">
+        <field name="name">loading.container.packing.list.form</field>
+        <field name="model">loading.container.packing.list</field>
+        <field name="arch" type="xml">
+
+            <form string="Packing List">
+
+                <header>
+                    <button
+                            name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'confirmed'"
+                    />
+
+                    <field
+                            name="state"
+                            widget="statusbar"
+                            statusbar_visible="draft,confirmed"
+                    />
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group string="Packing List Information">
+
+                        <group>
+                            <field name="date"/>
+                            <field name="export_registration_no"/>
+                            <field name="invoice_no"/>
+                            <field name="bl_no"/>
+                            <field name="sob_date"/>
+                        </group>
+
+                        <group>
+                            <field name="booking_id"/>
+                            <field name="fiu_no"/>
+                            <field name="contract_no" readonly="1"/>
+                            <field name="contract_date"/>
+                        </group>
+
+                    </group>
+
+
+                    <group string="Shipping Information">
+
+                        <group>
+                            <field name="vessel_name_voyage" readonly="1"/>
+                            <field name="shipping_line" readonly="1"/>
+                            <field name="booking_type" readonly="1"/>
+                            <field name="cnf_basis" readonly="1"/>
+                            <field name="pob" readonly="1"/>
+                        </group>
+
+                        <group>
+                            <field name="port_of_loading" readonly="1"/>
+                            <field name="port_of_discharge" readonly="1"/>
+                            <field name="etd" readonly="1"/>
+                            <field name="cro_id" readonly="1"/>
+                        </group>
+
+                    </group>
+
+
+                    <notebook>
+
+                        <page string="Seller">
+
+                            <group>
+                                <group>
+                                    <field name="seller"/>
+                                </group>
+
+                                <group>
+                                    <field name="seller_address"/>
+                                </group>
+                            </group>
+
+                        </page>
+
+
+                        <page string="Notify Party">
+
+                            <group>
+                                <group>
+                                    <field name="notify_party"/>
+                                </group>
+
+                                <group>
+                                    <field name="notify_party_address"/>
+                                </group>
+                            </group>
+
+                        </page>
+
+
+                        <page string="Product Information">
+
+                            <field
+                                    name="product_line_ids"
+                                    nolabel="1"
+                            >
+
+                                <list
+                                        editable="bottom"
+                                        default_order="sequence"
+                                >
+
+                                    <field
+                                            name="sequence"
+                                            widget="handle"
+                                    />
+
+                                    <field
+                                            name="product_id"
+                                    />
+
+                                    <field
+                                            name="product_name"
+                                    />
+
+                                    <field
+                                            name="crop_year"
+                                    />
+
+                                    <field
+                                            name="quantity"
+                                    />
+
+                                    <field
+                                            name="uom_id"
+                                    />
+
+                                    <field
+                                            name="unit_price"
+                                    />
+
+                                    <field
+                                            name="quality_description"
+                                    />
+
+                                    <field
+                                            name="packing_details"
+                                    />
+
+                                    <field
+                                            name="inspection_agency"
+                                    />
+
+                                    <field
+                                            name="shipping_mark"
+                                    />
+
+                                    <field
+                                            name="brand"
+                                    />
+
+                                    <field
+                                            name="grain_type"
+                                    />
+
+                                    <field
+                                            name="variety"
+                                    />
+
+                                    <field
+                                            name="bag_net_weight"
+                                    />
+
+                                    <field
+                                            name="bag_tare_weight"
+                                    />
+
+                                </list>
+
+                            </field>
+
+                        </page>
+
+
+                        <page string="Loading Containers">
+
+                            <group string="Container Summary">
+
+                                <group>
+                                    <field
+                                            name="expected_container_count"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="loaded_container_count"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                                <group>
+                                    <field
+                                            name="remaining_container_count"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="extra_container_count"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                            </group>
+
+
+                            <field name="line_ids" nolabel="1">
+
+                                <list
+                                        editable="bottom"
+                                        default_order="sequence"
+                                >
+
+                                    <field
+                                            name="sequence"
+                                            widget="handle"
+                                    />
+
+                                    <field name="container_no"/>
+                                    <field name="seal_no"/>
+                                    <field name="no_of_bags"/>
+                                    <field name="gross_weight"/>
+                                    <field name="net_weight"/>
+                                    <field
+                                            name="tare_weight"
+                                            readonly="1"
+                                    />
+                                    <field name="vgm"/>
+                                    <field name="survey_agency"/>
+                                    <field name="survey_report_no"/>
+                                    <field name="loading_date"/>
+                                    <field name="terminal_port"/>
+
+                                </list>
+
+                            </field>
+
+                        </page>
+
+
+                        <page string="Totals">
+
+                            <group string="Container Totals">
+
+                                <group>
+                                    <field
+                                            name="expected_container_count"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="loaded_container_count"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                                <group>
+                                    <field
+                                            name="remaining_container_count"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="extra_container_count"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                            </group>
+
+
+                            <group string="Quantity and Weight Totals">
+
+                                <group>
+                                    <field
+                                            name="total_bags"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="quantity_metric_tons"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="total_net_weight"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                                <group>
+                                    <field
+                                            name="total_gross_weight"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="total_tare_weight"
+                                            readonly="1"
+                                    />
+
+                                    <field
+                                            name="total_vgm"
+                                            readonly="1"
+                                    />
+                                </group>
+
+                            </group>
+
+                        </page>
+
+                    </notebook>
+
+                    <chatter/>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Loading Container Line List View -->
+    <record
+            id="view_loading_container_packing_list_line_list"
+            model="ir.ui.view"
+    >
+        <field name="name">loading.container.packing.list.line.list</field>
+        <field name="model">loading.container.packing.list.line</field>
+        <field name="arch" type="xml">
+
+            <list string="Loading Container Lines">
+                <field name="sequence"/>
+                <field name="container_no"/>
+                <field name="seal_no"/>
+                <field name="no_of_bags"/>
+                <field name="gross_weight"/>
+                <field name="net_weight"/>
+                <field name="tare_weight"/>
+                <field name="vgm"/>
+                <field name="survey_agency"/>
+                <field name="survey_report_no"/>
+                <field name="loading_date"/>
+                <field name="terminal_port"/>
+                <field name="packing_list_id"/>
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- Loading Container Line Form View -->
+    <record
+            id="view_loading_container_packing_list_line_form"
+            model="ir.ui.view"
+    >
+        <field name="name">loading.container.packing.list.line.form</field>
+        <field name="model">loading.container.packing.list.line</field>
+        <field name="arch" type="xml">
+
+            <form string="Loading Container">
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h2>Loading Container</h2>
+                    </div>
+
+                    <group string="Container Information">
+
+                        <group>
+                            <field name="packing_list_id"/>
+                            <field name="sequence"/>
+                            <field name="container_no"/>
+                            <field name="seal_no"/>
+                            <field name="no_of_bags"/>
+                        </group>
+
+                        <group>
+                            <field name="gross_weight"/>
+                            <field name="net_weight"/>
+                            <field name="tare_weight" readonly="1"/>
+                            <field name="vgm"/>
+                        </group>
+
+                    </group>
+
+
+                    <group string="Survey / Inspection">
+
+                        <group>
+                            <field name="survey_agency"/>
+                            <field name="survey_report_no"/>
+                        </group>
+
+                        <group>
+                            <field name="loading_date"/>
+                            <field name="terminal_port"/>
+                        </group>
+
+                    </group>
+
+
+                    <group string="Related Information">
+
+                        <group>
+                            <field name="booking_id" readonly="1"/>
+                            <field name="vessel_name_voyage" readonly="1"/>
+                            <field name="shipping_line" readonly="1"/>
+                        </group>
+
+                        <group>
+                            <field name="cro_id" readonly="1"/>
+                            <field name="contract_no" readonly="1"/>
+                        </group>
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Packing List Action -->
+    <record
+            id="action_loading_container_packing_list"
+            model="ir.actions.act_window"
+    >
+        <field name="name">Packing Lists</field>
+        <field name="res_model">loading.container.packing.list</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- Packing List Menu -->
+    <menuitem
+            id="menu_loading_container_packing_list"
+            name="Packing Lists"
+            parent="menu_bm_export_root"
+            action="action_loading_container_packing_list"
+            sequence="40"
+    />
+
+</odoo>

@@ -4,9 +4,11 @@ import serial
 from dataclasses import dataclass
 from odoo.exceptions import UserError, ValidationError
 from odoo import models, fields, api, _
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
 import re
+
+from .gate_pass import GATE_PASS_CONFIRMED_STATE
 
 # Phase 5 Fix: Protocol 1.3 (Searchable Constants)
 WEIGHT_PATTERN_REGEX: str = r'(\d+(?:\.\d+)?)'
@@ -17,6 +19,10 @@ SERIAL_TIMEOUT: int = 2
 DEFAULT_WEIGHT = 0.0
 COMMAND_CLEAR_ALL: Tuple[int, int, int] = (5, 0, 0)
 COMMAND_CREATE_NEW: int = 0
+
+# --- Picking type codes (Protocol 1.3) ---
+PICKING_INCOMING: str = 'incoming'
+PICKING_OUTGOING: str = 'outgoing'
 
 
 @dataclass
@@ -125,7 +131,7 @@ class WeighbridgeTicket(models.Model):
         return self._open_form_view('gate.pass', self.gate_pass_id.id, 'Gate Pass')
 
     @api.onchange('gate_pass_id')
-    def _onchange_gate_pass_id(self) -> None:
+    def _onchange_gate_pass_id(self):
         if not self.gate_pass_id:
             self.update({'grn_inspection_id': False, 'partner_id': False, 'vehicle_number': False,
                          'line_ids': [COMMAND_CLEAR_ALL]})
@@ -177,7 +183,7 @@ class WeighbridgeTicket(models.Model):
         # 1. Try to find an existing draft/assigned/confirmed GRN that is not linked to another WB
         picking = self.env['stock.picking'].search([
             ('purchase_id', '=', purchase_order.id),
-            ('picking_type_code', '=', 'incoming'),
+            ('picking_type_code', '=', PICKING_INCOMING),
             ('state', 'in', ['assigned', 'confirmed', 'draft']),
             '|',
             ('weighbridge_id', '=', False),
@@ -188,7 +194,7 @@ class WeighbridgeTicket(models.Model):
         if not picking:
             po = purchase_order
             picking_type = po.picking_type_id or self.env['stock.picking.type'].search([
-                ('code', '=', 'incoming'), ('company_id', '=', self.env.company.id)
+                ('code', '=', PICKING_INCOMING), ('company_id', '=', self.env.company.id)
             ], limit=1)
             if not picking_type:
                 raise UserError(_("Please configure an incoming picking type."))
@@ -363,24 +369,61 @@ class WeighbridgeTicket(models.Model):
             'gate_pass_line_ids': gp_line_vals,
         }
 
+    # ==========================================================
+    # RETURN LOGIC (FIXED)
+    # ==========================================================
+
+    def _get_origin_returned_move(self, line: 'weighbridge.ticket.line') -> Optional['stock.move']:
+        """Protocol 2.1 (SRP): Find the original RECEIVED move this return undoes.
+
+        Preferred: the done incoming move of this PO line from the SAME GRN
+        inspection (same truck batch). Fallback: the latest done incoming move
+        for the PO line. The link lets the mill restore TLS and lets Odoo
+        reduce qty_received - without it, returns leave the PO numbers lying."""
+        self.ensure_one()
+        if not line.purchase_order_line_id:
+            return self.env['stock.move']
+
+        same_inspection_domain = [
+            ('purchase_line_id', '=', line.purchase_order_line_id.id),
+            ('picking_id.picking_type_code', '=', PICKING_INCOMING),
+            ('picking_id.state', '=', 'done'),
+            ('picking_id.grn_inspection_id', '=', self.grn_inspection_id.id),
+        ]
+        original_move = self.env['stock.move'].search(same_inspection_domain, limit=1, order='id desc')
+        if original_move:
+            return original_move
+
+        fallback_domain = [
+            ('purchase_line_id', '=', line.purchase_order_line_id.id),
+            ('picking_id.picking_type_code', '=', PICKING_INCOMING),
+            ('picking_id.state', '=', 'done'),
+        ]
+        return self.env['stock.move'].search(fallback_domain, limit=1, order='id desc')
+
     def _create_return_picking(self, gate_pass: 'gate.pass') -> 'stock.picking':
         self.ensure_one()
         picking_type_out = self.env['stock.picking.type'].search(
-            [('code', '=', 'outgoing'), ('company_id', '=', self.env.company.id)], limit=1)
+            [('code', '=', PICKING_OUTGOING), ('company_id', '=', self.env.company.id)], limit=1)
         if not picking_type_out:
             raise UserError(_("Please configure an outgoing picking type for returns."))
 
         move_lines: List[Tuple[int, int, Dict[str, Any]]] = []
         for line in self.line_ids:
+            # FIX 1: 'name' does not exist on stock.move in Odoo 19 (crash).
+            # FIX 2: origin_returned_move_id + to_refund link this return to the
+            # original receipt, so TLS is restored and qty_received reduced.
+            original_move = self._get_origin_returned_move(line)
             move_lines.append((COMMAND_CREATE_NEW, 0, {
                 'product_id': line.product_id.id,
-                'name': line.product_id.display_name,
                 'product_uom': line.product_id.uom_id.id,
                 'product_uom_qty': line.allocated_weight,
                 'quantity': line.allocated_weight,
                 'location_id': picking_type_out.default_location_src_id.id,
                 'location_dest_id': self.partner_id.property_stock_supplier.id,
                 'purchase_line_id': line.purchase_order_line_id.id,
+                'origin_returned_move_id': original_move.id if original_move else False,
+                'to_refund': True,
             }))
 
         unique_pos = self.line_ids.mapped('purchase_order_id')
@@ -441,12 +484,37 @@ class WeighbridgeTicket(models.Model):
         self.state = 'confirmed'
         gate_pass = self.env['gate.pass'].create(self._prepare_return_gate_pass_vals())
         self.gate_pass_id = gate_pass.id
+        # The return Gate Pass carries its returned weights from creation.
+        # gate_pass.apply_line_weight_totals()
 
         return_picking = self._create_return_picking(gate_pass)
         return_picking.action_confirm()
         return_picking.action_assign()
 
         return self._open_form_view('gate.pass', gate_pass.id, 'Return Gate Pass')
+
+    # ==========================================================
+    # GATE PASS FINALIZATION (requirement: weights FIRST,
+    # Exit state SECOND - in that order, on every confirm path)
+    # ==========================================================
+
+    def _finalize_gate_pass(self) -> None:
+        """Requirement: completing a ticket completes its Gate Pass -
+        line weights FIRST, Exit state SECOND (in that order).
+
+        The Weighbridge's allocated weights land on the Gate Pass lines
+        (apply_ticket_line_weights); the header totals follow automatically
+        (computed). Covers every single-Gate-Pass confirmation path:
+        procurement, manufacturing, and the single-GP outbound branch. The
+        multi-GP outbound ticket (sales) maps per-GP in its own
+        _sync_gate_pass_weights."""
+        for ticket in self:
+            gate_pass = ticket.gate_pass_id
+            if not gate_pass:
+                continue
+            gate_pass.apply_ticket_line_weights(ticket)
+            if gate_pass.state == GATE_PASS_CONFIRMED_STATE:
+                gate_pass.action_mark_exited()
 
     def action_confirm(self) -> Dict[str, Any]:
         self.ensure_one()
@@ -462,14 +530,14 @@ class WeighbridgeTicket(models.Model):
             if self.gross_weight <= 0 or self.tare_weight <= 0:
                 raise UserError(_("Please capture both First and Second weights before confirming."))
 
-        # FIX: Outbound flow - Simply confirm and update Gate Pass to Exited
+        # FIX: Outbound flow - map the truck's weights onto the Gate Pass,
+        # then exit it (weights first, state second).
         if self.weighbridge_type == 'outbound':
-            if self.gate_pass_id and self.gate_pass_id.state == 'confirmed':
-                self.gate_pass_id.action_mark_exited()
             self.state = 'confirmed'
+            self._finalize_gate_pass()
             return {'type': 'ir.actions.act_window_close'}
 
-        # Procurement Flow
+        # Procurement / Manufacturing Flow
         picking_ids_updated: List[int] = []
         unique_pos = self.line_ids.mapped('purchase_order_id')
         for po in unique_pos:
@@ -477,11 +545,11 @@ class WeighbridgeTicket(models.Model):
             self._update_picking_for_po(picking)
             picking_ids_updated.append(picking.id)
 
-        # Auto-mark the Gate Pass as Exited because the truck has successfully left
-        if self.gate_pass_id and self.gate_pass_id.state == 'confirmed':
-            self.gate_pass_id.action_mark_exited()
-
         self.state = 'confirmed'
+        # Requirement: the Gate Pass receives the truck's gross and net
+        # weights, and only then is marked Exited.
+        self._finalize_gate_pass()
+
         action = self.env['ir.actions.act_window']._for_xml_id('stock.action_picking_tree_incoming')
         action['domain'] = [('id', 'in', picking_ids_updated)]
         action['name'] = _('Updated GRNs')

@@ -1,0 +1,110 @@
+<odoo>
+    <record id="paperformat_sale_memo_landscape" model="report.paperformat">
+        <field name="name">Sale Memo Landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+    </record>
+
+    <record id="action_report_sale_memo_detail" model="ir.actions.report">
+        <field name="name">Sale Memo Detail</field>
+        <field name="model">sale.memo.rice.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">mr_rice_addons.report_sale_memo_detail_template</field>
+        <field name="report_file">mr_rice_addons.report_sale_memo_detail_template</field>
+        <field name="paperformat_id" ref="paperformat_sale_memo_landscape"/>
+    </record>
+
+    <template id="report_sale_memo_detail_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 11px; font-family: sans-serif; color: black;">
+
+                    <!-- Header As per Image -->
+                    <div class="text-center" style="border-bottom: 1px solid black; margin-bottom: 10px;">
+                        <h4 style="font-weight: bold; margin-bottom: 2px;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
+                        <h5 style="text-decoration: underline; font-weight: bold;">Sale Memo Detail</h5>
+                        <p>
+                            <span t-esc="data['date_from']"/>
+                            -
+                            <span t-esc="data['date_to']"/>
+                        </p>
+                    </div>
+
+                    <table class="table table-sm" style="width: 100%; border: 1px solid black;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid black; background-color: #f2f2f2;">
+                                <th style="border-right: 1px solid black;">Memo</th>
+                                <th style="border-right: 1px solid black;">Date</th>
+                                <th style="border-right: 1px solid black; width: 15%;">Customer</th>
+                                <th style="border-right: 1px solid black; width: 20%;">Item Name</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Bag</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Ctn</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Qty (Kgs)</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Rate</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Disct %</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Disct Sp.</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Net Amount</th>
+                                <th style="text-align: right; border-right: 1px solid black;">D/O Qty</th>
+                                <th style="text-align: right; border-right: 1px solid black;">Balance</th>
+                                <th style="text-align: center;">Closing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="total_net" t-value="0"/>
+                            <t t-foreach="docs" t-as="l">
+                                <tr style="border-bottom: 1px solid #ccc;">
+                                    <td style="border-right: 1px solid black;">
+                                        <span t-esc="l['memo']"/>
+                                    </td>
+                                    <td style="border-right: 1px solid black;">
+                                        <span t-esc="l['date']"/>
+                                    </td>
+                                    <td style="border-right: 1px solid black;">
+                                        <span t-esc="l['customer']"/>
+                                    </td>
+                                    <td style="border-right: 1px solid black;">
+                                        <span t-esc="l['item_name']"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.0f}'.format(l['bag'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.0f}'.format(l['ctn'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.2f}'.format(l['qty_kg'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.2f}'.format(l['rate'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;"><span
+                                            t-esc="l['disct_per']"/>%
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.2f}'.format(l['disct_sp'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.0f}'.format(l['net_amount'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.2f}'.format(l['do_qty'])"/>
+                                    </td>
+                                    <td style="text-align: right; border-right: 1px solid black;">
+                                        <span t-esc="'{0:,.2f}'.format(l['balance'])"/>
+                                    </td>
+                                    <td></td>
+                                    <t t-set="total_net" t-value="total_net + l['net_amount']"/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

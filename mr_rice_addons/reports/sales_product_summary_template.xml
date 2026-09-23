@@ -9,6 +9,7 @@
         <field name="margin_bottom">10</field>
         <field name="margin_left">7</field>
         <field name="margin_right">7</field>
+        <field name="header_spacing">15</field>
     </record>
 
     <!-- Report Action -->
@@ -26,72 +27,166 @@
     <template id="report_sales_product_summary_template">
         <t t-call="web.html_container">
             <t t-call="web.basic_layout">
-                <div class="page" style="font-size: 12px; font-family: sans-serif; color: black;">
+                <style>
+                    .page {
+                    font-family: Arial, sans-serif !important;
+                    font-size: 11px !important;
+                    color: black !important;
+                    letter-spacing: 0.5px !important;
+                    }
 
-                    <!-- Report Header -->
-                    <div class="text-center" style="margin-bottom: 10px;">
-                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
-                        <h5 style="font-weight: bold;">Sales Product Summary</h5>
-                        <div style="font-weight: bold; font-size: 15px;">
-                            <span t-esc="data['date_from']"/>
-                            -
+                    /* CUSTOM TABLE: No outer borders */
+                    .rice-summary-table {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    border: none !important; /* Pure table ka border khatam */
+                    }
+
+                    /* Header: Boxed according to image */
+                    .rice-summary-table thead tr th {
+                    border: 1.5px solid black !important;
+                    text-align: center;
+                    font-weight: bold;
+                    padding: 5px;
+                    }
+
+                    /* BODY CELLS: STRICTLY NO SIDE BORDERS */
+                    .rice-summary-table tbody tr td {
+                    border-left: 0px hidden !important; /* Left line gayab */
+                    border-right: 0px hidden !important; /* Right line gayab */
+                    border-top: none !important;
+                    border-bottom: none !important;
+                    padding: 4px 2px !important;
+                    vertical-align: middle;
+                    }
+
+                    /* Group Headings (e.g., BACHAT) */
+                    .template-heading {
+                    font-weight: bold !important;
+                    text-transform: uppercase;
+                    padding-top: 12px !important;
+                    }
+
+                    /* Subtotal Rows: Horizontal line only */
+                    .sub-total-line td {
+                    border-top: 1px solid black !important;
+                    font-weight: bold !important;
+                    }
+
+                    /* Grand Total: Double line at bottom */
+                    .grand-total-line td {
+                    border-top: 2px solid black !important;
+                    border-bottom: 4px double black !important;
+                    font-weight: bold !important;
+                    padding-top: 8px !important;
+                    }
+
+                    .text-right { text-align: right !important; }
+                    .text-left { text-align: left !important; }
+                </style>
+
+                <div class="page">
+
+                    <div class="header" style="width: 100%; text-align: right; font-size: 9px; margin-bottom: 0px;">
+                        Page
+                        <span class="page"/>
+                        of
+                        <span class="topage"/>
+                    </div>
+
+                    <div class="text-center" style="margin-bottom: 15px;">
+                        <h5 style="font-weight: bold; margin: 0; text-decoration: underline;">Bulk Management (Pakistan)
+                            Pvt. Ltd.
+                        </h5>
+                        <h6 style="font-weight: bold; margin: 2px;">Sales Product Summary</h6>
+                        <div style="font-weight: bold;">
+                            From: &amp;nbsp;
+                            <span t-esc="data['date_from']"/> &amp;nbsp; To: &amp;nbsp;
                             <span t-esc="data['date_to']"/>
                         </div>
                     </div>
 
-                    <!-- Main Table (Exactly 6 Columns) -->
-                    <table class="table table-sm"
-                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                    <!-- 'table' class nikaal di hai taaki default borders na aayein -->
+                    <table class="rice-summary-table">
                         <thead>
-                            <tr style="border-bottom: 2px solid black; text-align: center; vertical-align: middle;">
-                                <th style="width: 30%;">Product Name</th>
-                                <th style="width: 8%; text-align: right;">Bag</th>
-                                <th style="width: 8%; text-align: right;">Carton</th>
-                                <th style="width: 12%; text-align: right;">Qty (Kgs)</th>
-                                <th style="width: 15%; text-align: right;">Discount Sp.</th>
-                                <th style="width: 27%; text-align: right;">Net Amount</th>
+                            <tr>
+                                <th style="width: 40%;" class="text-left">Product Name</th>
+                                <th style="width: 10%;" class="text-right">Bag</th>
+                                <th style="width: 10%;" class="text-right">Carton</th>
+                                <th style="width: 12%;" class="text-right">Qty (Kgs)</th>
+                                <th style="width: 13%;" class="text-right">Discount Sp.</th>
+                                <th style="width: 15%;" class="text-right">Net Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="grouped_data" t-as="g">
-                                <tr style="border-bottom: 1px solid #ddd;">
-                                    <td>
-                                        <span t-esc="g['product_template_id']"/>
+                                <!-- Main Group Title -->
+                                <tr>
+                                    <td colspan="6" class="template-heading">
+                                        <span t-esc="g['template']"/>
                                     </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['bags']"/>
+                                </tr>
+
+                                <!-- Product Variants -->
+                                <t t-foreach="g['variants']" t-as="v">
+                                    <tr>
+                                        <td class="text-left">
+                                            <span t-esc="v['name']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(v['pcs'])"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(v['ctn'])"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(v['qty'])"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.2f}'.format(v['disct']) if v['disct'] > 0 else ''"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(v['net'])"/>
+                                        </td>
+                                    </tr>
+                                </t>
+
+                                <!-- Group Sub-Total -->
+                                <tr class="sub-total-line">
+                                    <td></td>
+                                    <td class="text-right">
+                                        <span t-esc="'{0:,.0f}'.format(g['t_pcs'])"/>
                                     </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['ctn']"/>
+                                    <td class="text-right">
+                                        <span t-esc="'{0:,.0f}'.format(g['t_ctn'])"/>
                                     </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['product_uom_qty']"/>
+                                    <td class="text-right">
+                                        <span t-esc="'{0:,.0f}'.format(g['t_qty'])"/>
                                     </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['discount_special']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="g['net_amount']"/>
+                                    <td class="text-right"></td>
+                                    <td class="text-right">
+                                        <span t-esc="'{0:,.0f}'.format(g['t_net'])"/>
                                     </td>
                                 </tr>
                             </t>
-                            <!-- Grand Total -->
-                            <tr style="border-top: 2px solid black; font-weight: bold;">
-                                <td style="text-align: right;">GRAND TOTAL:</td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_bags"/>
+
+                            <!-- Grand Total Section -->
+                            <tr class="grand-total-line">
+                                <td class="text-right"></td>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(grand_total_bags)"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_ctn"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(grand_total_ctn)"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_weight"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(grand_total_weight)"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_disct"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.2f}'.format(grand_total_disct) if grand_total_disct > 0 else ''"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="grand_total_net"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(grand_total_net)"/>
                                 </td>
                             </tr>
                         </tbody>

@@ -13,3 +13,5 @@ from . import delivery_order_report_wizard
 from . import invoice_report_wizard
 from . import sales_product_summary_wizard
 from . import sales_return_detail_wizard
+from . import outstanding_arrival_wizard
+from . import sale_memo_wizard

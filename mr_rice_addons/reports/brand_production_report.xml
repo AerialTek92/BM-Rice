@@ -1,9 +1,10 @@
 <odoo>
-    <!-- Paper Format (Landscape for wide table) -->
+    <!-- Paper Format (Portrait) -->
     <record id="paperformat_stock_picking_landscape" model="report.paperformat">
-        <field name="name">Stock Picking Landscape</field>
+        <field name="name">Stock Picking Portrait</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
         <field name="margin_top">30</field>
         <field name="margin_bottom">30</field>
         <field name="margin_left">7</field>
@@ -200,33 +201,33 @@
                             </div>
                         </div>
 
-                        <!-- Footer Signatures -->
-                        <!--                        <div class="mt-5 pt-4">-->
-                        <!--                            <div class="row text-center">-->
-                        <!--                                <div class="col-4">_______________________-->
-                        <!--                                    <br/>-->
-                        <!--                                    <strong>NOMAN ARSHAD</strong>-->
-                        <!--                                </div>-->
-                        <!--                                <div class="col-4">_______________________-->
-                        <!--                                    <br/>-->
-                        <!--                                    <strong>MUHAMMAD KHAN</strong>-->
-                        <!--                                </div>-->
-                        <!--                                <div class="col-4">_______________________-->
-                        <!--                                    <br/>-->
-                        <!--                                    <strong>MUSTUFA</strong>-->
-                        <!--                                </div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="row text-center mt-5">-->
-                        <!--                                <div class="col-6">_______________________-->
-                        <!--                                    <br/>-->
-                        <!--                                    <strong>MUHAMMAD HARIS</strong>-->
-                        <!--                                </div>-->
-                        <!--                                <div class="col-6">_______________________-->
-                        <!--                                    <br/>-->
-                        <!--                                    <strong>ZAIN UL ABIDEEN</strong>-->
-                        <!--                                </div>-->
-                        <!--                            </div>-->
-                        <!--                        </div>-->
+<!--                        Footer Signatures-->
+                        <div class="mt-5 pt-4">
+                            <div class="row text-center">
+                                <div class="col-4">_______________________
+                                    <br/>
+                                    <strong>NOMAN ARSHAD</strong>
+                                </div>
+                                <div class="col-4">_______________________
+                                    <br/>
+                                    <strong>MUHAMMAD KHAN</strong>
+                                </div>
+                                <div class="col-4">_______________________
+                                    <br/>
+                                    <strong>MUSTUFA</strong>
+                                </div>
+                            </div>
+                            <div class="row text-center mt-5">
+                                <div class="col-6">_______________________
+                                    <br/>
+                                    <strong>MUHAMMAD HARIS</strong>
+                                </div>
+                                <div class="col-6">_______________________
+                                    <br/>
+                                    <strong>ZAIN UL ABIDEEN</strong>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                 </t>

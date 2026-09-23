@@ -1,18 +1,37 @@
 <odoo>
-    <!-- 1. Wizard Form View -->
+    <!-- 1. Wizard Form View (Advanced Layout) -->
     <record id="view_grn_inspection_wizard_form" model="ir.ui.view">
         <field name="name">grn.inspection.detail.wizard.form</field>
         <field name="model">grn.inspection.detail.wizard</field>
         <field name="arch" type="xml">
             <form string="Print Inspection Detail">
-                <group>
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type"/>
+                        </group>
                     </group>
+
                     <group>
-                        <field name="date_to"/>
+                        <group string="Primary Filters">
+                            <field name="partner_id" string="Supplier" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Report Settings">
+                            <field name="inspection_state" widget="radio"/>
+                            <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -20,6 +39,7 @@
             </form>
         </field>
     </record>
+
 
     <!-- 2. Wizard Action -->
     <record id="action_grn_inspection_detail_wizard" model="ir.actions.act_window">
@@ -33,6 +53,12 @@
     <menuitem id="menu_grn_inspection_detail_report"
               name="GRN Inspection Detail"
               parent="stock.menu_warehouse_report"
+              action="action_grn_inspection_detail_wizard"
+              sequence="150"/>
+    <!-- 3. Menu Item (Inventory Reporting mein) -->
+    <menuitem id="menu_grn_inspection_detail_report_inventory"
+              name="GRN Inspection Detail"
+              parent="menu_inventory_reports_section"
               action="action_grn_inspection_detail_wizard"
               sequence="150"/>
 </odoo>

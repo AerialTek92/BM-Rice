@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- 1. Create the custom primary form view FIRST -->
+        <record id="view_picking_form_delivery" model="ir.ui.view">
+            <field name="name">stock.picking.form.delivery</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+
+                <!-- Replace the standard header group entirely with our balanced custom layout -->
+                <xpath expr="//sheet/div[hasclass('oe_title')]/following-sibling::group[1]" position="replace">
+                    <group>
+                        <!-- Left Column: Customer Details -->
+                        <group string="Customer Details">
+                            <field name="partner_id" string="Customer" readonly="state in ('cancel', 'done')"/>
+                            <field name="sale_id" invisible="1"/>
+                            <field name="sale_memo_id" string="Sales Memo No" readonly="state in ('cancel', 'done')"/>
+                            <field name="broker_id" string="Broker" readonly="state in ('cancel', 'done')"/>
+                        </group>
+
+                        <!-- Right Column: Delivery Info -->
+                        <group string="Delivery Info">
+                            <field name="location_id" string="Source Location" readonly="state in ('cancel', 'done')" groups="stock.group_stock_user"/>
+                            <field name="delivery_order_date" string="D/O Date" readonly="state in ('cancel', 'done')"/>
+                            <field name="total_qty" string="Total Qty" readonly="1"/>
+                            <field name="not_book_jv" string="NoteBook JV" readonly="state in ('cancel', 'done')"/>
+                        </group>
+                    </group>
+
+                    <!-- Full Width Remarks Section -->
+                    <group string="Delivery Remarks">
+                        <field name="delivery_remarks" nolabel="1" colspan="2"/>
+                    </group>
+                </xpath>
+
+                <!-- 2. Line (move_ids) mein Custom Fields add karna -->
+                <xpath expr="//field[@name='move_ids']//field[@name='product_id']" position="before">
+                    <field name="sale_order_id" string="SO No"/>
+                </xpath>
+
+                <!-- product_uom_qty (Demand) ki string "Qty" karna -->
+                <xpath expr="//field[@name='move_ids']//field[@name='product_uom_qty']" position="attributes">
+                    <attribute name="string">Qty</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='move_ids']//field[@name='product_uom_qty']" position="after">
+                    <field name="balance_qty" string="Balance"/>
+                    <field name="pcs" string="PCS"/>
+                    <field name="ctn" string="CTN"/>
+                </xpath>
+
+                <!-- Force Odoo's native 'quantity' field visible in Draft mode and rename to D/O Qty -->
+                <xpath expr="//field[@name='move_ids']//field[@name='quantity']" position="attributes">
+                    <attribute name="string">D/O Qty</attribute>
+                    <attribute name="invisible">0</attribute>
+                    <attribute name="column_invisible">False</attribute>
+                    <attribute name="optional">show</attribute>
+                    <attribute name="readonly">state in ('cancel', 'done')</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+        <!-- 2. Update Menu -->
+        <record id="stock.out_picking" model="ir.ui.menu">
+            <field name="name">Delivery Order</field>
+        </record>
+
+        <!-- 3. Update Action -->
+        <record id="stock.action_picking_tree_outgoing" model="ir.actions.act_window">
+            <field name="name">Delivery Order</field>
+            <!-- FIX: Changed 'tree' to 'list' for Odoo 19 compatibility -->
+            <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('stock.vpicktree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_picking_form_delivery')}),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('stock.stock_picking_kanban')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

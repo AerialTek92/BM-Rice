@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- List View -->
+    <!-- ========================================================= -->
+
+    <record id="view_container_release_order_list" model="ir.ui.view">
+        <field name="name">container.release.order.list</field>
+        <field name="model">container.release.order</field>
+        <field name="arch" type="xml">
+
+            <list string="Container Release Orders">
+
+                <field name="name"/>
+                <field name="date"/>
+                <field name="contract_no"/>
+                <field name="shipping_line"/>
+                <field name="container_count"/>
+                <field name="container_type"/>
+                <field name="empty_pickup_depot"/>
+                <field name="release_validity_date"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Form View -->
+    <!-- ========================================================= -->
+
+    <record id="view_container_release_order_form" model="ir.ui.view">
+        <field name="name">container.release.order.form</field>
+        <field name="model">container.release.order</field>
+        <field name="arch" type="xml">
+
+            <form string="Container Release Order">
+
+
+                <header>
+
+                    <button
+                            name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                    />
+
+                    <field
+                            name="state"
+                            widget="statusbar"
+                            statusbar_visible="draft,confirmed"
+                    />
+
+                </header>
+
+                <sheet>
+
+                    <!-- CRO Number -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <!-- Main Information -->
+                    <group>
+
+                        <group>
+                            <field name="date"/>
+                            <field name="contract_no"/>
+                            <field name="shipping_line"/>
+                            <field name="container_count"/>
+                        </group>
+
+                        <group>
+                            <field name="container_type"/>
+                            <field name="empty_pickup_depot"/>
+                            <field name="release_validity_date"/>
+                        </group>
+
+                    </group>
+
+                </sheet>
+
+                <chatter/>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Window Action -->
+    <!-- ========================================================= -->
+
+    <record id="action_container_release_order" model="ir.actions.act_window">
+        <field name="name">Container Release Orders</field>
+        <field name="res_model">container.release.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Menu -->
+    <!-- ========================================================= -->
+
+    <menuitem
+            id="menu_container_release_order"
+            name="Container Release Orders (CRO)"
+            parent="menu_bm_export_root"
+            action="action_container_release_order"
+            sequence="10"
+    />
+
+</odoo>

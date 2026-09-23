@@ -1,0 +1,97 @@
+<odoo>
+    <!-- ======================================================
+         1. READ-ONLY ACTIONS (FOR SIDEBAR & VIEWING DATA)
+         ====================================================== -->
+
+    <!-- Purchase Orders Read-Only -->
+    <record id="action_purchase_order_list_readonly" model="ir.actions.act_window">
+        <field name="name">Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
+    <!-- Sales Orders Read-Only -->
+    <record id="action_sale_order_list_readonly" model="ir.actions.act_window">
+        <field name="name">Sales Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
+    <!-- Accounting (Invoices/Bills) Read-Only -->
+    <record id="action_invoice_list_readonly" model="ir.actions.act_window">
+        <field name="name">Invoices &amp; Bills</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
+    <!-- Inventory (Transfers/GRN/DO) Read-Only -->
+    <record id="action_picking_list_readonly" model="ir.actions.act_window">
+        <field name="name">Inventory Transfers</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
+
+    <!-- ======================================================
+         2. MENU HIERARCHY (ROOT & SUB-SECTIONS)
+         ====================================================== -->
+
+    <!-- MAIN ROOT MENU (Dashboard App Icon) -->
+    <menuitem id="menu_mr_rice_addons_root"
+              name="Rice Reports"
+              web_icon="base,static/description/icon.png"
+              sequence="1"
+              groups="base.group_user"/>
+
+    <!-- PURCHASE SECTION -->
+    <menuitem id="menu_purchase_reports_section"
+              name="Purchase"
+              parent="menu_mr_rice_addons_root"
+              sequence="10"/>
+
+    <menuitem id="menu_po_list_view_link"
+              name="Purchase Orders List"
+              parent="menu_purchase_reports_section"
+              action="action_purchase_order_list_readonly"
+              sequence="1"/>
+
+    <!-- SALES SECTION -->
+    <menuitem id="menu_sales_reports_section"
+              name="Sales"
+              parent="menu_mr_rice_addons_root"
+              sequence="20"/>
+
+<!--    <menuitem id="menu_so_list_view_link"-->
+<!--              name="Sales Orders List"-->
+<!--              parent="menu_sales_reports_section"-->
+<!--              action="action_sale_order_list_readonly"-->
+<!--              sequence="1"/>-->
+
+    <!-- ACCOUNTING SECTION -->
+    <menuitem id="menu_accounting_reports_section"
+              name="Accounting"
+              parent="menu_mr_rice_addons_root"
+              sequence="30"/>
+
+<!--    <menuitem id="menu_invoice_list_view_link"-->
+<!--              name="Invoices &amp; Bills List"-->
+<!--              parent="menu_accounting_reports_section"-->
+<!--              action="action_invoice_list_readonly"-->
+<!--              sequence="1"/>-->
+
+    <!-- INVENTORY SECTION -->
+    <menuitem id="menu_inventory_reports_section"
+              name="Inventory"
+              parent="menu_mr_rice_addons_root"
+              sequence="40"/>
+
+<!--    <menuitem id="menu_picking_list_view_link"-->
+<!--              name="Inventory Transfers List"-->
+<!--              parent="menu_inventory_reports_section"-->
+<!--              action="action_picking_list_readonly"-->
+<!--              sequence="1"/>-->
+</odoo>

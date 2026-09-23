@@ -1,17 +1,37 @@
 <odoo>
+    <!-- Wizard Form View (Reference Layout Style) -->
     <record id="view_stock_picking_detail_wizard_form" model="ir.ui.view">
         <field name="name">stock.picking.detail.wizard.form</field>
         <field name="model">stock.picking.detail.wizard</field>
         <field name="arch" type="xml">
             <form string="Print Good Receipt Detail">
-                <group>
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
+
                     <group>
-                        <field name="date_to"/>
+                        <group string="Primary Filters">
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Report Settings">
+                            <field name="picking_type_code" widget="radio"/>
+                            <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -30,6 +50,11 @@
     <menuitem id="menu_stock_picking_detail"
               name="Good Receipt Report"
               parent="stock.menu_warehouse_report"
+              action="action_stock_picking_detail_wizard"
+              sequence="100"/>
+    <menuitem id="menu_stock_picking_detail_report"
+              name="Good Receipt Report"
+              parent="menu_inventory_reports_section"
               action="action_stock_picking_detail_wizard"
               sequence="100"/>
 </odoo>

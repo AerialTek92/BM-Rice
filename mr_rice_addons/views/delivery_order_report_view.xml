@@ -1,18 +1,83 @@
+<!--<odoo>-->
+<!--    &lt;!&ndash; 1. Wizard Form View &ndash;&gt;-->
+<!--    <record id="view_delivery_order_date_wizard_form" model="ir.ui.view">-->
+<!--        <field name="name">delivery.order.date.wizard.form</field>-->
+<!--        <field name="model">delivery.order.date.wizard</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Print Delivery Order Date Wise">-->
+<!--                <group>-->
+<!--                    <group>-->
+<!--                        <field name="date_from"/>-->
+<!--                    </group>-->
+<!--                    <group>-->
+<!--                        <field name="date_to"/>-->
+<!--                    </group>-->
+<!--                </group>-->
+<!--                <footer>-->
+<!--                    <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>-->
+<!--                    <button string="Cancel" class="btn-secondary" special="cancel"/>-->
+<!--                </footer>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; 2. Wizard Action &ndash;&gt;-->
+<!--    <record id="action_delivery_order_date_wizard" model="ir.actions.act_window">-->
+<!--        <field name="name">Delivery Order Date Wise</field>-->
+<!--        <field name="res_model">delivery.order.date.wizard</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="target">new</field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; 3. Menu Item (Inventory -> Reporting) &ndash;&gt;-->
+<!--    <menuitem id="menu_do_date_wise_report"-->
+<!--              name="Delivery Order Date Wise"-->
+<!--              parent="stock.menu_warehouse_report"-->
+<!--              action="action_delivery_order_date_wizard"-->
+<!--              sequence="170"/>-->
+<!--    &lt;!&ndash; 3. Menu Item (Inventory -> Reporting) &ndash;&gt;-->
+<!--    <menuitem id="menu_do_date_wise_report_inventory"-->
+<!--              name="Delivery Order Date Wise"-->
+<!--              parent="menu_inventory_reports_section"-->
+<!--              action="action_delivery_order_date_wizard"-->
+<!--              sequence="170"/>-->
+<!--</odoo>-->
+
+
 <odoo>
-    <!-- 1. Wizard Form View -->
+    <!-- 1. Wizard Form View (Reference Layout Style) -->
     <record id="view_delivery_order_date_wizard_form" model="ir.ui.view">
         <field name="name">delivery.order.date.wizard.form</field>
         <field name="model">delivery.order.date.wizard</field>
         <field name="arch" type="xml">
             <form string="Print Delivery Order Date Wise">
-                <group>
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
                     <group>
-                        <field name="date_to"/>
+                        <group>
+                            <field name="partner_id" string="Customer" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="contract_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="sale_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="report_type" widget="radio"/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -29,10 +94,16 @@
         <field name="target">new</field>
     </record>
 
-    <!-- 3. Menu Item (Inventory -> Reporting) -->
+    <!-- 3. Menu Items -->
     <menuitem id="menu_do_date_wise_report"
               name="Delivery Order Date Wise"
               parent="stock.menu_warehouse_report"
+              action="action_delivery_order_date_wizard"
+              sequence="170"/>
+
+    <menuitem id="menu_do_date_wise_report_inventory"
+              name="Delivery Order Date Wise"
+              parent="menu_sales_reports_section"
               action="action_delivery_order_date_wizard"
               sequence="170"/>
 </odoo>

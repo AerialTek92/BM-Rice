@@ -4,7 +4,7 @@
         <field name="name">production.record.view.form</field>
         <field name="model">production.record</field>
         <field name="arch" type="xml">
-            <form string="Production">
+            <form string="Rice Recovery">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_receive_from_mill" string="Receive from Mill" type="object" class="btn-success" invisible="state != 'confirmed'"/>
@@ -19,6 +19,9 @@
                         <button name="action_view_picking" type="object" class="oe_stat_button" icon="fa-truck" invisible="not picking_id">
                             <span class="o_stat_text">Transfer</span>
                         </button>
+                        <button name="action_view_manufacturing_order" type="object" class="oe_stat_button" icon="fa-wrench" invisible="not mrp_production_id">
+                            <span class="o_stat_text">Mfg Order</span>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
@@ -27,17 +30,23 @@
                     <!-- Section 1: Reference & Locations -->
                     <group string="Reference &amp; Locations">
                         <group>
-                            <field name="production_date" readonly="state != 'draft'"/>
-                            <!-- FIX: Added context to trigger custom display name -->
-                            <field name="job_order_id" readonly="state != 'draft'" context="{'production_record_job_view': True}"/>
+                            <field name="rice_type" invisible="1"/>
+                            <field name="production_date_from" readonly="state != 'draft'"/>
+                            <field name="production_date_to" readonly="state != 'draft'"/>
+                            <field name="production_date" invisible="1"/>
+                            <field name="job_order_id" readonly="state != 'draft'"
+                                   context="{'production_record_job_view': True}"/>
                             <field name="issue_material_id"/>
-                            <!-- FIX: Reworking Checkbox in Form View -->
                             <field name="is_reworking" readonly="state != 'draft'"/>
                             <field name="process_rice_qty"/>
-                            <field name="product_id"/>
+                            <!-- Single product field: visible for Basmati only -->
+                            <field name="product_id" invisible="rice_type == 'irri'"/>
+                            <field name="brand_id" string="Brand" invisible="rice_type == 'irri'"
+                                   options="{'no_create': True}"/>
+                            <field name="brand_ids" string="Brand" widget="many2many_tags"
+                                   invisible="rice_type != 'irri'" options="{'no_create': True}"/>
                         </group>
                         <group>
-                            <!-- FIX: Changed to Many2many tags -->
                             <field name="source_location_ids" widget="many2many_tags" readonly="state != 'draft'"/>
                             <field name="dest_location_id" readonly="state != 'draft'"/>
                         </group>
@@ -47,9 +56,9 @@
                     <group string="Weights &amp; Yield">
                         <group>
                             <field name="raw_material_weight"/>
-                            <!-- NEW: Link to Finished Weighbridge -->
                             <field name="finished_wb_ticket_id" readonly="state != 'draft'"/>
                             <field name="finished_material_weight" readonly="state == 'done'"/>
+                            <field name="primary_finished_weight" invisible="1"/>
                             <field name="byproduct_weight"/>
                         </group>
                         <group>
@@ -95,9 +104,9 @@
         <field name="name">production.record.view.tree</field>
         <field name="model">production.record</field>
         <field name="arch" type="xml">
-            <list string="Production Records">
+            <list string="Rice Recovery">
                 <field name="name"/>
-                <field name="production_date"/>
+                <field name="production_date" string="Production Date"/>
                 <field name="job_order_id"/>
                 <field name="is_reworking" readonly="state != 'draft'"/>
                 <field name="finished_material_weight"/>
@@ -108,14 +117,14 @@
     </record>
 
     <record id="action_production_record" model="ir.actions.act_window">
-        <field name="name">Production Records</field>
+        <field name="name">Rice Recovery</field>
         <field name="res_model">production.record</field>
         <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_production_record"
-              name="Production Records"
+              name="Rice Recovery"
               parent="menu_arm_rice_manufacturing"
               action="action_production_record"
-              sequence="40"/>
+              sequence="55"/>
 </odoo>

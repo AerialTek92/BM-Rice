@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <record id="view_bank_application_list" model="ir.ui.view">
+
+        <field name="name">bank.application.list</field>
+
+        <field name="model">bank.application</field>
+
+        <field name="arch" type="xml">
+
+            <list string="Bank Applications / FIU">
+
+                <field name="fiu_no"/>
+                <field name="fiu_date"/>
+                <field name="bank_name"/>
+                <field name="application_type"/>
+                <field name="booking_id"/>
+                <field name="contract_no"/>
+                <field name="invoice_value"/>
+                <field name="payment_terms"/>
+                <field name="iban"/>
+                <field name="swift_code"/>
+                <field name="state"/>
+
+            </list>
+
+        </field>
+
+    </record>
+
+
+    <record id="view_bank_application_form" model="ir.ui.view">
+
+        <field name="name">bank.application.form</field>
+
+        <field name="model">bank.application</field>
+
+        <field name="arch" type="xml">
+
+            <form string="Bank Application / FIU">
+
+                <header>
+
+                    <button
+                        name="action_submit"
+                        string="Submit"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'draft'"
+                    />
+
+                    <button
+                        name="action_approve"
+                        string="Approve"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'submitted'"
+                    />
+
+                    <button
+                        name="action_reset_to_draft"
+                        string="Reset to Draft"
+                        type="object"
+                        invisible="state == 'draft'"
+                    />
+
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,submitted,approved"
+                    />
+
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group string="FIU Information">
+
+                        <group>
+                            <field name="fiu_no"/>
+                            <field name="fiu_date"/>
+                            <field name="application_type"/>
+                        </group>
+
+                        <group>
+                            <field name="booking_id"/>
+
+                            <field
+                                name="contract_no"
+                                readonly="1"
+                            />
+
+                            <field
+                                name="contract_date"
+                                readonly="1"
+                            />
+                        </group>
+
+                    </group>
+
+
+                    <group string="Bank Information">
+
+                        <group>
+                            <field name="bank_name"/>
+                            <field name="iban"/>
+                            <field name="swift_code"/>
+                        </group>
+
+                        <group>
+                            <field name="invoice_value"/>
+                            <field
+                                name="currency_id"
+                                readonly="1"
+                            />
+                        </group>
+
+                    </group>
+
+
+                    <group string="Payment Information">
+
+                        <field
+                            name="payment_terms"
+                            placeholder="Payment against full scanned documents"
+                        />
+
+                    </group>
+
+                </sheet>
+
+                <chatter/>
+
+            </form>
+
+        </field>
+
+    </record>
+
+
+    <record
+        id="action_bank_application"
+        model="ir.actions.act_window"
+    >
+
+        <field name="name">Bank Applications / FIU</field>
+
+        <field name="res_model">bank.application</field>
+
+        <field name="view_mode">list,form</field>
+
+    </record>
+
+
+     <menuitem
+            id="menu_bank_application"
+            name="Bank Applications / FIU"
+            parent="menu_bm_export_root"
+            action="action_bank_application"
+            sequence="40"
+    />
+
+</odoo>

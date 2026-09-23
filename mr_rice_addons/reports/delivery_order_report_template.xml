@@ -9,6 +9,7 @@
         <field name="margin_bottom">10</field>
         <field name="margin_left">7</field>
         <field name="margin_right">7</field>
+        <field name="header_spacing">15</field>
     </record>
 
     <!-- 1. Report Action -->
@@ -25,104 +26,259 @@
     <!-- 2. PDF Template -->
     <template id="report_do_date_wise_template">
         <t t-call="web.html_container">
+            <!-- Odoo's basic_layout for header/footer support -->
             <t t-call="web.basic_layout">
-                <div class="page" style="font-size: 11px; font-family: sans-serif; color: black;">
+                <style>
+                    .page {
+                    font-family: "Times New Roman", Times, serif !important;
+                    color: black !important;
+                    font-size: 12px !important;
+                    margin-top: 0px !important;
+                    }
+                    .report-header {
+                    text-align: center;
+                    width: 100%;
+                    }
+                    .company-name {
+                    font-size: 18px;
+                    font-weight: bold;
+                    text-decoration: underline;
+                    }
+                    .report-title {
+                    font-size: 14px;
+                    font-weight: bold;
+                    margin-top: 2px;
+                    }
+                    .report-dates {
+                    font-size: 13px;
+                    font-weight: bold;
+                    }
+                    .page-count-top {
+                    text-align: right;
+                    font-size: 11px;
+                    }
 
-                    <!-- Report Header -->
-                    <div class="text-center" style="margin-bottom: 15px;">
-                        <h4 style="font-weight: bold; margin-bottom: 0;">Bulk Management (Pakistan) Pvt. Ltd.</h4>
-                        <h5 style="font-weight: bold;">Delivery Order</h5>
-                        <div style="font-weight: bold;">
-                            <span t-esc="data['date_from']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
-                            TO
-                            <span t-esc="data['date_to']" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                    /* Table Structure */
+                    .table-main {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    margin-top: 5px;
+                    }
+
+                    /* Header Styling: Boxed with Vertical Lines */
+                    .table-main thead th {
+                    border: 1px solid black !important;
+                    border-top: 2px solid black !important;
+                    border-bottom: 2.5px solid black !important;
+                    text-align: center;
+                    padding: 5px 2px;
+                    font-weight: bold;
+                    vertical-align: middle;
+                    text-transform: uppercase;
+                    }
+
+                    /* Body Styling: Strictly NO Borders by default */
+                    .table-main tbody tr td {
+                    border-left: 0px hidden !important;
+                    border-right: 0px hidden !important;
+                    <!--                    border-top: none !important;-->
+                    <!--                    border-bottom: 1.2px solid black !important;-->
+                    padding: 2px 4px;
+                    vertical-align: top;
+                    font-size: 11px;
+                    }
+
+                    /* THE SEPARATOR: Horizontal line only after each DO Group */
+                    .do-group-separator td {
+                    border-top: 1.5px solid black !important;
+                    border-bottom: 1.5px solid black !important;
+                    }
+
+                    .do-group-separator_two {
+                    border-top: 1.5px solid black !important;
+                    border-bottom: none !important;
+                    }
+
+                    .do-group-separator_three {
+                    border-top: 1.5px solid black !important;
+                    border-bottom: none !important;
+                    }
+
+                    /* Footer Totals */
+                    .grand-total-row td {
+                    border-top: 1.5px solid black !important;
+                    font-weight: bold;
+                    padding-top: 5px;
+                    }
+
+                    .text-right { text-align: right !important; }
+                    .text-center { text-align: center !important; }
+                    .text-left { text-align: left !important; }
+                    .no-border,
+                    .no-border table,
+                    .no-border thead,
+                    .no-border tbody,
+                    .no-border tfoot,
+                    .no-border tr,
+                    .no-border th,
+                    .no-border td {
+                    border: none !important;
+                    border-width: 0 !important;
+                    border-style: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                    }
+
+                    /* PDF / Print */
+                    @media print {
+                    .no-border,
+                    .no-border table,
+                    .no-border thead,
+                    .no-border tbody,
+                    .no-border tfoot,
+                    .no-border tr,
+                    .no-border th,
+                    .no-border td {
+                    border: none !important;
+                    border-width: 0 !important;
+                    border-style: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                    }
+
+                    .no-border {
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    }
+                    .o_table_boxed table:not(.o_ignore_layout_styling)::before, .o_table_boxed-rounded
+                    table:not(.o_ignore_layout_styling)::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    right: 0;
+                    pointer-events: none;
+                    border: 1px solid #374151;
+                    position: relative !important;
+                    border: white !important;
+                    }
+                    }
+                    .o_table_boxed table:not(.o_ignore_layout_styling)::before, .o_table_boxed-rounded
+                    table:not(.o_ignore_layout_styling)::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    right: 0;
+                    pointer-events: none;
+                    border: 1px solid #374151;
+                    position: relative !important;
+                    border: white !important;
+                    }
+                </style>
+
+                <div class="page">
+                    <!-- Top Right Page Count -->
+                    <div class="header" style="width: 100%; text-align: right; font-size: 9px; margin-bottom: 0px;">
+                        Page
+                        <span class="page"/>
+                        of
+                        <span class="topage"/>
+                    </div>
+
+                    <!-- Report Headers -->
+                    <div class="report-header">
+                        <div class="company-name">Bulk Management (Pakistan) Pvt. Ltd.</div>
+                        <div class="report-title">Delivery Order Detail</div>
+                        <div class="report-dates">
+                            <span t-esc="data['date_from']"/>
+                            -
+                            <span t-esc="data['date_to']"/>
                         </div>
                     </div>
 
-                    <!-- Main Table -->
-                    <table class="table table-sm"
-                           style="width: 100%; border-top: 2px solid black; border-bottom: 2px solid black;">
+                    <!-- Main Data Table -->
+                    <table class="table-main">
                         <thead>
-                            <tr style="border-bottom: 2px solid black; text-align: center;">
-                                <th style="width: 8%;">D/O NO.</th>
+                            <tr>
+                                <th style="width: 10%;">D/O NO.</th>
                                 <th style="width: 8%;">D/O Date</th>
-                                <th style="width: 15%;">Customer</th>
+                                <th style="width: 22%;">Customer</th>
                                 <th style="width: 8%;">Memo No</th>
                                 <th style="width: 20%;">Product Name</th>
-                                <th style="width: 7%; text-align: right;">Rate</th>
-                                <th style="width: 8%; text-align: right;">D/O Qty</th>
-                                <th style="width: 10%; text-align: right;">GatePass Qty</th>
-                                <th style="width: 8%; text-align: right;">Balance Qty</th>
-                                <th style="width: 10%; text-align: right;">Amount</th>
+                                <th style="width: 7%;">Rate</th>
+                                <th style="width: 6%;">D/O Qty</th>
+                                <th style="width: 7%;">GatePass Qty</th>
+                                <th style="width: 7%;">Balance Qty</th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="grouped_data" t-as="g">
-                                <!-- Customer Group Items -->
-                                <tr t-foreach="g['items']" t-as="l">
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['do_no']"/>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['do_date']"
-                                              t-options='{"widget": "date", "format": "dd/MM/yy"}'/>
-                                    </td>
-                                    <td>
-                                        <span t-esc="l['customer']"/>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span t-esc="l['memo_no']"/>
-                                    </td>
-                                    <td>
-                                        <span t-esc="l['product_name']"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.2f}'.format(l['rate'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(l['do_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(l['gatepass_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(l['balance_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.2f}'.format(l['amount'])"/>
-                                    </td>
-                                </tr>
-                                <!-- Customer Sub Total -->
-                                <tr style="border-top: 1px solid black; font-weight: bold; background-color: #f8f9fa;">
-                                    <td colspan="6" style="text-align: right;">Total:</td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(g['total_do_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(g['total_gp_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.3f}'.format(g['total_bal_qty'])"/>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <span t-esc="'{0:,.2f}'.format(g['total_amount'])"/>
-                                    </td>
-                                </tr>
+                                <!-- Category label if needed like "LOCAL" in image, otherwise items -->
+                                <t t-foreach="g['items']" t-as="l">
+                                    <tr t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                        <!-- Grouped Columns: Show only once per DO -->
+                                        <td style="text-align: left !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <t t-if="l_first">
+                                                <span t-esc="l['do_no']"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align: center !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <t t-if="l_first">
+                                                <span t-esc="l['do_date']"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align: left !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <t t-if="l_first">
+                                                <span t-esc="l['customer']"/>
+                                            </t>
+                                        </td>
+
+                                        <!-- Repeating Item Columns -->
+                                        <td style="text-align: center !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="l['memo_no']"/>
+                                        </td>
+                                        <td style="text-align: center !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="l['product_name']"/>
+                                        </td>
+                                        <td style="text-align: right !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="'{0:,.2f}'.format(float(l['rate']))"/>
+                                        </td>
+                                        <td style="text-align: right !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="'{0:,.0f}'.format(float(l['do_qty']))"/>
+                                        </td>
+                                        <td style="text-align: right !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="'{0:,.0f}'.format(float(l['gatepass_qty']))"/>
+                                        </td>
+                                        <td style="text-align: right !important"
+                                            t-att-class="'do-group-separator' if g['key'] == 1 else 'do-group-separator_two' if g['key'] == 2 and l_first else 'do-group-separator_three' if l_first else 'no-border'">
+                                            <span t-esc="'{0:,.0f}'.format(float(l['balance_qty'])) if float(l['balance_qty']) > 0 else ''"/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </t>
-                            <!-- Grand Total -->
-                            <tr style="border-top: 2px solid black; font-weight: bold; font-size: 12px;">
-                                <td colspan="6" style="text-align: right;">GRAND TOTAL:</td>
-                                <td style="text-align: right;">
-                                    <span t-esc="'{0:,.3f}'.format(grand_total_do)"/>
+
+                            <!-- Grand Total Footer Row -->
+                            <tr class="grand-total-row">
+                                <td colspan="6"></td>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(float(grand_total_do))"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="'{0:,.3f}'.format(grand_total_gp)"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(float(grand_total_gp))"/>
                                 </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="'{0:,.3f}'.format(grand_total_bal)"/>
-                                </td>
-                                <td style="text-align: right;">
-                                    <span t-esc="'{0:,.2f}'.format(grand_total_amt)"/>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.0f}'.format(float(grand_total_bal))"/>
                                 </td>
                             </tr>
                         </tbody>
@@ -131,4 +287,9 @@
             </t>
         </t>
     </template>
+
+
+    <!--    &#45;&#45;dev=xml-->
+
+
 </odoo>

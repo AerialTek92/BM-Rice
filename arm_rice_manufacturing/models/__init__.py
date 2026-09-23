@@ -1,4 +1,5 @@
 from . import process_rice_specification
+from . import rice_type_security
 from . import brand_job_order
 from . import production_planning
 from . import planning_schedule
@@ -9,3 +10,4 @@ from . import production_print_wizard
 from . import production_log_sheet
 from . import production_quality_control
 from . import weighbridge_manufacturing_extension
+from . import master_brand

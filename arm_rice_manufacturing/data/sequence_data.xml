@@ -53,7 +53,7 @@
             <field name="company_id" eval="False"/>
         </record>
 
-                <record id="seq_issue_material_rework" model="ir.sequence">
+        <record id="seq_issue_material_rework" model="ir.sequence">
             <field name="name">Issue Material (Rework)</field>
             <field name="code">issue.material.rework</field>
             <field name="prefix">RWK/ISS/%(y)s/</field>

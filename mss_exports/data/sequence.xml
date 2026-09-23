@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <record id="seq_container_release_order" model="ir.sequence">
+        <field name="name">Container Release Order</field>
+        <field name="code">container.release.order</field>
+        <field name="prefix">CRO-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+     <record id="seq_vessel_booking" model="ir.sequence">
+        <field name="name">Vessel Booking</field>
+        <field name="code">vessel.booking</field>
+        <field name="prefix">VB-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+
+    <record id="seq_loading_container_packing_list" model="ir.sequence">
+        <field name="name">Loading Container Packing List</field>
+        <field name="code">loading.container.packing.list</field>
+        <field name="prefix">PL-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_bank_application" model="ir.sequence">
+        <field name="name">Bank Application / FIU </field>
+        <field name="code">bank.application</field>
+        <field name="prefix">BA/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+     <record id="seq_custom_book_document" model="ir.sequence">
+        <field name="name">Custom Book Document</field>
+        <field name="code">custom.book.document</field>
+        <field name="prefix">CB-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="number_increment">1</field>
+    </record>
+
+
+    <record id="seq_bl_approval" model="ir.sequence">
+        <field name="name">BL Approval</field>
+        <field name="code">bl.approval</field>
+        <field name="prefix">BL-APP-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="number_increment">1</field>
+    </record>
+
+
+    <record id="seq_payment_cleaning" model="ir.sequence">
+        <field name="name">Payment / Cleaning</field>
+        <field name="code">payment.cleaning</field>
+        <field name="prefix">PAY-%(year)s-</field>
+        <field name="padding">3</field>
+        <field name="number_increment">1</field>
+    </record>
+
+
+
+
+
+
+
+
+</odoo>

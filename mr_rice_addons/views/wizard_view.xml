@@ -1,18 +1,38 @@
 <odoo>
-    <!-- 2. Wizard Form View -->
+    <!-- Wizard Form View (Reference Layout Style) -->
     <record id="view_purchase_order_wizard_form" model="ir.ui.view">
         <field name="name">purchase.order.wizard.form</field>
         <field name="model">purchase.order.wizard</field>
         <field name="arch" type="xml">
             <form string="Print Purchase Order Detail">
-                <group>
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
+
                     <group>
-                        <field name="date_to"/>
+                        <group string="Primary Filters">
+                            <field name="partner_id" string="Supplier" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Additional Selection">
+                            <field name="purchase_indent_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   placeholder="Select Indents..."/>
+                            <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -21,7 +41,7 @@
         </field>
     </record>
 
-    <!-- 3. Wizard Window Action -->
+    <!-- 2. Wizard Window Action -->
     <record id="action_purchase_order_wizard" model="ir.actions.act_window">
         <field name="name">PO Detail Report</field>
         <field name="res_model">purchase.order.wizard</field>
@@ -29,10 +49,23 @@
         <field name="target">new</field>
     </record>
 
-    <!-- 4. Menu Item (Reporting Menu mein) -->
-    <menuitem id="menu_purchase_order_report_detail"
-              name="PO Detail Report"
+    <!-- Report 1: Purchase Section -->
+    <menuitem id="menu_purchase_order_report_detail_report"
+              name="Purchase Order Detail"
+              parent="menu_purchase_reports_section"
+              action="action_purchase_order_wizard"
+              sequence="100"/>
+
+    <!-- Default Odoo Menus Link -->
+    <menuitem id="menu_purchase_order_report_detail_purchase"
+              name="Purchase Order Detail"
               parent="purchase.purchase_report_main"
+              action="action_purchase_order_wizard"
+              sequence="100"/>
+
+    <menuitem id="menu_purchase_order_report_detail_sale"
+              name="Purchase Order Detail"
+              parent="sale.menu_sale_report"
               action="action_purchase_order_wizard"
               sequence="100"/>
 </odoo>

@@ -7,3 +7,6 @@ from . import weighbridge
 from . import stock_picking
 from . import payment_certificate
 from . import payment_voucher
+from . import purchase_indent
+from . import material_issue_note
+from . import material_inspection

@@ -1,123 +1,205 @@
 <odoo>
-
+    <!-- Paper Format -->
     <record id="paperformat_purchase_order" model="report.paperformat">
-        <field name="name">Purchase Order Paper Format</field>
+        <field name="name">Purchase Order Portrait</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
-        <field name="orientation">Portrait</field>
-        <field name="margin_top">10</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field> <!-- Increased top margin to fit header -->
         <field name="margin_bottom">10</field>
-        <field name="margin_left">7</field>
-        <field name="margin_right">7</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_spacing">15</field> <!-- Added spacing for page count -->
     </record>
 
-    <!-- 1. Report Action -->
+    <!-- Action -->
     <record id="action_report_purchase_order_detail" model="ir.actions.report">
         <field name="name">Purchase Order Detail</field>
         <field name="model">purchase.order</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_purchase_order_template</field>
         <field name="report_file">mr_rice_addons.report_purchase_order_template</field>
-        <field name="print_report_name">'PO Detail Report'</field>
-        <field name="binding_type">report</field>
         <field name="paperformat_id" ref="paperformat_purchase_order"/>
     </record>
 
+    <!-- Template -->
     <template id="report_purchase_order_template">
         <t t-call="web.html_container">
-            <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; padding: 10px;">
+            <t t-call="web.basic_layout">
+                <style>
+                    /* Font aur Letter Spacing */
+                    .page {
+                    font-family: 'Arial', sans-serif !important;
+                    color: black !important;
+                    letter-spacing: 0.8px !important; /* Lafzon mein space */
+                    line-height: 1.4 !important;
+                    }
 
-                <div style="width: 100%; text-align: center; margin-bottom: 30px;">
-                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Purchase Order Detail</h2>
-                    <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px;">
-                        <span t-esc="date_from"/>
-                        -
-                        <span t-esc="date_to"/>
-                    </p>
+                    /* Table Level Fixes: Side borders bilkul khatam */
+                    .rice-report-table {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    border: none !important;
+                    border-left: 0px hidden !important; /* Left line khatam */
+                    border-right: 0px hidden !important; /* Right line khatam */
+                    }
+
+                    /* Header: Boxed (Isme borders honge jaisa pic 2 mein hai) */
+                    .rice-report-table thead tr th {
+                    border: 1.5px solid black !important;
+                    text-align: center;
+                    font-size: 11px;
+                    font-weight: bold;
+                    padding: 8px 4px !important;
+                    vertical-align: middle;
+                    letter-spacing: 1px !important;
+                    }
+
+                    /* Body Cells: Sirf Bottom border, NO SIDE BORDERS */
+                    .rice-report-table tbody tr td {
+                    border-left: 0px hidden !important; /* Bilkul khatam */
+                    border-right: 0px hidden !important; /* Bilkul khatam */
+                    border-top: none !important;
+                    border-bottom: 1.2px solid black !important; /* Sirf niche wali line */
+                    padding: 12px 5px !important; /* Khula khula text */
+                    font-size: 11px;
+                    vertical-align: top;
+                    }
+
+                    /* Footer/Totals section */
+                    .total-border {
+                    border-top: 2px solid black !important;
+                    border-bottom: 2px solid black !important;
+                    font-weight: bold !important;
+                    }
+
+                    .text-right { text-align: right !important; }
+                    .text-center { text-align: center !important; }
+
+                    /* Extra note styling */
+                    .note-text {
+                    font-size: 9.5px;
+                    text-transform: uppercase;
+                    margin-top: 6px;
+                    display: block;
+                    letter-spacing: 0.5px !important;
+                    }
+                </style>
+
+                <!-- ============================================================ -->
+                <!-- FIXED: Odoo automatically extracts class="header" and renders -->
+                <!-- it on EVERY page at the top.                                -->
+                <!-- ============================================================ -->
+                <div class="header" style="width:100%; text-align:right; font-size:10px; margin-bottom: 5px;">
+                    Page
+                    <span class="page"/>
+                    of
+                    <span class="topage"/>
                 </div>
 
-                <table class="table table-bordered"
-                       style="width: 100%; border: 1px solid black; border-collapse: collapse;">
-                    <thead style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
-                        <tr>
-                            <th style="border: 1px solid black;">P/O NO.<br/>P/ Date
-                            </th>
-                            <th style="border: 1px solid black;">Supplier Name<br/>Broker Name
-                            </th>
-                            <th style="border: 1px solid black;">Quantity(Kgs)<br/>No of Trucks
-                            </th>
-                            <th style="border: 1px solid black;">Rate (Rs)<br/>Amount (Rs)
-                            </th>
-                            <th style="border: 1px solid black;">Broker %<br/>Moisture %
-                            </th>
-                            <th style="border: 1px solid black;">Delivery Date<br/>No of Bags
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-set="total_qty" t-value="0"/>
-                        <t t-set="total_amount" t-value="0"/>
-                        <t t-set="total_bags" t-value="0"/>
+                <div class="page">
+                    <!-- Title -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h5 style="font-weight: bold; margin: 0; letter-spacing: 1.5px; text-decoration: underline;">
+                            Purchase Order Detail
+                        </h5>
+                        <div style="font-weight: bold; font-size: 13px; margin-top: 5px;">
+                            <span t-esc="date_from" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                            -
+                            <span t-esc="date_to" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                        </div>
+                    </div>
 
-                        <t t-foreach="docs" t-as="o">
-                            <t t-foreach="o.order_line" t-as="line">
-                                <tr style="border-bottom: 1px solid #ccc;">
-                                    <td style="border-left: 1px solid black; border-right: 1px solid black; padding: 5px;">
-                                        <span t-field="o.name"/>
-                                        <br/>
-                                        <span t-field="o.date_order" t-options='{"widget": "date"}'/>
-                                    </td>
-                                    <td style="border-right: 1px solid black; padding: 5px;">
-                                        <span t-field="o.partner_id.name"/>
-                                        <br/>
-                                        <span t-field="o.broker_id.name"/>
-                                        (<span t-field="line.product_id.name"/>)
-                                    </td>
-                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
-                                        <span t-field="line.product_qty"/>
-                                        <br/>
-                                        <span t-field="line.no_of_trucks"/>
-                                    </td>
-                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
-                                        <span t-field="line.price_unit"/>
-                                        <br/>
-                                        <span t-field="line.price_subtotal"/>
-                                    </td>
-                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
-                                        <span t-field="line.broken_percent"/>%
-                                        <br/>
-                                        <span t-field="line.moisture_percent"/>%
-                                    </td>
-                                    <td style="border-right: 1px solid black; text-align: right; padding: 5px;">
-                                        <span t-field="o.delivery_date_to"/>
-                                        <br/>
-                                        <span t-field="line.no_of_bags"/>
-                                    </td>
-                                </tr>
-                                <!-- Totals Calculation -->
-                                <t t-set="total_qty" t-value="total_qty + line.product_qty"/>
-                                <t t-set="total_amount" t-value="total_amount + line.price_subtotal"/>
-                                <t t-set="total_bags" t-value="total_bags + line.no_of_bags"/>
+                    <!-- Main Data Table -->
+                    <table class="rice-report-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">P/O NO.<br/>P/ Date
+                                </th>
+                                <th style="width: 35%;">Supplier Name<br/>Broker Name
+                                </th>
+                                <th style="width: 12%;" class="text-right">Quantity(Kgs)<br/>No of Trucks
+                                </th>
+                                <th style="width: 12%;" class="text-right">Rate (Rs)<br/>Amount (Rs)
+                                </th>
+                                <th style="width: 12%;" class="text-center">Broker %<br/>Moisture %
+                                </th>
+                                <th style="width: 14%;" class="text-center">Delivery Date<br/>No of Bags
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="t_qty" t-value="0"/>
+                            <t t-set="t_amount" t-value="0"/>
+                            <t t-set="t_bags" t-value="0"/>
+
+                            <t t-foreach="docs" t-as="o">
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tr>
+                                        <td class="text-center">
+                                            <span t-field="o.name"/>
+                                            <br/>
+                                            <span t-field="o.date_order"
+                                                  t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                        </td>
+                                        <td>
+                                            <span style="font-weight: bold;" t-field="o.partner_id.name"/>
+                                            <br/>
+                                            <span t-field="o.broker_id.name"/>
+                                            <span t-if="o.broker_id"></span>
+                                            (<span t-field="line.product_id.name"/>)
+                                            <div class="note-text" t-if="line.name">
+                                                <span t-field="line.name"/>
+                                            </div>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(line.product_qty)"/>
+                                            <br/>
+                                            <span t-field="line.no_of_trucks"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.2f}'.format(line.price_unit)"/>
+                                            <br/>
+                                            <span t-esc="'{0:,.0f}'.format(line.price_subtotal)"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="line.broken_percent"/>%
+                                            <br/>
+                                            <span t-field="line.moisture_percent"/>%
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="o.delivery_date_to"
+                                                  t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                            <br/>
+                                            <span t-esc="'{0:,.0f}'.format(line.no_of_bags)"/>
+                                        </td>
+                                    </tr>
+                                    <t t-set="t_qty" t-value="t_qty + line.product_qty"/>
+                                    <t t-set="t_amount" t-value="t_amount + line.price_subtotal"/>
+                                    <t t-set="t_bags" t-value="t_bags + line.no_of_bags"/>
+                                </t>
                             </t>
-                        </t>
-                    </tbody>
-                    <tfoot style="font-weight: bold; background-color: #f2f2f2; border: 2px solid black;">
-                        <tr>
-                            <td colspan="2" style="text-align: right; border: 1px solid black;">TOTALS:</td>
-                            <td style="text-align: right; border: 1px solid black;">
-                                <span t-esc="'{:,}'.format(total_qty)"/>
+                        </tbody>
+                    </table>
+
+                    <!-- Totals Table -->
+                    <table class="rice-report-table" style="margin-top: 10px;">
+                        <tr style="border:none !important;">
+                            <td style="width: 50%; border-bottom: none !important;" class="text-right"></td>
+                            <td style="width: 12%; border-bottom: none !important;" class="text-right total-border">
+                                <span t-esc="'{0:,.0f}'.format(t_qty)"/>
                             </td>
-                            <td style="text-align: right; border: 1px solid black;">
-                                <span t-esc="'{:,}'.format(total_amount)"/>
+                            <td style="width: 12%; border-bottom: none !important;" class="text-right total-border">
+                                <span t-esc="'{0:,.0f}'.format(t_amount)"/>
                             </td>
-                            <td style="border: 1px solid black;"></td>
-                            <td style="text-align: right; border: 1px solid black;">
-                                <span t-esc="'{:,}'.format(total_bags)"/>
+                            <td style="width: 12%; border-bottom: none !important;"></td>
+                            <td style="width: 14%; border-bottom: none !important;" class="text-center total-border">
+                                <span t-esc="'{0:,.0f}'.format(t_bags)"/>
                             </td>
                         </tr>
-                    </tfoot>
-                </table>
-            </div>
+                    </table>
+                </div>
+            </t>
         </t>
     </template>
 </odoo>

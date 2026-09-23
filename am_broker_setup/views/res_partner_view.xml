@@ -7,8 +7,7 @@
             <!-- Group 1: Radio and Rates -->
             <xpath expr="//field[@name='vat']" position="after">
                 <field name="partner_assign_type" widget="radio" options="{'horizontal': true}"/>
-                <!-- <field name="brokerage_rate" invisible="partner_assign_type != 'broker'"/> -->
-                <field name="wh_tax_rate" invisible="partner_assign_type != 'broker'"/>
+                <field name="wh_tax_rate" invisible="partner_assign_type != 'vendor'"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_assign_type']" position="before">
@@ -22,17 +21,14 @@
             </xpath>
 
             <xpath expr="//field[@name='category_id']" position="after">
-                <field name="broker_category" invisible="partner_assign_type != 'customer'"/>
+                <field name="broker_category" invisible="partner_assign_type != 'vendor'"/>
             </xpath>
 
             <!-- FIX: Control Company field visibility based on Person/Company radio button -->
-            <!-- Hides when Person (is_company == False), Shows when Company (is_company == True) -->
             <xpath expr="//field[@name='parent_id']" position="attributes">
                 <attribute name="invisible">is_company == False</attribute>
             </xpath>
 
-            <!-- Standard Odoo hides these for companies, but we might want to keep them visible or hidden based on your specific needs.
-                 Adjusting standard visibility for Job Position and Email if needed. -->
             <xpath expr="//field[@name='function']" position="attributes">
                 <attribute name="invisible">is_company == True</attribute>
             </xpath>
@@ -40,7 +36,6 @@
                 <attribute name="invisible">is_company == True</attribute>
             </xpath>
 
-            <!-- Hiding the address block label/name for companies is standard, but let's ensure it behaves correctly -->
             <xpath expr="//span[@name='address_name']" position="attributes">
                 <attribute name="invisible">is_company == True</attribute>
             </xpath>
@@ -68,6 +63,30 @@
                         </group>
                     </group>
                 </page>
+
+                <page string="Tax Configuration">
+                    <group>
+
+                        <group string="Withholding Tax">
+
+                            <field name="withholding_tax_rate"/>
+
+                            <field name="withholding_tax_account"/>
+
+                        </group>
+
+
+                        <group string="Income Tax">
+
+                            <field name="income_tax_rate"/>
+
+                            <field name="income_tax_account"/>
+
+                        </group>
+
+                    </group>
+                </page>
+
             </xpath>
         </field>
     </record>

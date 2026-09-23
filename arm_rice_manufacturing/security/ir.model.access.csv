@@ -27,3 +27,9 @@ access_final_inspection_report,final.inspection.report,model_final_inspection_re
 access_final_inspection_report_line,final.inspection.report.line,model_final_inspection_report_line,base.group_user,1,1,1,1
 access_planning_schedule,planning.schedule,model_planning_schedule,base.group_user,1,1,1,1
 access_planning_schedule_line,planning.schedule.line,model_planning_schedule_line,base.group_user,1,1,1,1
+access_master_bag_weight_user,master.bag.weight,model_master_bag_weight,base.group_user,1,0,1,0
+access_master_bag_weight_system,master.bag.weight,model_master_bag_weight,base.group_system,1,1,1,1
+access_bjo_packing_line,brand.job.order.packing.line,model_brand_job_order_packing_line,base.group_user,1,1,1,1
+access_master_brand,master.brand,model_master_brand,base.group_user,1,1,1,1
+access_prs_product_line,process.rice.spec.product.line,model_process_rice_spec_product_line,base.group_user,1,1,1,1
+access_master_plant,master.plant,model_master_plant,base.group_user,1,1,1,1

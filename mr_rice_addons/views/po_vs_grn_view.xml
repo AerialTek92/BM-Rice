@@ -1,34 +1,68 @@
 <odoo>
-    <!-- 1. Wizard Form View -->
-        <record id="view_po_vs_grn_wizard_form" model="ir.ui.view">
-            <field name="name">po.vs.grn.wizard.form</field>
-            <field name="model">po.vs.grn.wizard</field>
-            <field name="arch" type="xml">
-                <form string="Print PO v/s GRN Comparison">
+    <!-- 1. Wizard Form View (Advanced Layout Style) -->
+    <record id="view_po_vs_grn_wizard_form" model="ir.ui.view">
+        <field name="name">po.vs.grn.wizard.form</field>
+        <field name="model">po.vs.grn.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print PO v/s GRN Comparison">
+                <sheet>
                     <group>
-                        <group><field name="date_from"/></group>
-                        <group><field name="date_to"/></group>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
-                    <footer>
-                        <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
 
-        <!-- 2. Wizard Action -->
-        <record id="action_po_vs_grn_wizard" model="ir.actions.act_window">
-            <field name="name">PO v/s GRN Report</field>
-            <field name="res_model">po.vs.grn.wizard</field>
-            <field name="view_mode">form</field>
-            <field name="target">new</field>
-        </record>
+                    <group>
+                        <group string="Filters">
+                            <field name="partner_id" string="Supplier" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="broker_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group string="Report Settings">
+                            <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_print_report" string="Print Comparison" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 
-        <!-- 3. Menu Item (Purchase Reporting mein) -->
-        <menuitem id="menu_po_vs_grn_report"
-                  name="PO v/s Goods Receipt"
-                  parent="purchase.purchase_report_main"
-                  action="action_po_vs_grn_wizard"
-                  sequence="120"/>
+    <!-- 2. Wizard Action -->
+    <record id="action_po_vs_grn_wizard" model="ir.actions.act_window">
+        <field name="name">PO v/s GRN Report</field>
+        <field name="res_model">po.vs.grn.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menu Item (Purchase Reporting Menu mein) -->
+    <menuitem id="menu_po_vs_grn_report_purchase"
+              name="Purchase Order v/s Goods Receipt"
+              parent="purchase.purchase_report_main"
+              action="action_po_vs_grn_wizard"
+              sequence="120"/>
+    <!-- 3. Menu Item (Sale Reporting Menu mein) -->
+    <menuitem id="menu_po_vs_grn_report_sale"
+              name="Purchase Order v/s Goods Receipt"
+              parent="sale.menu_sale_report"
+              action="action_po_vs_grn_wizard"
+              sequence="120"/>
+    <!-- 3. Menu Item (Sale Reporting Menu mein) -->
+    <menuitem id="menu_po_vs_grn_report_rice"
+              name="Purchase Order v/s Goods Receipt"
+              parent="menu_purchase_reports_section"
+              action="action_po_vs_grn_wizard"
+              sequence="120"/>
 </odoo>

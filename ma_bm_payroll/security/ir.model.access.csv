@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_overtime_setup_user,overtime.setup.user,model_overtime_setup,base.group_user,1,0,0,0
+access_overtime_setup_manager,overtime.setup.manager,model_overtime_setup,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_overtime_setup_line_user,overtime.setup.line.user,model_overtime_setup_line,base.group_user,1,0,0,0
+access_overtime_setup_line_manager,overtime.setup.line.manager,model_overtime_setup_line,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_bm_attendance_upload_wizard,bm.attendance.upload.wizard,model_bm_attendance_upload_wizard,hr.group_hr_user,1,1,1,1
+access_hr_attendance_biometric_user,hr.attendance.biometric.user,model_hr_attendance,hr.group_hr_user,1,0,0,0
+access_hr_attendance_biometric_manager,hr.attendance.biometric.manager,model_hr_attendance,hr.group_hr_manager,1,1,1,1
+access_resource_calendar_leave_days_user,resource.calendar.leave.days.user,model_resource_calendar_leave_days,base.group_user,1,1,1,0
+access_resource_calendar_leave_days_manager,resource.calendar.leave.days.manager,model_resource_calendar_leave_days,hr.group_hr_manager,1,1,1,1
+access_hr_employee_leaves_days_user,hr.employee.leaves.days.user,model_hr_employee_leaves_days,base.group_user,1,1,1,0
+access_hr_employee_leaves_days_manager,hr.employee.leaves.days.manager,model_hr_employee_leaves_days,hr.group_hr_manager,1,1,1,1

@@ -1,20 +1,22 @@
 <odoo>
-    <!-- Paper Format (Landscape for wide table) -->
+    <!-- Paper Format (Landscape) -->
     <record id="paperformat_stock_picking_landscape" model="report.paperformat">
         <field name="name">Stock Picking Landscape</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
         <field name="orientation">Landscape</field>
-        <field name="margin_top">10</field>
+        <field name="margin_top">10</field> <!-- Increased top margin to fit header -->
         <field name="margin_bottom">10</field>
-        <field name="margin_left">7</field>
-        <field name="margin_right">7</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_spacing">15</field> <!-- Added spacing for page count -->
     </record>
+
     <!-- Report Action -->
     <record id="action_report_po_vs_grn" model="ir.actions.report">
         <field name="name">Purchase Order v/s Goods Receipt</field>
         <field name="model">purchase.order</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_po_vs_grn_template</field>
         <field name="report_file">mr_rice_addons.report_po_vs_grn_template</field>
         <field name="print_report_name">'PO_vs_GRN_Report'</field>
@@ -24,219 +26,244 @@
 
     <template id="report_po_vs_grn_template">
         <t t-call="web.html_container">
-            <style>
-                .main-container {
-                font-family: 'Arial', sans-serif;
-                font-size: 10px;
-                color: black;
-                }
-                .table-report {
-                width: 100%;
-                border-collapse: collapse;
-                }
-                /* Header Borders */
-                .table-report thead tr.border-row th {
-                border-top: 1.5px solid black;
-                border-bottom: 1px solid black;
-                }
-                .table-report thead tr.title-row th {
-                border: none !important;
-                }
-                /* Section Separators (Vertical Lines) */
-                .border-left { border-left: 1px solid black !important; }
-                .border-right { border-right: 1px solid black !important; }
+            <t t-call="web.basic_layout">
+                <style>
+                    .page {
+                    font-family: Arial, sans-serif !important;
+                    font-size: 10px !important;
+                    color: black !important;
+                    letter-spacing: 0.5px;
+                    }
 
-                .text-right { text-align: right; }
-                .text-center { text-align: center; }
-                .text-left { text-align: left; }
+                    .rice-clean-table {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    border: none !important;
+                    }
 
-                /* Footer Totals Style */
-                .total-border-top { border-top: 1px solid black !important; }
-                .total-double-bottom { border-bottom: 3px double black !important; }
+                    /* FIX: Body Cells mein ab BILKUL koi border nahi. No left, right, top, bottom lines. */
+                    .rice-clean-table tbody td {
+                    border-bottom: 1.5px solid black !important;
+                    border-left: 0px hidden !important;
+                    border-right: 0px hidden !important;
+                    border-top: 0px hidden !important;
+                    padding: 4px 2px !important;
+                    vertical-align: top;
+                    }
 
-                th, td {
-                padding: 3px 5px;
-                vertical-align: top;
-                }
-                .po-row-group {
-                page-break-inside: avoid;
-                }
-            </style>
+                    /* Header: Boxed according to image */
+                    .rice-clean-table thead tr th {
+                    border: 1.5px solid black !important;
+                    text-align: center;
+                    font-weight: bold;
+                    padding: 4px 2px;
+                    vertical-align: middle;
+                    }
 
-            <div class="page main-container">
-                <table class="table-report">
-                    <thead>
-                        <!-- Report Title & Page Info -->
-                        <tr class="title-row">
-                            <th colspan="10" style="text-align: center; padding-bottom: 15px;">
-                                <div style="float: right; font-weight: normal; font-size: 9px;">
-                                    Page
-                                    <span class="page"/>
-                                    of
-                                    <span class="topage"/>
-                                </div>
-                                <h4 style="margin:0; font-weight: bold; font-size: 14px;">Purchase Order v/s Goods
-                                    Receipt
-                                </h4>
-                                <div style="font-weight: bold; font-size: 11px;">
-                                    <span t-esc="date_from"/>
-                                    -
-                                    <span t-esc="date_to"/>
-                                </div>
-                            </th>
-                        </tr>
+                    /* PO TOTAL ROW: Sirf upar aur niche horizontal line aayegi, no side lines */
+                    .rice-clean-table tbody tr.po-total-line td {
+                    border-top: 1.5px solid black !important;
+                    border-bottom: 1.5px solid black !important;
+                    border-left: 0px hidden !important;
+                    border-right: 0px hidden !important;
+                    font-weight: bold !important;
+                    padding-top: 8px !important;
+                    padding-bottom: 8px !important;
+                    }
 
-                        <!-- Main Headers -->
-                        <tr class="border-row" style="background-color: #ffffff;">
-                            <th colspan="4" class="text-center border-right">Purchase Order</th>
-                            <th colspan="5" class="text-center border-right">Goods Receipt</th>
-                            <th class="text-center">Balance</th>
-                        </tr>
-                        <tr class="border-row">
-                            <th class="text-left">PO No / Date<br/>Credit Days
-                            </th>
-                            <th class="text-left">Party Name<br/>Broker Name
-                            </th>
-                            <th class="text-right">P/O Qty(Kgs)<br/>Delivery
-                            </th>
-                            <th class="text-left border-right">Product Name<br/>Rate (Rs)
-                            </th>
-                            <th class="text-left">GRN No<br/>Date
-                            </th>
-                            <th class="text-center">Broken<br/>Moisture
-                            </th>
-                            <th class="text-center">Truck No<br/>TLS
-                            </th>
-                            <th class="text-right">Net Kgs<br/>Bag
-                            </th>
-                            <th class="text-right border-right">Amount</th>
-                            <th class="text-right">Qty (Kgs)</th>
-                        </tr>
-                    </thead>
+                    .total-amt-box {
+                    border-top: 1.2px solid black !important;
+                    border-bottom: 3.5px double black !important;
+                    display: inline-block;
+                    min-width: 60px;
+                    }
+                    .total-qty-box {
+                    border-top: 1.2px solid black !important;
+                    display: inline-block;
+                    min-width: 60px;
+                    }
 
-                    <tbody>
-                        <t t-foreach="docs" t-as="po">
-                            <!-- Variables per PO -->
-                            <t t-set="total_po_qty" t-value="sum(po.order_line.mapped('product_qty'))"/>
-                            <t t-set="running_balance" t-value="total_po_qty"/>
-                            <t t-set="total_net_kgs" t-value="0.0"/>
-                            <t t-set="total_amount" t-value="0.0"/>
-                            <t t-set="total_tls_count" t-value="0.0"/>
+                    .text-right { text-align: right !important; }
+                    .text-center { text-align: center !important; }
+                    .text-left { text-align: left !important; }
+                </style>
 
-                            <t t-set="pickings" t-value="po.picking_ids.filtered(lambda x: x.state == 'done')"/>
+                <!-- Page Count Header -->
+                <div class="header" style="width: 100%; text-align: right; font-size: 9px; margin-bottom: 0px;">
+                    Page
+                    <span class="page"/>
+                    of
+                    <span class="topage"/>
+                </div>
 
-                            <!-- PO Lines / GRN Rows -->
-                            <t t-foreach="pickings" t-as="grn">
-                                <t t-set="grn_net_kgs" t-value="sum(grn.move_ids.mapped('quantity'))"/>
-                                <t t-set="running_balance" t-value="running_balance - grn_net_kgs"/>
-                                <t t-set="po_rate" t-value="po.order_line[0].price_unit if po.order_line else 0.0"/>
-                                <t t-set="line_amount" t-value="grn_net_kgs * po_rate"/>
+                <div class="page">
+                    <div class="text-center" style="margin-bottom: 15px;">
+                        <h5 style="font-weight: bold; margin: 0; letter-spacing: 1px;">Purchase Order v/s Goods
+                            Receipt
+                        </h5>
+                        <div style="font-weight: bold; font-size: 11px;">
+                            <span t-esc="date_from"/> &amp;nbsp; - &amp;nbsp;
+                            <span t-esc="date_to"/>
+                        </div>
+                    </div>
 
-                                <t t-set="total_net_kgs" t-value="total_net_kgs + grn_net_kgs"/>
-                                <t t-set="total_amount" t-value="total_amount + line_amount"/>
-                                <t t-set="total_tls_count" t-value="total_tls_count + (grn.po_total_tls or 0.0)"/>
+                    <table class="rice-clean-table">
+                        <thead>
+                            <tr>
+                                <th colspan="4" style="border-right: 1.5px solid black !important;">Purchase Order</th>
+                                <th colspan="5" style="border-right: 1.5px solid black !important;">Goods Receipt</th>
+                                <th>Balance<br/>Qty(Kgs)
+                                </th>
+                            </tr>
+                            <tr style="border-bottom: 1.5px solid black !important;">
+                                <th style="width: 10%;" class="text-left">PO No / Date<br/>Credit Days
+                                </th>
+                                <th style="width: 18%;" class="text-left">Party Name<br/>Broker Name
+                                </th>
+                                <th style="width: 10%;" class="text-right">P/O Qty(Kgs)<br/>Delivery
+                                </th>
+                                <th style="width: 12%; border-right: 1.5px solid black !important;" class="text-left">
+                                    Product Name<br/>Rate (Rs)
+                                </th>
+                                <th style="width: 10%;" class="text-left">GRN No<br/>Date
+                                </th>
+                                <th style="width: 8%;" class="text-center">Broken<br/>Moisture
+                                </th>
+                                <th style="width: 10%;" class="text-center">Truck No<br/>TLS
+                                </th>
+                                <th style="width: 10%;" class="text-right">Net Kgs<br/>Bag
+                                </th>
+                                <th style="width: 12%; border-right: 1.5px solid black !important;" class="text-right">
+                                    Amount
+                                </th>
+                                <th style="width: 10%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="po">
+                                <t t-set="po_qty" t-value="sum(po.order_line.mapped('product_qty'))"/>
+                                <t t-set="run_bal" t-value="po_qty"/>
+                                <t t-set="t_net_kgs" t-value="0.0"/>
+                                <t t-set="t_amt" t-value="0.0"/>
+                                <t t-set="t_tls" t-value="0.0"/>
 
-                                <tr>
-                                    <td>
-                                        <t t-if="grn_index == 0">
-                                            <span t-field="po.name" style="font-weight:bold;"/>
+                                <t t-set="pickings" t-value="po.picking_ids.filtered(lambda x: x.state == 'done')"/>
+
+                                <t t-foreach="pickings" t-as="grn">
+                                    <t t-set="n_kgs" t-value="sum(grn.move_ids.mapped('quantity'))"/>
+                                    <t t-set="run_bal" t-value="run_bal - n_kgs"/>
+                                    <t t-set="p_rate" t-value="po.order_line[0].price_unit if po.order_line else 0.0"/>
+                                    <t t-set="l_amt" t-value="n_kgs * p_rate"/>
+
+                                    <t t-set="t_net_kgs" t-value="t_net_kgs + n_kgs"/>
+                                    <t t-set="t_amt" t-value="t_amt + l_amt"/>
+                                    <t t-set="t_tls" t-value="t_tls + (grn.po_total_tls or 0.0)"/>
+
+                                    <tr>
+                                        <td class="text-left">
+                                            <t t-if="grn_index == 0">
+                                                <span t-field="po.name" style="font-weight:bold;"/>
+                                                <br/>
+                                                <span t-field="po.date_order"
+                                                      t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                            </t>
+                                        </td>
+                                        <td class="text-left">
+                                            <t t-if="grn_index == 0">
+                                                <span t-field="po.partner_id.name"/>
+                                                <br/>
+                                                <span t-field="po.broker_id.name"/>
+                                            </t>
+                                        </td>
+                                        <td class="text-left">
+                                            <t t-if="grn_index == 0">
+                                                <span t-esc="'{0:,.0f}'.format(po_qty)"/>
+                                                <br/>
+                                                <span t-field="po.delivery_date_to"
+                                                      t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
+                                            </t>
+                                        </td>
+                                        <td class="text-left">
+                                            <t t-if="grn_index == 0">
+                                                <span t-field="po.order_line[0].product_id.name"/>
+                                                <br/>
+                                                <span t-esc="'{0:,.3f}'.format(p_rate)"/>
+                                            </t>
+                                        </td>
+
+                                        <td class="text-left">
+                                            <span t-field="grn.name"/>
                                             <br/>
-                                            <span t-field="po.date_order"
+                                            <span t-field="grn.grn_date"
                                                   t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
-                                        </t>
-                                        <t t-if="grn_index == 0 and po.order_line">
+                                        </td>
+                                        <td class="text-center">
                                             <br/>
-                                            <span t-field="po.order_line[0].credit_days"/>
-                                            Days
-                                        </t>
-                                    </td>
-                                    <td>
-                                        <t t-if="grn_index == 0">
-                                            <span t-field="po.partner_id.name"/>
+                                            <span t-field="grn.actual_moisture"/>%<span t-field="grn.actual_broken"/>%
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="grn.vehicle_number"/>
                                             <br/>
-                                            <span t-field="po.broker_id.name"/>
-                                        </t>
+                                            <span t-field="grn.po_total_tls"/>
+                                            TLS
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(n_kgs)"/>
+                                            <br/>
+                                            <span t-field="grn.bags"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(l_amt)"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{0:,.0f}'.format(run_bal)"/>
+                                        </td>
+                                    </tr>
+                                </t>
+
+                                <!-- PO TOTAL ROW -->
+                                <tr class="po-total-line">
+                                    <td class="text-left">P/O Total</td>
+                                    <td class="text-right">
+                                        <span class="total-qty-box">
+                                            <span t-esc="t_tls"/>
+                                            TLS
+                                        </span>
                                     </td>
                                     <td class="text-right">
-                                        <t t-if="grn_index == 0">
-                                            <span t-esc="'{0:,.0f}'.format(total_po_qty)"/>
-                                            <br/>
-                                            <span t-field="po.delivery_date_to"
-                                                  t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
-                                        </t>
+                                        <span class="total-qty-box">
+                                            <span t-esc="'{0:,.0f}'.format(po_qty)"/>
+                                        </span>
                                     </td>
-                                    <td class="border-right">
-                                        <t t-if="grn_index == 0">
-                                            <span t-field="po.order_line[0].product_id.name"/>
-                                            <br/>
-                                            <span t-field="po.order_line[0].price_unit"
-                                                  t-options='{"widget": "float", "precision": 3}'/>
-                                        </t>
+                                    <td></td>
+
+                                    <td class="text-left">GRN Total</td>
+                                    <td class="text-right">
+                                        <span class="total-qty-box">
+                                            <span t-esc="t_tls"/>
+                                            TLS
+                                        </span>
                                     </td>
-                                    <td>
-                                        <span t-field="grn.name"/>
-                                        <br/>
-                                        <span t-field="grn.grn_date"
-                                              t-options='{"widget": "date", "format": "dd-MM-yy"}'/>
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-field="grn.actual_broken"/>%
-                                        <br/>
-                                        <span t-field="grn.actual_moisture"/>%
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-field="grn.vehicle_number"/>
-                                        <br/>
-                                        <span t-field="grn.po_total_tls"/>
-                                        TLS
+                                    <td class="text-center"></td>
+                                    <td class="text-right">
+                                        <span class="total-qty-box">
+                                            <span t-esc="'{0:,.0f}'.format(t_net_kgs)"/>
+                                        </span>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{0:,.0f}'.format(grn_net_kgs)"/>
-                                        <br/>
-                                        <span t-field="grn.bags"/>
-                                    </td>
-                                    <td class="text-right border-right">
-                                        <span t-esc="'{0:,.0f}'.format(line_amount)"/>
+                                        <span class="total-amt-box">
+                                            <span t-esc="'{0:,.0f}'.format(t_amt)"/>
+                                        </span>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{0:,.0f}'.format(running_balance)"/>
+                                        <span t-esc="'({0:,.0f})'.format(abs(run_bal)) if run_bal &lt; 0 else '{0:,.0f}'.format(run_bal)"/>
                                     </td>
                                 </tr>
                             </t>
-
-                            <!-- P/O TOTAL ROW (Exact Underlining as per image) -->
-                            <tr style="font-weight: bold;">
-                                <td colspan="2" style="padding-top: 10px;">P/O Total</td>
-                                <td class="text-right total-border-top" style="padding-top: 10px;">
-                                    <span t-esc="total_tls_count"/>
-                                    TLS |
-                                    <span t-esc="'{0:,.0f}'.format(total_po_qty)"/>
-                                </td>
-                                <td class="border-right"></td>
-                                <td colspan="2" class="text-center" style="padding-top: 10px;">GRN Total</td>
-                                <td class="text-right total-border-top" style="padding-top: 10px;">
-                                    <span t-esc="total_tls_count"/>
-                                    TLS
-                                </td>
-                                <td class="text-right total-border-top" style="padding-top: 10px;">
-                                    <span t-esc="'{0:,.0f}'.format(total_net_kgs)"/>
-                                </td>
-                                <td class="text-right total-border-top total-double-bottom border-right"
-                                    style="padding-top: 10px;">
-                                    <span t-esc="'{0:,.0f}'.format(total_amount)"/>
-                                </td>
-                                <td class="text-right" style="padding-top: 10px;">
-                                    <span t-esc="'{0:,.0f}'.format(running_balance)"/>
-                                </td>
-                            </tr>
-                            <!-- Separate POs by space -->
-                            <tr>
-                                <td colspan="10" style="border:none; height: 20px;"></td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
         </t>
     </template>
 </odoo>

@@ -1,4 +1,230 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<odoo>-->
+<!--    <record id="production_log_sheet_view_form" model="ir.ui.view">-->
+<!--        <field name="name">production.log.sheet.view.form</field>-->
+<!--        <field name="model">production.log.sheet</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Production Log Sheet">-->
+<!--                <header>-->
+<!--                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"-->
+<!--                            invisible="state != 'draft'"/>-->
+<!--                    <button name="action_cancel" string="Cancel" type="object"-->
+<!--                            invisible="state in ('draft', 'cancel')"/>-->
+<!--                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"-->
+<!--                            class="btn-secondary"-->
+<!--                            invisible="state != 'cancel'"/>-->
+<!--                    <button name="%(action_report_production_log_sheet)d" string="Print Report"-->
+<!--                            type="action" class="btn-secondary"/>-->
+<!--                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>-->
+<!--                </header>-->
+<!--                <sheet>-->
+<!--                    <div class="oe_title">-->
+<!--                        <h1>-->
+<!--                            <field name="name" readonly="1"/>-->
+<!--                        </h1>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; ============================================= &ndash;&gt;-->
+<!--                    &lt;!&ndash; SECTION 1: Shift & Plant                       &ndash;&gt;-->
+<!--                    &lt;!&ndash; ============================================= &ndash;&gt;-->
+<!--                    <group>-->
+<!--                        <group string="Shift Details">-->
+<!--                            <field name="issue_material_id" options="{'no_create': True}" readonly="state != 'draft'"/>-->
+<!--                            <field name="is_reworking" readonly="state != 'draft'"/>-->
+<!--                            <field name="date" readonly="state != 'draft'"/>-->
+<!--                            <field name="milling_date" readonly="state != 'draft'"/>-->
+<!--                            <field name="day"/>-->
+<!--                            <field name="shift"/>-->
+<!--                            <field name="operator_name"/>-->
+<!--                        </group>-->
+
+<!--                        <group string="Plant Selection">-->
+<!--                            <field name="show_bm1" string="BM 1"/>-->
+<!--                            <field name="bm1_plant_ids" widget="many2many_tags"-->
+<!--                                   options="{'no_create': True}"-->
+<!--                                   invisible="not show_bm1"-->
+<!--                                   placeholder="Select the BM-1 plants"/>-->
+<!--                            <field name="show_bm2" string="BM 2"/>-->
+<!--                            <field name="bm2_plant" widget="radio" options="{'horizontal': true}"-->
+<!--                                   invisible="not show_bm2"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+
+<!--                    &lt;!&ndash; ============================================= &ndash;&gt;-->
+<!--                    &lt;!&ndash; SECTION 2: Job Orders (order-first: the job   &ndash;&gt;-->
+<!--                    &lt;!&ndash; order drives its Customer; the pairing guard  &ndash;&gt;-->
+<!--                    &lt;!&ndash; replaces the dropdown domain so the picker    &ndash;&gt;-->
+<!--                    &lt;!&ndash; never blocks on an empty customer).           &ndash;&gt;-->
+<!--                    &lt;!&ndash; ============================================= &ndash;&gt;-->
+<!--                    <group string="Job Orders">-->
+<!--                        <group string="1st Job Order">-->
+<!--                            <field name="job_order_1_id" readonly="state != 'draft'"-->
+<!--                                   options="{'no_create': True}"/>-->
+<!--                            <field name="customer_1_id" readonly="state != 'draft'"/>-->
+<!--                        </group>-->
+<!--                        <group string="2nd Job Order">-->
+<!--                            <field name="job_order_2_id" readonly="state != 'draft'"-->
+<!--                                   options="{'no_create': True}"/>-->
+<!--                            <field name="customer_2_id" readonly="state != 'draft'"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+
+<!--                    <notebook>-->
+<!--                        &lt;!&ndash; RUNNING TIME: user adds lines manually (no product sync). &ndash;&gt;-->
+<!--                        <page string="Running Time" name="running_time">-->
+<!--                            <field name="running_line_ids" readonly="state != 'draft'">-->
+<!--                                <list editable="bottom" create="true">-->
+<!--                                    <field name="start_time" widget="float_time"/>-->
+<!--                                    <field name="stop_time" widget="float_time"/>-->
+<!--                                    <field name="actual_time" widget="float_time" sum="Total Running"/>-->
+<!--                                    <field name="remarks"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                            <group>-->
+<!--                                <group string="Shift Totals">-->
+<!--                                    <field name="total_running_time" widget="float_time" readonly="1"/>-->
+<!--                                    <field name="total_down_time" widget="float_time" readonly="1"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+<!--                        </page>-->
+
+<!--                        <page string="Stop Time" name="stop_time">-->
+<!--                            <field name="stop_line_ids" readonly="state != 'draft'">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="stop_time" widget="float_time"/>-->
+<!--                                    <field name="start_time" widget="float_time"/>-->
+<!--                                    <field name="down_time" widget="float_time" sum="Total Down"/>-->
+<!--                                    <field name="remarks"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+
+<!--                        &lt;!&ndash; Find the Final Product Packing page and update fields &ndash;&gt;-->
+<!--                        <page string="Final Product Packing" name="final_product_packing">-->
+<!--                            <field name="packing_line_ids" readonly="state != 'draft'">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="product_id" string="Brand (Select)" options="{'no_create': True}"/>-->
+<!--                                    &lt;!&ndash; CHANGE: Added brand_manual field &ndash;&gt;-->
+<!--                                    <field name="brand_manual" string="Brand (Manual)"/>-->
+<!--                                    <field name="variety"/>-->
+<!--                                    <field name="no_of_bags" sum="Total Bags"/>-->
+<!--                                    <field name="packing_size"/>-->
+<!--                                    &lt;!&ndash; CHANGE: Label updated to MT &ndash;&gt;-->
+<!--                                    <field name="total_weight" string="T. Wt (MT)" sum="Total Weight (MT)"/>-->
+<!--                                    <field name="percent"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+
+<!--                        <page string="By-Product Summary" name="byproduct_summary">-->
+<!--                            <field name="byproduct_line_ids" readonly="state != 'draft'">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="product_id" string="Item"-->
+<!--                                           domain="[('is_by_product', '=', True)]" options="{'no_create': True}"/>-->
+<!--                                    <field name="bags" sum="Total Bags"/>-->
+<!--                                    <field name="size"/>-->
+<!--                                    <field name="weight" sum="Total Weight"/>-->
+<!--                                    <field name="percent"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+
+<!--                        <page string="Sign-Off &amp; Remarks" name="signoff">-->
+<!--                            <group string="Sign-Off">-->
+<!--                                <group>-->
+<!--                                    <field name="prepared_by"/>-->
+<!--                                    <field name="supervisor"/>-->
+<!--                                </group>-->
+<!--                                <group>-->
+<!--                                    <field name="production_head"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+<!--                            <group string="Remarks">-->
+<!--                                <field name="remarks" nolabel="1" colspan="2"/>-->
+<!--                            </group>-->
+<!--                        </page>-->
+<!--                    </notebook>-->
+<!--                </sheet>-->
+<!--                <chatter/>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="production_log_sheet_view_tree" model="ir.ui.view">-->
+<!--        <field name="name">production.log.sheet.view.tree</field>-->
+<!--        <field name="model">production.log.sheet</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <list string="Production Log Sheets" decoration-info="state == 'confirmed'"-->
+<!--                  decoration-muted="state == 'cancel'">-->
+<!--                <field name="name"/>-->
+<!--                <field name="issue_material_id"/>-->
+<!--                <field name="is_reworking" column_invisible="1"/>-->
+<!--                <field name="date"/>-->
+<!--                <field name="day"/>-->
+<!--                <field name="shift"/>-->
+<!--                <field name="operator_name"/>-->
+<!--                <field name="job_order_1_id"/>-->
+<!--                <field name="customer_1_id"/>-->
+<!--                <field name="total_running_time" widget="float_time" optional="hide" sum="Total"/>-->
+<!--                <field name="state" widget="badge" decoration-info="state == 'confirmed'"-->
+<!--                       decoration-muted="state == 'cancel'"/>-->
+<!--            </list>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="action_production_log_sheet" model="ir.actions.act_window">-->
+<!--        <field name="name">Production Log Sheet</field>-->
+<!--        <field name="res_model">production.log.sheet</field>-->
+<!--        <field name="view_mode">list,form</field>-->
+<!--    </record>-->
+
+<!--    <menuitem id="menu_production_log_sheet" name="Production Log Sheet"-->
+<!--              parent="menu_arm_rice_manufacturing"-->
+<!--              action="action_production_log_sheet" sequence="45"/>-->
+
+<!--    &lt;!&ndash; ========================================== &ndash;&gt;-->
+<!--    &lt;!&ndash; CONFIGURATION: OPERATOR NAME VIEWS          &ndash;&gt;-->
+<!--    &lt;!&ndash; ========================================== &ndash;&gt;-->
+
+<!--    <record id="operator_name_view_form" model="ir.ui.view">-->
+<!--        <field name="name">operator.name.view.form</field>-->
+<!--        <field name="model">operator.name</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <form string="Operator Name">-->
+<!--                <sheet>-->
+<!--                    <group>-->
+<!--                        <field name="name"/>-->
+<!--                    </group>-->
+<!--                </sheet>-->
+<!--            </form>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="operator_name_view_tree" model="ir.ui.view">-->
+<!--        <field name="name">operator.name.view.tree</field>-->
+<!--        <field name="model">operator.name</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <list string="Operator Names">-->
+<!--                <field name="name"/>-->
+<!--            </list>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="action_operator_name" model="ir.actions.act_window">-->
+<!--        <field name="name">Operator Names</field>-->
+<!--        <field name="res_model">operator.name</field>-->
+<!--        <field name="view_mode">list,form</field>-->
+<!--    </record>-->
+
+<!--    <menuitem id="menu_operator_name"-->
+<!--              name="Operator Names"-->
+<!--              parent="mrp.menu_mrp_configuration"-->
+<!--              action="action_operator_name"-->
+<!--              sequence="40"/>-->
+
+<!--</odoo>-->
+
+
 <odoo>
     <record id="production_log_sheet_view_form" model="ir.ui.view">
         <field name="name">production.log.sheet.view.form</field>
@@ -7,176 +233,161 @@
             <form string="Production Log Sheet">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
-                        invisible="state != 'draft'" />
+                            invisible="state != 'draft'"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                        invisible="state in ('draft', 'cancel')" />
-                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
-                        class="btn-secondary"
-                        invisible="state != 'cancel'" />
-                    <button name="%(action_report_production_log_sheet)d" string="Print Report"
-                        type="action" class="btn-secondary" />
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" />
+                            invisible="state in ('draft', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            invisible="state != 'cancel'"/>
+                    <button name="%(action_report_production_log_sheet)d" string="Print Report" type="action"
+                            class="btn-secondary"/>
+<!--                    <button name="action_migrate_old_issuance_data"-->
+<!--                            string="Migrate Old Data"-->
+<!--                            type="object"-->
+<!--                            class="btn-danger"-->
+<!--                            confirm="Kya aap purana data wapas lana chahte hain?"/>-->
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" readonly="1" />
+                            <field name="name" readonly="1"/>
                         </h1>
                     </div>
-
-                    <!-- NEW: Plant Radio Buttons -->
-                    <group string="Plant Selection">
-                        <group>
+                    <group>
+                        <group string="Shift Details">
+                            <field name="issue_material_id" widget="many2many_tags" options="{'no_create': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="is_reworking" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="milling_date" readonly="state != 'draft'"/>
+                            <field name="day"/>
+                            <field name="shift"/>
+                            <field name="shift_type"/> <!-- Nayi field yahan add karein -->
+                            <field name="operator_name"/>
+                        </group>
+                        <group string="Plant Selection">
                             <field name="show_bm1" string="BM 1"/>
-                            <field name="bm1_plant" widget="radio" options="{'horizontal': true}" invisible="not show_bm1" />
-                        </group>
-                        <group>
+                            <field name="bm1_plant_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   invisible="not show_bm1" placeholder="Select the BM-1 plants"/>
                             <field name="show_bm2" string="BM 2"/>
-                            <field name="bm2_plant" widget="radio" options="{'horizontal': true}" invisible="not show_bm2" />
+                            <field name="bm2_plant" widget="radio" options="{'horizontal': true}"
+                                   invisible="not show_bm2"/>
                         </group>
                     </group>
-
-                    <group readonly="state != 'draft'">
-                        <group>
-                            <!-- NEW: Issue Material Link -->
-                            <field name="issue_material_id" options="{'no_create': True}" />
-                            <!-- FIX: Reworking Checkbox in Form View -->
-                            <field name="is_reworking" readonly="state != 'draft'" />
-                            <field name="date" />
-                            <field name="milling_date" readonly="state != 'draft'" />
-                            <field name="day" />
-                            <field name="shift" />
-                            <field name="operator_name" />
+                    <group string="Job Orders">
+                        <group string="1st Job Order">
+                            <field name="job_order_1_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="customer_1_id" readonly="state != 'draft'"/>
                         </group>
-
-                        <group>
-                            <field name="customer_1_id" />
-                            <field name="job_order_1_id"
-                                domain="[('partner_id', '=', customer_1_id)]" />
-
-                            <field name="first_finish_lot_location_id" />
-
-                            <field name="customer_2_id" />
-                            <field name="job_order_2_id"
-                                domain="[('partner_id', '=', customer_2_id)]" />
-
-                            <field name="second_finish_lot_location_id" />
+                        <group string="2nd Job Order">
+                            <field name="job_order_2_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="customer_2_id" readonly="state != 'draft'"/>
                         </group>
-
                     </group>
-
                     <notebook>
-                        <page string="Running Time">
+                        <page string="Running Time" name="running_time">
                             <field name="running_line_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="product_id" string="Item" />
-                                    <field name="start_time" />
-                                    <field name="stop_time" />
-                                    <field name="actual_time" />
-                                    <field name="remarks" />
+                                <list editable="bottom" create="true">
+                                    <field name="job_order_id" readonly="1" force_save="1" optional="show"/>
+                                    <field name="product_id"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="stop_time" widget="float_time"/>
+                                    <field name="actual_time" widget="float_time" sum="Total Running"/>
+                                    <field name="remarks"/>
                                 </list>
                             </field>
                             <group>
-                                <field name="total_running_time" readonly="state != 'draft'" />
+                                <group string="Shift Totals">
+                                    <field name="total_running_time" widget="float_time" readonly="1"/>
+                                    <field name="total_down_time" widget="float_time" readonly="1"/>
+                                </group>
                             </group>
                         </page>
-
-                        <page string="Stop Time">
+                        <page string="Stop Time" name="stop_time">
                             <field name="stop_line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="stop_time" />
-                                    <field name="start_time" />
-                                    <field name="down_time" />
-                                    <field name="remarks" />
+                                    <field name="stop_time" widget="float_time"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="down_time" widget="float_time" sum="Total Down"/>
+                                    <field name="remarks"/>
                                 </list>
                             </field>
-                            <group>
-                                <field name="total_down_time" readonly="state != 'draft'" />
-                            </group>
                         </page>
-
-                        <page string="Final Product Packing">
+                        <page string="Final Product Packing" name="final_product_packing">
                             <field name="packing_line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <!-- FIX: Changed from brand (Char) to product_id (Many2one) -->
-                                    <field name="product_id" string="Brand" />
-                                    <field name="variety" />
-                                    <field name="no_of_bags" />
-                                    <field name="packing_size" />
-                                    <field name="total_weight" />
-                                    <field name="percent" />
+                                    <field name="product_id" string="Brand (Select)" options="{'no_create': True}"/>
+                                    <field name="brand_manual" string="Brand (Manual)"/>
+                                    <field name="variety"/>
+                                    <field name="no_of_bags" sum="Total Bags"/>
+                                    <field name="packing_size"/>
+                                    <field name="total_weight" string="T. Wt (MT)" sum="Total Weight (MT)"/>
+                                    <field name="percent"/>
                                 </list>
                             </field>
                         </page>
-
-                        <page string="By-Product Summary">
+                        <page string="By-Product Summary" name="byproduct_summary">
                             <field name="byproduct_line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <!-- DOMAIN ADDED: Sirf wahi products aayenge jispar Product
-                                    form mein By Product check ho -->
-                                    <field name="product_id" string="Item"
-                                        domain="[('is_by_product', '=', True)]" />
-                                    <field name="bags" />
-                                    <field name="size" />
-                                    <field name="weight" />
-                                    <field name="percent" />
+                                    <field name="product_id" string="Item" domain="[('is_by_product', '=', True)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="bags" sum="Total Bags"/>
+                                    <field name="size"/>
+                                    <!-- CHANGE: Label updated to MT -->
+                                    <field name="weight" string="Weight (MT)" sum="Total Weight (MT)"/>
+                                    <field name="percent"/>
                                 </list>
                             </field>
                         </page>
-
-                        <page string="Sign-Off &amp; Remarks">
-                            <group>
-                                <field name="prepared_by" />
-                                <field name="supervisor" />
-                                <field name="production_head" />
+                        <page string="Sign-Off &amp; Remarks" name="signoff">
+                            <group string="Sign-Off">
+                                <group>
+                                    <field name="prepared_by"/>
+                                    <field name="supervisor"/>
+                                </group>
+                                <group>
+                                    <field name="production_head"/>
+                                </group>
                             </group>
                             <group string="Remarks">
-                                <field name="remarks" nolabel="1" colspan="2" />
+                                <field name="remarks" nolabel="1" colspan="2"/>
                             </group>
                         </page>
                     </notebook>
                 </sheet>
-                <chatter />
+                <chatter/>
             </form>
         </field>
     </record>
-
+    <!-- Keep Tree view and Operator Name views exactly same as your code -->
     <record id="production_log_sheet_view_tree" model="ir.ui.view">
         <field name="name">production.log.sheet.view.tree</field>
         <field name="model">production.log.sheet</field>
         <field name="arch" type="xml">
             <list string="Production Log Sheets" decoration-info="state == 'confirmed'"
-                decoration-muted="state == 'cancel'">
-                <field name="name" />
-                <field name="issue_material_id" />
-                <field name="is_reworking" readonly="state != 'draft'" />
-                <field name="date" />
-                <field name="day" />
-                <field name="shift" />
-                <field name="operator_name" />
-                <field name="job_order_1_id" />
-                <field name="customer_1_id" />
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="issue_material_id" widget="many2many_tags"/>
+                <field name="is_reworking" column_invisible="1"/>
+                <field name="date"/>
+                <field name="day"/>
+                <field name="shift"/>
+                <field name="operator_name"/>
+                <field name="job_order_1_id"/>
+                <field name="customer_1_id"/>
+                <field name="total_running_time" widget="float_time" optional="hide" sum="Total"/>
                 <field name="state" widget="badge" decoration-info="state == 'confirmed'"
-                    decoration-muted="state == 'cancel'" />
+                       decoration-muted="state == 'cancel'"/>
             </list>
         </field>
     </record>
-
     <record id="action_production_log_sheet" model="ir.actions.act_window">
         <field name="name">Production Log Sheet</field>
         <field name="res_model">production.log.sheet</field>
         <field name="view_mode">list,form</field>
     </record>
-
-    <menuitem id="menu_production_log_sheet" name="Production Log Sheet"
-        parent="menu_arm_rice_manufacturing"
-        action="action_production_log_sheet" sequence="45" />
-
-    <!-- ========================================== -->
-    <!-- CONFIGURATION: OPERATOR NAME VIEWS         -->
-    <!-- ========================================== -->
-
-    <!-- 1. Operator Name Form View -->
+    <menuitem id="menu_production_log_sheet" name="Production Log Sheet" parent="menu_arm_rice_manufacturing"
+              action="action_production_log_sheet" sequence="45"/>
     <record id="operator_name_view_form" model="ir.ui.view">
         <field name="name">operator.name.view.form</field>
         <field name="model">operator.name</field>
@@ -184,36 +395,26 @@
             <form string="Operator Name">
                 <sheet>
                     <group>
-                        <field name="name" />
+                        <field name="name"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
-
-    <!-- 2. Operator Name List View -->
     <record id="operator_name_view_tree" model="ir.ui.view">
         <field name="name">operator.name.view.tree</field>
         <field name="model">operator.name</field>
         <field name="arch" type="xml">
             <list string="Operator Names">
-                <field name="name" />
+                <field name="name"/>
             </list>
         </field>
     </record>
-
-    <!-- 3. Operator Name Action -->
     <record id="action_operator_name" model="ir.actions.act_window">
         <field name="name">Operator Names</field>
         <field name="res_model">operator.name</field>
         <field name="view_mode">list,form</field>
     </record>
-
-    <!-- 4. Configuration Menu (Sequence 102 will place it right below Inspection Agencies) -->
-    <menuitem id="menu_operator_name"
-        name="Operator Names"
-        parent="mrp.menu_mrp_configuration"
-        action="action_operator_name"
-        sequence="102" />
-
+    <menuitem id="menu_operator_name" name="Operator Names" parent="mrp.menu_mrp_configuration"
+              action="action_operator_name" sequence="40"/>
 </odoo>

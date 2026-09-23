@@ -42,6 +42,23 @@
                 <field name="broker_id" invisible="move_type != 'in_invoice'" string="Broker"/>
                 <field name="payment_certificate_id" invisible="move_type != 'in_invoice'" string="Payment Certificate Ref"/>
                 <field name="rice_pc_amount" invisible="move_type != 'in_invoice'" string="Rice PC Amount"/>
+                <field name="normal_tax_base_amount"
+                       readonly="1"
+                       invisible="payment_certificate_id"/>
+
+                <field name="normal_withholding_tax_rate"
+                       invisible="payment_certificate_id"/>
+
+                <field name="normal_withholding_tax_amount"
+                       readonly="1"
+                       invisible="payment_certificate_id"/>
+
+                <field name="normal_income_tax_rate"
+                       invisible="payment_certificate_id"/>
+
+                <field name="normal_income_tax_amount"
+                       readonly="1"
+                       invisible="payment_certificate_id"/>
             </xpath>
 
         </field>

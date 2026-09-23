@@ -5,7 +5,7 @@
     <!-- ========================================== -->
     <record id="paperformat_brand_job_order" model="report.paperformat">
         <field name="name">Brand Job Order Format A4</field>
-        <field name="default" eval="False" />
+        <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
         <field name="margin_top">10</field>
@@ -22,12 +22,12 @@
     <record id="action_report_brand_job_order" model="ir.actions.report">
         <field name="name">Brand Job Order</field>
         <field name="model">brand.job.order</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">arm_rice_manufacturing.report_brand_job_order_template</field>
         <field name="report_file">arm_rice_manufacturing.report_brand_job_order_template</field>
-        <field name="binding_model_id" ref="model_brand_job_order" />
+        <field name="binding_model_id" ref="model_brand_job_order"/>
         <field name="binding_type">report</field>
-        <field name="paperformat_id" ref="arm_rice_manufacturing.paperformat_brand_job_order" />
+        <field name="paperformat_id" ref="arm_rice_manufacturing.paperformat_brand_job_order"/>
     </record>
 
     <!-- ========================================== -->
@@ -41,48 +41,48 @@
 
                         <style type="text/css">
                             .bjo-table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                margin-bottom: 12px;
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 12px;
                             }
                             .bjo-table td {
-                                border: 1px solid black;
-                                padding: 4px 6px;
-                                vertical-align: middle;
-                                line-height: 1.2;
+                            border: 1px solid black;
+                            padding: 4px 6px;
+                            vertical-align: middle;
+                            line-height: 1.2;
                             }
                             .bjo-table td:first-child {
-                                width: 38%;
+                            width: 38%;
                             }
                             .section-header {
-                                text-align: center;
-                                font-weight: bold;
-                                font-size: 14px;
-                                border-top: 1px solid black;
-                                border-left: 1px solid black;
-                                border-right: 4px solid black;
-                                border-bottom: 4px solid black;
-                                padding: 4px;
-                                margin-top: 15px;
-                                margin-bottom: 2px;
-                                background-color: #ffffff;
+                            text-align: center;
+                            font-weight: bold;
+                            font-size: 14px;
+                            border-top: 1px solid black;
+                            border-left: 1px solid black;
+                            border-right: 4px solid black;
+                            border-bottom: 4px solid black;
+                            padding: 4px;
+                            margin-top: 15px;
+                            margin-bottom: 2px;
+                            background-color: #ffffff;
                             }
                             .top-info-table {
-                                width: 100%;
-                                border: none;
-                                margin-bottom: 8px;
-                                font-weight: bold;
-                                font-size: 13px;
+                            width: 100%;
+                            border: none;
+                            margin-bottom: 8px;
+                            font-weight: bold;
+                            font-size: 13px;
                             }
                             .top-info-table td {
-                                border: none;
-                                padding: 2px;
+                            border: none;
+                            padding: 2px;
                             }
                             .text-right {
-                                text-align: right;
+                            text-align: right;
                             }
                             .text-center {
-                                text-align: center;
+                            text-align: center;
                             }
                         </style>
 
@@ -90,8 +90,8 @@
                         <table style="width: 100%; border: none; margin-bottom: 15px;">
                             <tr style="border: none;">
                                 <td style="width: 30%; border: none; vertical-align: middle;">
-                                    <img t-if="o.env.company.logo" 
-                                         t-att-src="image_data_uri(o.env.company.logo)" 
+                                    <img t-if="o.env.company.logo"
+                                         t-att-src="image_data_uri(o.env.company.logo)"
                                          style="max-height: 60px;" alt="Logo"/>
                                 </td>
                                 <td style="width: 40%; border: none; text-align: center; vertical-align: middle;">
@@ -109,7 +109,7 @@
                             <tr>
                                 <td style="width: 50%;">To : Production Head</td>
                                 <td style="width: 50%; text-align: right;">
-                                    Raw Material Issue Qty : 
+                                    Raw Material Issue Qty :
                                     <t t-if="o._fields.get('raw_material_issue_qty')">
                                         <t t-esc="'{:,.2f}'.format(o.raw_material_issue_qty or 0.0)"/>
                                     </t>
@@ -123,7 +123,7 @@
                             </tr>
                             <tr>
                                 <td>From : Marketing Manager</td>
-                                <td style="text-align: right;">Location : 
+                                <td style="text-align: right;">Location :
                                     <t t-esc="o.location_id.name if o._fields.get('location_id') and o.location_id else 'BM-2'"/>
                                 </td>
                             </tr>
@@ -134,35 +134,52 @@
                         <table class="bjo-table">
                             <tr>
                                 <td>Brand Job Order No</td>
-                                <td><span t-field="o.name"/></td>
+                                <td>
+                                    <span t-field="o.name"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Job Order Date</td>
-                                <td><span t-esc="o.date.strftime('%d-%b-%Y') if o.date else ''"/></td>
+                                <td>
+                                    <span t-esc="o.date.strftime('%d-%b-%Y') if o.date else ''"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Customer Name</td>
-                                <td><span t-field="o.partner_id.name"/></td>
+                                <td>
+                                    <span t-field="o.partner_id.name"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Customer Contract No</td>
-                                <td><span t-field="o.rice_sales_contract_id.name"/></td>
+                                <td>
+                                    <span t-field="o.rice_sales_contract_id.name"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Customer Order Date</td>
-                                <td><span t-esc="o.contract_date.strftime('%d-%b-%Y') if o.contract_date else ''"/></td>
+                                <td>
+                                    <span t-esc="o.contract_date.strftime('%d-%b-%Y') if o.contract_date else ''"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Shipment Period</td>
-                                <td><span style="text-transform: uppercase;" t-field="o.shipment_period"/></td>
+                                <td>
+                                    <span style="text-transform: uppercase;" t-field="o.shipment_period"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Quantity</td>
-                                <td><span t-esc="'{:,.0f}'.format(o.quantity_mt or 0.0)"/> MT</td>
+                                <td>
+                                    <span t-esc="o.process_rice_qty"/>
+                                    MT
+                                </td>
                             </tr>
                             <tr>
                                 <td>Destination Country</td>
-                                <td><span style="text-transform: uppercase;" t-field="o.destination_country.name"/></td>
+                                <td>
+                                    <span style="text-transform: uppercase;" t-field="o.destination_country.name"/>
+                                </td>
                             </tr>
                         </table>
 
@@ -171,48 +188,62 @@
                         <table class="bjo-table">
                             <t t-set="rr_len" t-value="len(o.raw_rice_ids) if o.raw_rice_ids else 0"/>
                             <t t-set="has_qty" t-value="o.raw_rice_ids and 'quantity' in o.raw_rice_ids._fields"/>
-                            
+
+                            <!-- Raw Rice (1) -->
                             <!-- Raw Rice (1) -->
                             <tr>
                                 <td>Raw Rice (1)</td>
-                                <td style="width: 45%;"><t t-esc="o.raw_rice_ids[0].name if rr_len > 0 else ''"/></td>
+                                <td style="width: 45%;">
+                                    <t t-esc="o.process_rice_spec_id.spec_line_ids[0].product_id.name if o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 0 else ''"/>
+                                </td>
                                 <td style="width: 17%; border-left: none; text-align: right;">
-                                    <t t-if="rr_len > 0 and has_qty and o.raw_rice_ids[0].quantity">
-                                        <t t-esc="'{:,.0f}'.format(o.raw_rice_ids[0].quantity)"/> MT
+                                    <t t-if="o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 0 and o.process_rice_spec_id.spec_line_ids[0].quantity">
+                                        <t t-esc="'{:,.0f}'.format(o.process_rice_spec_id.spec_line_ids[0].quantity)"/>
+                                        MT
                                     </t>
                                 </td>
                             </tr>
-                            
+
                             <!-- Raw Rice (2) -->
                             <tr>
                                 <td>Raw Rice (2)</td>
-                                <td><t t-esc="o.raw_rice_ids[1].name if rr_len > 1 else ''"/></td>
+                                <td>
+                                    <t t-esc="o.process_rice_spec_id.spec_line_ids[1].product_id.name if o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 1 else ''"/>
+                                </td>
                                 <td style="border-left: none; text-align: right;">
-                                    <t t-if="rr_len > 1 and has_qty and o.raw_rice_ids[1].quantity">
-                                        <t t-esc="'{:,.0f}'.format(o.raw_rice_ids[1].quantity)"/> MT
+                                    <t t-if="o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 1 and o.process_rice_spec_id.spec_line_ids[1].quantity">
+                                        <t t-esc="'{:,.0f}'.format(o.process_rice_spec_id.spec_line_ids[1].quantity)"/>
+                                        MT
                                     </t>
                                 </td>
                             </tr>
-                            
+
                             <!-- Raw Rice (3) -->
                             <tr>
                                 <td>Raw Rice (3)</td>
-                                <td><t t-esc="o.raw_rice_ids[2].name if rr_len > 2 else ''"/></td>
+                                <td>
+                                    <t t-esc="o.process_rice_spec_id.spec_line_ids[2].product_id.name if o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 2 else ''"/>
+                                </td>
                                 <td style="border-left: none; text-align: right;">
-                                    <t t-if="rr_len > 2 and has_qty and o.raw_rice_ids[2].quantity">
-                                        <t t-esc="'{:,.0f}'.format(o.raw_rice_ids[2].quantity)"/> MT
+                                    <t t-if="o.process_rice_spec_id and len(o.process_rice_spec_id.spec_line_ids) > 2 and o.process_rice_spec_id.spec_line_ids[2].quantity">
+                                        <t t-esc="'{:,.0f}'.format(o.process_rice_spec_id.spec_line_ids[2].quantity)"/>
+                                        MT
                                     </t>
                                 </td>
                             </tr>
-                            
+
                             <!-- Moisture & Broken -->
                             <tr>
                                 <td>Moisture</td>
-                                <td colspan="2"><span t-esc="'{:.2f}%'.format(o.moisture_percent or 0.0)"/></td>
+                                <td colspan="2">
+                                    <span t-esc="'{:.2f}%'.format(o.moisture_percent or 0.0)"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Broken</td>
-                                <td colspan="2"><span t-esc="'{:.2f}%'.format(o.broken_percent or 0.0)"/></td>
+                                <td colspan="2">
+                                    <span t-esc="'{:.2f}%'.format(o.broken_percent or 0.0)"/>
+                                </td>
                             </tr>
                         </table>
 
@@ -221,11 +252,15 @@
                         <table class="bjo-table">
                             <tr>
                                 <td>No. of Bags</td>
-                                <td><span t-esc="'{:,.0f}'.format(o.no_of_bags or 0.0)"/></td>
+                                <td>
+                                    <span t-esc="'{:,.0f}'.format(o.no_of_bags or 0.0)"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Packing Material</td>
-                                <td><span t-field="o.packing"/></td>
+                                <td>
+                                    <span t-field="o.packing"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Packing Size</td>
@@ -236,13 +271,17 @@
                             </tr>
                             <tr>
                                 <td>Empty Bag Weight</td>
-                                <td><span t-esc="'{:.0f}'.format(o.empty_bag_weight or 0.0)"/> gram</td>
+                                <td>
+                                    <span t-esc="'{:.0f}'.format(o.empty_bag_weight or 0.0)"/>
+                                    gram
+                                </td>
                             </tr>
                             <tr>
                                 <td>Empty Bag to be Shipped</td>
                                 <td>
-                                    <!-- Checks for shipped percentage field -->
-                                    <span t-esc="'{:.0f}%'.format(o.empty_bag_shipped_percent) if o._fields.get('empty_bag_shipped_percent') else '2%'"/>
+                                    <t t-if="o.packing_line_ids and len(o.packing_line_ids) > 0">
+                                        <span t-esc="o.packing_line_ids[0].empty_bag_to_be_shipped"/>
+                                    </t>
                                 </td>
                             </tr>
                             <tr>
@@ -254,7 +293,9 @@
                             </tr>
                             <tr>
                                 <td>Variant Name</td>
-                                <td><span t-field="o.rice_type"/></td>
+                                <td>
+                                    <span t-field="o.rice_type"/>
+                                </td>
                             </tr>
                         </table>
 
@@ -263,15 +304,21 @@
                         <table class="bjo-table">
                             <tr>
                                 <td>Chemical advised</td>
-                                <td style="text-transform: uppercase;"><span t-field="o.fumigation_chemical"/></td>
+                                <td style="text-transform: uppercase;">
+                                    <span t-field="o.fumigation_chemical"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Method</td>
-                                <td style="text-transform: uppercase;"><span t-field="o.fumigation_method"/></td>
+                                <td style="text-transform: uppercase;">
+                                    <span t-field="o.fumigation_method"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Phyto Certificate Requirement</td>
-                                <td><span t-esc="'Yes' if o.phyto_certificate_req else 'No'"/></td>
+                                <td>
+                                    <span t-esc="'Yes' if o.phyto_certificate_req else 'No'"/>
+                                </td>
                             </tr>
                         </table>
 
@@ -280,21 +327,28 @@
                         <table class="bjo-table">
                             <tr>
                                 <td>No. of samples required</td>
-                                <td><span t-field="o.no_of_samples"/></td>
+                                <td>
+                                    <span t-field="o.no_of_samples"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Inspection Agency</td>
-                                <td><span t-field="o.inspection_agency.name"/></td>
+                                <td>
+                                    <span t-field="o.inspection_agency.name"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Inspection Date</td>
-                                <td><span t-esc="o.inspection_date.strftime('%d-%b-%y') if o.inspection_date else ''"/></td>
+                                <td>
+                                    <span t-esc="o.inspection_date.strftime('%d-%b-%y') if o.inspection_date else ''"/>
+                                </td>
                             </tr>
                         </table>
 
                         <!-- FOOTER: Documents Attached -->
                         <div style="margin-top: 15px; font-weight: bold; font-size: 13px;">
-                            Documents Attached<br/>
+                            Documents Attached
+                            <br/>
                             * Standard Specification
                         </div>
 
@@ -302,12 +356,12 @@
                         <table style="width: 100%; border: none; margin-top: 50px; font-weight: bold; font-size: 13px;">
                             <tr style="border: none;">
                                 <td style="width: 50%; border: none; vertical-align: bottom;">
-                                    Prepared By 
+                                    Prepared By
                                     <span style="display: inline-block; width: 220px; border-bottom: 1px solid black; margin-left: 5px;"></span>
                                     <div style="padding-left: 100px; padding-top: 4px;">Marketing Assistant</div>
                                 </td>
                                 <td style="width: 50%; border: none; text-align: right; vertical-align: bottom;">
-                                    Approved By 
+                                    Approved By
                                     <span style="display: inline-block; width: 220px; border-bottom: 1px solid black; margin-left: 5px;"></span>
                                     <div style="padding-right: 50px; padding-top: 4px;">Marketing Manager</div>
                                 </td>

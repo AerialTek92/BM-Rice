@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from typing import Dict, Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 COMMAND_CLEAR_ALL: Tuple[int, int, int] = (5, 0, 0)
 COMMAND_CREATE_NEW: int = 0
@@ -12,11 +12,13 @@ class WeighbridgeTicketManufacturing(models.Model):
     _inherit = 'weighbridge.ticket'
 
     # ==========================================
-    # 1. EXISTING: BASMATI ISSUE MATERIAL FLOW
+    # 1. BASMATI ISSUE MATERIAL WEIGHING
+    # (Linked IM must have its Manufacturing Order: stock is consumed by
+    # the MO, never by a transfer from here.)
     # ==========================================
     issue_material_id = fields.Many2one(
         'issue.material', string='Issue Material Ref',
-        domain="[('state', '=', 'confirmed'), ('rice_type', '=', 'basmati'), ('picking_id', '=', False)]"
+        domain="[('state', '=', 'confirmed'), ('rice_type', '=', 'basmati'), ('mrp_production_id', '!=', False)]"
     )
     mfg_job_order_id = fields.Many2one('brand.job.order', string='Brand Job Order', compute='_compute_mfg_data',
                                        store=True, readonly=True)
@@ -63,73 +65,45 @@ class WeighbridgeTicketManufacturing(models.Model):
         self.line_ids = line_vals
 
     def action_confirm_manufacturing(self) -> Dict[str, Any]:
-        """Basmati Flow: Creates and validates the Internal Transfer from Weighbridge allocation."""
+        """Basmati flow: the Weighbridge is the WEIGHING step of the Issue
+        Material's Manufacturing Order. Confirming writes the weighed
+        allocations back onto the issue lines and the MO's raw-move demand;
+        physical stock is consumed once, when the Production Record completes
+        the MO. No internal transfer is created."""
         self.ensure_one()
         self._validate_weight_allocation()
 
-        if not self.issue_material_id:
+        issue = self.issue_material_id
+        if not issue:
             raise UserError(_("Please select an Issue Material reference before confirming."))
 
-        picking_type = self.env['stock.picking.type'].search(
-            [('code', '=', 'internal'), ('company_id', '=', self.env.company.id)], limit=1)
-        if not picking_type:
-            raise UserError(_("Please configure an internal picking type."))
+        production = issue.mrp_production_id
+        if not production:
+            raise UserError(_(
+                "Issue Material %(issue)s has no Manufacturing Order to weigh against. "
+                "Confirm the Issue Material (Issue to Mill) first.",
+                issue=issue.name))
+        if production.state in ('done', 'cancel'):
+            raise UserError(_(
+                "Manufacturing Order %(order)s is already %(state)s: it can no longer be weighed.",
+                order=production.name, state=production.state))
 
-        issue = self.issue_material_id
+        weighed_lines = self.line_ids.filtered(lambda line: line.allocated_weight > 0)
+        if not weighed_lines:
+            raise UserError(_("Allocate a positive weight to at least one raw rice line before confirming."))
 
-        # FIX: issue.material uses 'source_location_ids' and 'dest_location_ids' (Many2many).
-        # Take the first one for the picking header.
-        header_source_id = issue.source_location_ids[:1].id if issue.source_location_ids else False
-        header_dest_id = issue.dest_location_ids[:1].id if issue.dest_location_ids else False
+        for line in weighed_lines:
+            if line.issue_material_line_id:
+                line.issue_material_line_id.write({
+                    'qty_mt': line.allocated_weight,
+                    'bags': line.bags,
+                })
+            raw_move = production.move_raw_ids.filtered(
+                lambda move: move.product_id == line.product_id)[:1]
+            if raw_move:
+                raw_move.write({'product_uom_qty': line.allocated_weight})
 
-        if not header_source_id or not header_dest_id:
-            raise UserError(_("Please ensure both Source and Destination locations are set on the Issue Material."))
-
-        picking = self.env['stock.picking'].create({
-            'partner_id': issue.job_order_id.partner_id.id,
-            'picking_type_id': picking_type.id,
-            'origin': f"WB-MFG: {self.name} / {issue.name}",
-            'location_id': header_source_id,
-            'location_dest_id': header_dest_id,
-        })
-
-        for line in self.line_ids:
-            self.env['stock.move'].create({
-                'picking_id': picking.id,
-                'product_id': line.product_id.id,
-                'product_uom': line.product_id.uom_id.id,
-                'product_uom_qty': line.allocated_weight,
-                'location_id': header_source_id,
-                'location_dest_id': header_dest_id,
-            })
-
-        picking.action_confirm()
-        picking.action_assign()
-
-        if picking.state != 'done':
-            for move in picking.move_ids:
-                move.write({'quantity': move.product_uom_qty, 'picked': True})
-
-            needs_tracking = any(m.product_id.tracking != 'none' for m in picking.move_ids)
-            if not needs_tracking:
-                validate_res = picking.button_validate()
-                if isinstance(validate_res, dict):
-                    issue.write({'picking_id': picking.id})
-                    return validate_res
-            else:
-                issue.write({'picking_id': picking.id})
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Internal Transfer',
-                    'res_model': 'stock.picking',
-                    'view_mode': 'form',
-                    'res_id': picking.id,
-                    'target': 'current',
-                }
-
-        issue.write({'picking_id': picking.id})
         self.state = 'confirmed'
-
         return {
             'type': 'ir.actions.act_window',
             'name': 'Issue Material',
@@ -140,7 +114,8 @@ class WeighbridgeTicketManufacturing(models.Model):
         }
 
     # ==========================================
-    # 2. NEW: FINISHED / BI-PRODUCTS WEIGHBRIDGE
+    # 2. FINISHED / BI-PRODUCTS WEIGHBRIDGE
+    # (Weighing only - stock enters via Production Record -> MO completion.)
     # ==========================================
     is_finished_weighbridge = fields.Boolean(string="Finished / Bi-Products", default=False)
 
@@ -163,7 +138,6 @@ class WeighbridgeTicketManufacturing(models.Model):
 
     @api.depends('log_sheet_id')
     def _compute_log_sheet_data(self) -> None:
-        """Protocol 2.1 (SRP): Map header data from Log Sheet."""
         for rec in self:
             log = rec.log_sheet_id
             rec.mfg_bjo_1_id = log.job_order_1_id.id if log else False
@@ -173,7 +147,6 @@ class WeighbridgeTicketManufacturing(models.Model):
 
     @api.onchange('is_finished_weighbridge')
     def _onchange_is_finished_weighbridge(self) -> None:
-        """Protocol 2.1: Clear unrelated references when toggling the checkbox."""
         if self.is_finished_weighbridge:
             self.issue_material_id = False
         else:
@@ -181,31 +154,30 @@ class WeighbridgeTicketManufacturing(models.Model):
 
     @api.onchange('log_sheet_id')
     def _onchange_log_sheet_id(self) -> None:
-        """Protocol 2.1 (SRP): Auto-populate lines with Process Rice from the Log Sheet's BJOs."""
+        """Protocol 2.1 (SRP): Auto-populate lines with Process Rice from the
+        Log Sheet's BJOs - one line per product (all products for IRRI)."""
         if not self.log_sheet_id:
             self.line_ids = [COMMAND_CLEAR_ALL]
             return
 
         line_vals: List[Tuple[int, int, Dict[str, Any]]] = [COMMAND_CLEAR_ALL]
 
-        if self.log_sheet_id.job_order_1_id and self.log_sheet_id.job_order_1_id.product_id:
-            line_vals.append((COMMAND_CREATE_NEW, 0, {
-                'bjo_id': self.log_sheet_id.job_order_1_id.id,
-                'product_id': self.log_sheet_id.job_order_1_id.product_id.id,
-                'allocated_weight': 0.0,
-            }))
-
-        if self.log_sheet_id.job_order_2_id and self.log_sheet_id.job_order_2_id.product_id:
-            line_vals.append((COMMAND_CREATE_NEW, 0, {
-                'bjo_id': self.log_sheet_id.job_order_2_id.id,
-                'product_id': self.log_sheet_id.job_order_2_id.product_id.id,
-                'allocated_weight': 0.0,
-            }))
+        for job_order in (self.log_sheet_id.job_order_1_id, self.log_sheet_id.job_order_2_id):
+            if not job_order:
+                continue
+            # Multi list for IRRI; falls back to the single product otherwise.
+            for product in (job_order.process_rice_ids or job_order.product_id):
+                line_vals.append((COMMAND_CREATE_NEW, 0, {
+                    'bjo_id': job_order.id,
+                    'product_id': product.id,
+                    'allocated_weight': 0.0,
+                }))
 
         self.line_ids = line_vals
 
     def action_confirm_finished_weighbridge(self) -> None:
-        """Protocol 2.1 (SRP): Dedicated confirmation for Finished Goods Weighbridge (no stock transfer)."""
+        """Protocol 2.1 (SRP): Dedicated confirmation for Finished Goods Weighbridge
+        (weighing only - no stock transfer, no MO interaction)."""
         for rec in self:
             if rec.gross_weight <= 0 or rec.tare_weight <= 0:
                 raise UserError(_("Please capture both First and Second weights before confirming."))
@@ -216,9 +188,7 @@ class WeighbridgeTicketManufacturing(models.Model):
 class WeighbridgeTicketLineManufacturing(models.Model):
     _inherit = 'weighbridge.ticket.line'
 
-    # Existing fields
     issue_material_id = fields.Many2one('issue.material', string='Issue Material')
     issue_material_line_id = fields.Many2one('issue.material.line', string='Issue Material Line')
 
-    # NEW: Link to Brand Job Order for Finished Weighbridge lines
     bjo_id = fields.Many2one('brand.job.order', string='Brand Job Order')

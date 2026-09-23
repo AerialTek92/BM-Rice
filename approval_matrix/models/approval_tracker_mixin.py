@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -70,18 +72,18 @@ class ApprovalTrackerMixin(models.AbstractModel):
     def _compute_can_user_approve(self) -> None:
         current_user = self.env.user
         current_employee = self.env['hr.employee'].search([('user_id', '=', current_user.id)], limit=1)
-        
+
         for rec in self:
             rec.can_user_approve = False
             pending = rec.approval_line_ids.filtered(lambda l: l.status == 'waiting')
             if not pending:
                 continue
-            
+
             next_line = pending[0]
-            
+
             # Group Approval Logic (CR-07)
             if next_line.group_id:
-                if current_user.id in next_line.group_id.users.ids:
+                if self._is_user_in_group(current_user, next_line.group_id):
                     rec.can_user_approve = True
             # Individual Approval Logic
             elif next_line.employee_id and current_employee:
@@ -100,17 +102,68 @@ class ApprovalTrackerMixin(models.AbstractModel):
             is_creator = rec.create_uid.id == self.env.uid
             rec.can_edit_rfq = is_admin or (is_creator and rec.approval_status == 'prepared')
 
+    # ==========================================================
+    # GROUP MEMBERSHIP (Odoo 19 compatible)
+    # ==========================================================
+
+    def _is_user_in_group(self, user: 'res.users', group: 'res.groups') -> bool:
+        """Protocol 4.1 (DRY): the single membership check, used by the
+        button compute and by both approve/refuse actions.
+
+        Odoo 19 removed the 'users' field from res.groups, so membership is
+        read from the relation table - the storage contract behind every
+        version's group fields (and behind has_group itself). Read-only and
+        permission-safe: the result only ever GRANTS an approval action."""
+        self.env.cr.execute(
+            "SELECT 1 FROM res_groups_users_rel WHERE gid = %s AND uid = %s LIMIT 1",
+            (group.id, user.id),
+        )
+        return bool(self.env.cr.fetchone())
+
     def _apply_default_approval_matrix(self):
         self.ensure_one()
-        return self.env['approval.matrix'].search([
+        # sudo: matrix configuration is admin-only (ACL), but every document
+        # creator and every approver must resolve it. Reading it here is safe:
+        # the matrix only decides WHO may act, and that check runs per-user
+        # on the approval lines themselves.
+        return self.env['approval.matrix'].sudo().search([
             ('model_id.model', '=', self._name)
         ], limit=1)
 
+    # ==========================================================
+    # LIVE APPROVER SYNC (pull side)
+    # ==========================================================
+
+    def _sync_waiting_approvals_from_matrix(self) -> None:
+        """Waiting approval lines follow the CURRENT matrix. Runs before
+        every approve/refuse so the acting user is validated against the
+        live configuration, not the snapshot taken at creation. Acted-on
+        (done/refused) lines are history and are never touched."""
+        for rec in self:
+            matrix = rec._apply_default_approval_matrix()
+            if not matrix:
+                continue
+
+            waiting_lines = rec.approval_line_ids.filtered(lambda l: l.status == 'waiting')
+            for line in waiting_lines:
+                source = line.matrix_line_id or matrix.line_ids.filtered(
+                    lambda matrix_line: matrix_line.sequence == line.sequence)[:1]
+                if source:
+                    line.write({
+                        'matrix_line_id': source.id,
+                        'sequence': source.sequence,
+                        'label': source.label,
+                        'employee_id': source.employee_id.id,
+                        'group_id': source.group_id.id,
+                    })
+
     def action_approve(self) -> None:
         self.ensure_one()
+        self._sync_waiting_approvals_from_matrix()
+
         current_user = self.env.user
         current_employee = self.env['hr.employee'].search([('user_id', '=', current_user.id)], limit=1)
-        
+
         pending = self.approval_line_ids.filtered(lambda l: l.status == 'waiting')
         if not pending:
             return
@@ -119,7 +172,7 @@ class ApprovalTrackerMixin(models.AbstractModel):
         is_authorized = False
 
         if next_line.group_id:
-            if current_user.id in next_line.group_id.users.ids:
+            if self._is_user_in_group(current_user, next_line.group_id):
                 is_authorized = True
         elif next_line.employee_id and current_employee:
             if next_line.employee_id.id == current_employee.id:
@@ -133,7 +186,7 @@ class ApprovalTrackerMixin(models.AbstractModel):
 
         # Mark as done and record who actually approved it
         next_line.write({
-            'status': 'done', 
+            'status': 'done',
             'time_of_approval': fields.Datetime.now(),
             'approved_by_id': current_employee.id if current_employee else False
         })
@@ -144,9 +197,11 @@ class ApprovalTrackerMixin(models.AbstractModel):
 
     def action_refuse(self) -> None:
         self.ensure_one()
+        self._sync_waiting_approvals_from_matrix()
+
         current_user = self.env.user
         current_employee = self.env['hr.employee'].search([('user_id', '=', current_user.id)], limit=1)
-        
+
         pending = self.approval_line_ids.filtered(lambda l: l.status == 'waiting')
         if not pending:
             return
@@ -155,7 +210,7 @@ class ApprovalTrackerMixin(models.AbstractModel):
         is_authorized = False
 
         if next_line.group_id:
-            if current_user.id in next_line.group_id.users.ids:
+            if self._is_user_in_group(current_user, next_line.group_id):
                 is_authorized = True
         elif next_line.employee_id and current_employee:
             if next_line.employee_id.id == current_employee.id:
@@ -165,7 +220,7 @@ class ApprovalTrackerMixin(models.AbstractModel):
             raise UserError(_("You are not authorized to refuse this."))
 
         next_line.write({
-            'status': 'refuse', 
+            'status': 'refuse',
             'time_of_approval': fields.Datetime.now(),
             'approved_by_id': current_employee.id if current_employee else False
         })

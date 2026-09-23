@@ -1,18 +1,37 @@
 <odoo>
-    <!-- 1. Wizard Form View -->
+    <!-- 1. Wizard Form View (Advanced Layout) -->
     <record id="view_sales_return_detail_wizard_form" model="ir.ui.view">
         <field name="name">sales.return.detail.wizard.form</field>
         <field name="model">sales.return.detail.wizard</field>
         <field name="arch" type="xml">
             <form string="Sales Return Detail">
-                <group>
+                <sheet>
                     <group>
-                        <field name="date_from"/>
+                        <group>
+                            <label for="date_from" string="Date Range"/>
+                            <div class="o_row">
+                                <field name="date_from" widget="date"/>
+                                <span class="o_sep">To</span>
+                                <field name="date_to" widget="date"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_filter_type" widget="selection"/>
+                        </group>
                     </group>
                     <group>
-                        <field name="date_to"/>
+                        <group string="Primary Filters">
+                            <field name="partner_id" string="Customer" options="{'no_create': True}"/>
+                            <field name="broker_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Selection">
+                            <field name="contract_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="sale_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   placeholder="Select Return Memos..."/>
+                        </group>
                     </group>
-                </group>
+                </sheet>
                 <footer>
                     <button name="action_print_report" string="Print PDF" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
@@ -31,8 +50,14 @@
 
     <!-- 3. Menu Item (Sales -> Reporting) -->
     <menuitem id="menu_sales_return_detail_report"
-              name="Sales Return Detail"
+              name="Sales Return Date Wise"
               parent="sale.menu_sale_report"
+              action="action_sales_return_detail_wizard"
+              sequence="15"/>
+    <!-- 3. Menu Item (Sales -> Reporting) -->
+    <menuitem id="menu_sales_return_detail_report_sale"
+              name="Sales Return Date Wise"
+              parent="menu_sales_reports_section"
               action="action_sales_return_detail_wizard"
               sequence="15"/>
 </odoo>

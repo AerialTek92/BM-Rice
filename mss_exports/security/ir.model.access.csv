@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_container_release_order_user,container.release.order user,model_container_release_order,base.group_user,1,1,1,1
+access_vessel_booking_user,vessel.booking user,model_vessel_booking,base.group_user,1,1,1,1
+access_loading_container_packing_list_user,loading.container.packing.list user,model_loading_container_packing_list,base.group_user,1,1,1,1
+access_loading_container_packing_list_line_user,loading.container.packing.list.line user,model_loading_container_packing_list_line,base.group_user,1,1,1,1
+access_loading_container_packing_list_product_line_user,access.loading.container.packing.list.product.line.user,model_loading_container_packing_list_product_line,base.group_user,1,1,1,1
+access_bank_application_user,access.bank.application.user,model_bank_application,base.group_user,1,1,1,1
+access_custom_book_document_user,custom.book.document.user,model_custom_book_document,base.group_user,1,1,1,1
+access_bl_approval_user,bl.approval.user,model_bl_approval,base.group_user,1,1,1,1
+access_payment_cleaning_user,payment.cleaning.user,model_payment_cleaning,base.group_user,1,1,1,1

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="weighbridge_ticket_view_form_manufacturing_inherit" model="ir.ui.view">
+        <field name="name">weighbridge.ticket.form.manufacturing.inherit</field>
+        <field name="model">weighbridge.ticket</field>
+        <field name="inherit_id" ref="arm_rice_mill.weighbridge_ticket_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- 1. Add Ticket Type Radio Buttons at the very top of the sheet -->
+            <xpath expr="//sheet" position="before">
+                <group>
+                    <field name="ticket_type" widget="radio" options="{'horizontal': true}"/>
+                </group>
+            </xpath>
+
+            <!-- 2. Hide Procurement Buttons for Manufacturing -->
+            <xpath expr="//button[@name='action_proceed_final_qc']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing' or state != 'unloading' or pass_type == 'return'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_return_weighbridge']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing' or state != 'draft' or pass_type == 'return'</attribute>
+            </xpath>
+
+            <!-- FIX: Keep Confirm button visible in Draft and Unloading for Manufacturing -->
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="string">Confirm</attribute>
+                <attribute name="invisible">(ticket_type == 'manufacturing' and state not in ('draft', 'unloading')) or (ticket_type != 'manufacturing' and (inspection_state != 'final_pass' or tare_weight == 0 or state in ('done', 'cancel') or pass_type == 'return'))</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_capture_tare_weight']" position="attributes">
+                <attribute name="invisible">(ticket_type == 'manufacturing' and (state != 'confirmed' or not production_record_id or gross_weight == 0)) or (ticket_type != 'manufacturing' and ((inspection_state != 'final_pass' and pass_type != 'return') or state in ('done', 'cancel') or gross_weight == 0))</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_return_gate_pass']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing' or pass_type != 'return' or tare_weight == 0 or state in ('done', 'cancel')</attribute>
+            </xpath>
+
+            <!-- 3. Add Manufacturing Buttons -->
+            <xpath expr="//header" position="inside">
+                <button name="action_create_production_record" string="Create Production Record" type="object" class="btn-warning"
+                        invisible="ticket_type != 'manufacturing' or state != 'confirmed' or production_record_id"/>
+                <button name="action_complete_manufacturing_process" string="Complete Process" type="object" class="btn-success"
+                        invisible="ticket_type != 'manufacturing' or state != 'confirmed' or not production_record_id or production_record_id.state != 'done' or tare_weight == 0"/>
+            </xpath>
+
+            <!-- 4. Control Header Field Visibility -->
+
+            <!-- Procurement Fields (Hidden in Manufacturing) -->
+            <xpath expr="//field[@name='gate_pass_id']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='gate_pass_date']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='grn_inspection_id']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='inspection_date']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='rice_sales_contract_id']" position="attributes">
+                <attribute name="invisible">ticket_type == 'manufacturing'</attribute>
+            </xpath>
+
+            <!-- Manufacturing Fields (Hidden in Procurement) -->
+            <xpath expr="//field[@name='gate_pass_id']" position="after">
+                <field name="issue_material_id" invisible="ticket_type != 'manufacturing'" readonly="state != 'draft'"/>
+                <field name="production_record_id" invisible="ticket_type != 'manufacturing'"/>
+            </xpath>
+
+            <!-- 5. Control Line IDs (Tree View) Visibility -->
+            <!-- Hide Purchase Order columns if Manufacturing -->
+            <xpath expr="//field[@name='line_ids']//list//field[@name='purchase_order_id']" position="attributes">
+                <attribute name="column_invisible">parent.ticket_type == 'manufacturing'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']//list//field[@name='purchase_order_line_id']" position="attributes">
+                <attribute name="column_invisible">parent.ticket_type == 'manufacturing'</attribute>
+            </xpath>
+
+            <!-- 6. Dynamic Separator Text -->
+            <!-- FIX: Show different separator based on Ticket Type -->
+            <xpath expr="//separator[@name='allocation_separator']" position="replace">
+                <separator name="allocation_separator" string="Allocate Weight by Purchase Order" invisible="ticket_type == 'manufacturing'"/>
+                <separator name="allocation_separator" string="Allocate Weight by Issue Material" invisible="ticket_type != 'manufacturing'"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

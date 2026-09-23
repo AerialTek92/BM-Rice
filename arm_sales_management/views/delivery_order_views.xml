@@ -73,15 +73,19 @@
                 <field name="balance_qty" string="Balance" optional="show" column_invisible="parent.picking_type_code != 'outgoing'"/>
             </xpath>
 
-            <!-- FIX: Hide native Validate button if Commercially Validated -->
-            <xpath expr="//header/button[@name='button_validate']" position="attributes">
-                <attribute name="invisible">state not in ('assigned', 'confirmed') or is_commercially_validated == True</attribute>
+                       <!-- FIX: Hide ALL standard Validate buttons completely (using double slash to match any nested button) -->
+            <xpath expr="//header//button[@name='button_validate']" position="attributes">
+                <attribute name="invisible">True</attribute>
             </xpath>
 
-            <!-- FIX: Add dummy button to show status -->
+            <!-- FIX: Add a SINGLE clean Validate button for the client -->
             <xpath expr="//header" position="inside">
+                <button name="button_validate" string="Validate" type="object" class="oe_highlight"
+                        invisible="state not in ('assigned', 'confirmed') or is_commercially_validated == True"/>
+                
+                <!-- Existing dummy button to show status -->
                 <button name="action_dummy" string="Approved - Awaiting Weighbridge" type="object" class="btn-secondary"
-                        invisible="picking_type_code != 'outgoing' or contract_type == 'export' or is_commercially_validated == False or state != 'assigned'"/>
+                        invisible="picking_type_code != 'outgoing' or is_commercially_validated == False or state != 'assigned'"/>
                 <button name="%(arm_sales_management.action_report_delivery_order_single_html)d" string="Print D/O Detail" type="action" class="btn-secondary" invisible="picking_type_code != 'outgoing'"/>
             </xpath>
 

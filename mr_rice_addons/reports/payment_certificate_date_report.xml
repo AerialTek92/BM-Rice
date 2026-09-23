@@ -14,7 +14,7 @@
     <record id="action_report_payment_certificate_date_wise" model="ir.actions.report">
         <field name="name">Payment Certificate Date Wise</field>
         <field name="model">payment.certificate</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_payment_cert_date_template</field>
         <field name="report_file">mr_rice_addons.report_payment_cert_date_template</field>
         <field name="print_report_name">'Payment_Certificate_Date_Wise'</field>

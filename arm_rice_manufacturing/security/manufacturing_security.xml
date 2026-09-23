@@ -48,15 +48,24 @@
         <record id="rule_prs_bm1_irri" model="ir.rule">
             <field name="name">Process Rice Spec: BM-1 sees only IRRI</field>
             <field name="model_id" ref="model_process_rice_spec"/>
-            <field name="domain_force">[('rice_type', '=', 'irri')]</field>
+            <!-- Domain mein False allow kiya gaya hai taake new record create ho sake -->
+            <field name="domain_force">['|', ('rice_type', '=', 'irri'), ('rice_type', '=', False)]</field>
             <field name="groups" eval="[(4, ref('group_bm1_irri'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
         </record>
 
         <record id="rule_prs_bm2_basmati" model="ir.rule">
             <field name="name">Process Rice Spec: BM-2 sees only Basmati</field>
             <field name="model_id" ref="model_process_rice_spec"/>
-            <field name="domain_force">[('rice_type', '=', 'basmati')]</field>
+            <field name="domain_force">['|', ('rice_type', '=', 'basmati'), ('rice_type', '=', False)]</field>
             <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
         </record>
 
         <!-- 3. ISSUE MATERIAL -->
@@ -103,5 +112,6 @@
             <field name="domain_force">[('job_order_id.rice_type', '=', 'basmati')]</field>
             <field name="groups" eval="[(4, ref('group_bm2_basmati'))]"/>
         </record>
+
     </data>
 </odoo>

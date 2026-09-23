@@ -12,7 +12,11 @@ class ProductionPlanning(models.Model):
     _order = 'id desc'
 
     name = fields.Char(string='Reference', readonly=True, copy=False, default=lambda self: _('New'))
+
+    # FIX: Removed compute from here. Date is a normal Date field.
+    # Its format will be handled by XML options.
     date = fields.Date(string='Date', default=fields.Date.today(), required=True)
+
     job_order_id = fields.Many2one('brand.job.order', string='Job Order No.', required=True, ondelete='restrict')
 
     # Mapped Fields
@@ -27,9 +31,7 @@ class ProductionPlanning(models.Model):
     milling_date_from = fields.Date(string='Milling Date From', required=True)
     milling_date_to = fields.Date(string='Milling Date To')
 
-    # Display field — form/list/report par "25 Apr 2026 to 30 Mar 2027"
-    # dikhaata hai. Report ka purana 'milling_date' reference isi se
-    # automatically range print karega.
+    # Display field — form/list/report par default format mein dikhega
     milling_date = fields.Char(
         string='Milling Date',
         compute='_compute_milling_date',
@@ -50,12 +52,19 @@ class ProductionPlanning(models.Model):
         ('laminated', 'Laminated'),
         ('china_cotton', 'China Cotton')
     ], string='Packing (Material)')
-    empty_bag_weight = fields.Float(string='Empty Bag Weight')
+
+    # Integer GRAMS, matching the label. Historical kg values are scaled
+    # by the 19.0.1.0.1 pre-migration; the BJO mapping now passes its
+    # (already-gram) total straight through - no conversion anywhere.
+    empty_bag_weight = fields.Integer(string='Empty Bag Weight (Grams)')
+
     total_quantity = fields.Float(string='Total Quantity (MT)')
 
     state = fields.Selection([
         ('draft', 'Draft'), ('confirmed', 'Confirmed')
     ], string='Status', default='draft', tracking=True)
+
+    remarks = fields.Html(string='Remarks')
 
     @api.model_create_multi
     def create(self, vals_list: List[Dict[str, Any]]) -> 'ProductionPlanning':
@@ -65,37 +74,39 @@ class ProductionPlanning(models.Model):
         return super().create(vals_list)
 
     # ==========================================
-    # NEW: Milling Date Range Display + Validation
+    # FIX: Milling Date Range Display + Validation (Default Format Restored)
     # ==========================================
     @api.depends('milling_date_from', 'milling_date_to')
     def _compute_milling_date(self) -> None:
+        # FIX: Reverted back to default format '%d %b %Y' (e.g., 03 Sep 2026)
+        date_format = '%d %b %Y'
         for rec in self:
             frm = rec.milling_date_from
             to = rec.milling_date_to
             if frm and to:
                 if frm == to:
-                    # Same date -> sirf ek date dikha do
-                    rec.milling_date = frm.strftime('%d %b %Y')
+                    rec.milling_date = frm.strftime(date_format)
                 else:
-                    rec.milling_date = f"{frm.strftime('%d %b %Y')} to {to.strftime('%d %b %Y')}"
+                    rec.milling_date = f"{frm.strftime(date_format)} to {to.strftime(date_format)}"
             elif frm:
-                rec.milling_date = frm.strftime('%d %b %Y')
+                rec.milling_date = frm.strftime(date_format)
             elif to:
-                rec.milling_date = to.strftime('%d %b %Y')
+                rec.milling_date = to.strftime(date_format)
             else:
                 rec.milling_date = False
 
     @api.constrains('milling_date_from', 'milling_date_to')
     def _check_milling_date_range(self) -> None:
+        date_format = '%d %b %Y'
         for rec in self:
             if rec.milling_date_from and rec.milling_date_to \
                     and rec.milling_date_to < rec.milling_date_from:
                 raise UserError(_(
                     "Milling Date 'To' (%s) cannot be earlier than 'From' (%s)."
                 ) % (
-                    rec.milling_date_to.strftime('%d %b %Y'),
-                    rec.milling_date_from.strftime('%d %b %Y'),
-                ))
+                                    rec.milling_date_to.strftime(date_format),
+                                    rec.milling_date_from.strftime(date_format),
+                                ))
 
     @api.onchange('job_order_id')
     def _onchange_job_order_id(self):
@@ -113,11 +124,15 @@ class ProductionPlanning(models.Model):
 
         self.no_of_bags = bjo.no_of_bags
         self.packing_material = bjo.packing
-        self.empty_bag_weight = bjo.total_empty_bag_weight
+
+        # BJO's total is already in grams: pass it straight through.
+        if bjo.total_empty_bag_weight:
+            self.empty_bag_weight = bjo.total_empty_bag_weight
+
         self.total_quantity = bjo.quantity_mt
 
         # Populate Quality Parameters Table
-        self.planning_line_ids = [(5, 0, 0)]  # Clear existing lines
+        self.planning_line_ids = [(5, 0, 0)]
         if prs:
             if prs.is_brown_rice:
                 params = [
@@ -143,7 +158,6 @@ class ProductionPlanning(models.Model):
                     ('Animals/Birds', '-', prs.br_Animals_birds),
                 ]
             else:
-                # Normal Rice Specs
                 params = [
                     ('Moisture', '%age', prs.n_moisture_percent),
                     ('Broken', '%age', prs.n_broken_percent),
@@ -172,7 +186,6 @@ class ProductionPlanning(models.Model):
             rec.state = 'confirmed'
 
     def action_create_issue_material(self) -> Dict[str, Any]:
-        """Flow Action: Proceed to create Issue Material for the Mill."""
         self.ensure_one()
         self.state = 'confirmed'
         return {
@@ -184,13 +197,11 @@ class ProductionPlanning(models.Model):
             'context': {
                 'default_job_order_id': self.job_order_id.id,
                 'default_issue_date': fields.Date.today(),
-                # FIX: ab From date pass hoti hai (Issue Material ka field Date hai)
                 'default_milling_date': self.milling_date_from,
             }
         }
 
     def action_create_production_record(self) -> Dict[str, Any]:
-        """Flow Action: Proceed to create Production Record."""
         self.ensure_one()
         self.state = 'confirmed'
         return {

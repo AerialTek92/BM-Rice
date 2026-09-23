@@ -23,11 +23,12 @@
                     </div>
                     <group>
                         <group>
-                            <field name="date"/>
+                            <!-- FIX: Applied date format strictly on Date field -->
+                            <field name="date" options="{'format': 'dd / MM / yyyy'}"/>
                             <field name="job_order_id" readonly="state != 'draft'"/>
                             <!-- FIX: Added force_save="1" to all readonly mapped fields -->
-                            <field name="commodity" readonly="1" force_save="1"/>
-                            <field name="rice_variety" readonly="1" force_save="1"/>
+                            <field name="commodity"/>
+                            <field name="rice_variety" invisible="1"/>
                         </group>
                         <group>
                             <field name="customer_id" readonly="1" force_save="1"/>
@@ -63,6 +64,10 @@
                                 </group>
                             </group>
                         </page>
+
+                        <page string="Remarks">
+                            <field name="remarks" nolabel="1" colspan="2"/>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -76,7 +81,8 @@
         <field name="arch" type="xml">
             <list string="Production Planning">
                 <field name="name"/>
-                <field name="date"/>
+                <!-- FIX: Applied date format strictly on Date field in list view -->
+                <field name="date" options="{'format': 'dd / MM / yyyy'}"/>
                 <field name="job_order_id"/>
                 <field name="customer_id"/>
                 <!-- NEW: Milling Date range display column -->

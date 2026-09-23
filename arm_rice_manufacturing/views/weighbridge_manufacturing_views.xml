@@ -8,7 +8,7 @@
 
             <!-- 1. Add Dedicated Buttons in Header -->
             <xpath expr="//header" position="inside">
-                <button name="action_confirm_manufacturing" string="Confirm &amp; View Internal Transfer" type="object" class="btn-success"
+                <button name="action_confirm_manufacturing" string="Confirm Issue Weight" type="object" class="btn-success"
                         invisible="weighbridge_type != 'manufacturing' or state != 'unloading' or tare_weight == 0 or is_finished_weighbridge == True"/>
 
                 <button name="action_confirm_finished_weighbridge" string="Confirm Finished Weight" type="object" class="btn-success"

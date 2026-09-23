@@ -6,6 +6,10 @@ from typing import Dict, Any, List, Tuple
 from datetime import date
 from dataclasses import dataclass
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 COMMAND_CLEAR_ALL: Tuple[int, int, int] = (5, 0, 0)
 COMMAND_CREATE_NEW: int = 0
 PERCENTAGE_DIVISOR: float = 100.0
@@ -69,8 +73,17 @@ class PaymentCertificate(models.Model):
         currency_field='currency_id'
     )
 
-    broker_id = fields.Many2one('res.partner', string='Broker', domain="[('partner_assign_type', '=', 'broker')]")
+    broker_id = fields.Many2one(
+        'res.partner',
+        string='Broker',
+        domain=[('partner_assign_type', '=', 'vendor')],
+    )
     buyer_id = fields.Many2one('hr.employee', string='Buyer')
+
+    # PI flow: the GRN's source indent (related through grn -> purchase).
+    purchase_indent_id = fields.Many2one(
+        'purchase.indent', related='grn_id.purchase_indent_id',
+        string='Purchase Indent', store=True, readonly=True)
     broker_brokerage_rate = fields.Float(related='broker_id.brokerage_rate', string='Broker Rate/Bag', readonly=True,
                                          store=True)
     broker_wh_tax_rate = fields.Float(related='broker_id.wh_tax_rate', string='Broker WHT Rate (%)', readonly=True,
@@ -140,6 +153,12 @@ class PaymentCertificate(models.Model):
 
     remarks = fields.Html(string='Remarks')
 
+    _sql_constraints = [
+        ('payment_certificate_unique_grn',
+         'unique(grn_id)',
+         'A Payment Certificate already exists for this GRN.'),
+    ]
+
     @api.model_create_multi
     def create(self, vals_list: List[Dict[str, Any]]) -> 'PaymentCertificate':
         # FIX: Generate sequence number on creation
@@ -158,7 +177,9 @@ class PaymentCertificate(models.Model):
                         'res_id': rec.id,
                         'sequence': m_line.sequence,
                         'label': m_line.label,
-                        'employee_id': m_line.employee_id.id,
+                        'employee_id': m_line.employee_id.id if m_line.employee_id else False,
+                        'group_id': m_line.group_id.id if m_line.group_id else False,
+                        'matrix_line_id': m_line.id,
                         'status': 'waiting',
                     }))
                 if line_vals:
@@ -169,10 +190,98 @@ class PaymentCertificate(models.Model):
         for rec in self:
             rec.payment_voucher_count = len(rec.payment_voucher_ids)
 
+    # ======================================================
+    # OPEN PAYMENT VOUCHERS
+    # ======================================================
+
     def action_view_payment_vouchers(self) -> Dict[str, Any]:
-        """Protocol 2.1 (SRP): Smart button to view linked Payment Vouchers."""
+        """
+        Open vendor bills/payment vouchers linked to this
+        Payment Certificate.
+        """
         self.ensure_one()
-        return self._open_related_records('account.move', 'payment_certificate_id', 'Payment Voucher')
+
+        payment_vouchers = self.payment_voucher_ids
+
+        _logger.info(
+            "OPEN PAYMENT VOUCHERS | PC=%s | PC ID=%s | Voucher Count=%s | Voucher IDs=%s",
+            self.display_name,
+            self.id,
+            len(payment_vouchers),
+            payment_vouchers.ids,
+        )
+
+        # --------------------------------------------------
+        # No linked vouchers
+        # --------------------------------------------------
+
+        if not payment_vouchers:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Payment Vouchers"),
+                "res_model": "account.move",
+                "view_mode": "list,form",
+                "domain": [
+                    (
+                        "payment_certificate_id",
+                        "=",
+                        self.id,
+                    ),
+                    (
+                        "move_type",
+                        "=",
+                        "in_invoice",
+                    ),
+                ],
+                "context": {
+                    "default_payment_certificate_id": self.id,
+                    "default_move_type": "in_invoice",
+                },
+            }
+
+        # --------------------------------------------------
+        # One voucher
+        # --------------------------------------------------
+
+        if len(payment_vouchers) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Payment Voucher"),
+                "res_model": "account.move",
+                "view_mode": "form",
+                "res_id": payment_vouchers.id,
+                "context": {
+                    "default_payment_certificate_id": self.id,
+                    "default_move_type": "in_invoice",
+                },
+            }
+
+        # --------------------------------------------------
+        # Multiple vouchers
+        # --------------------------------------------------
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Payment Vouchers"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "domain": [
+                (
+                    "payment_certificate_id",
+                    "=",
+                    self.id,
+                ),
+                (
+                    "move_type",
+                    "=",
+                    "in_invoice",
+                ),
+            ],
+            "context": {
+                "default_payment_certificate_id": self.id,
+                "default_move_type": "in_invoice",
+            },
+        }
 
     @api.depends('rate', 'net_weight')
     def _compute_amount(self) -> None:
@@ -306,19 +415,62 @@ class PaymentCertificate(models.Model):
         self._calculate_brokerage()
 
     def action_confirm(self) -> None:
+        """Bulk-safe confirm (list Action menu): only DRAFT certificates
+        transition, so a mixed selection can never downgrade a Confirmed
+        or Paid record. The approval gate is deliberately all-or-nothing:
+        one unapproved certificate blocks the batch and rolls everything
+        back."""
+        is_admin = self.env.user.has_group('base.group_system')
         for rec in self:
-            is_admin = self.env.user.has_group('base.group_system')
+            if rec.state != 'draft':
+                continue
             if rec.approval_line_ids and rec.approval_status != 'approved' and not is_admin:
-                raise UserError(_("You cannot confirm this Payment Certificate until all approvals are completed."))
+                raise UserError(_(
+                    "You cannot confirm Payment Certificate %s until all "
+                    "approvals are completed.", rec.name))
             rec.state = 'confirmed'
 
     def action_mark_paid(self) -> None:
-        for rec in self: rec.state = 'paid'
+        """H8: 'Paid' requires a posted vendor bill behind it - never a
+        state flip on its own. Only a Confirmed PC can transition."""
+        for rec in self:
+            if rec.state != 'confirmed':
+                raise UserError(_(
+                    "Only a Confirmed Payment Certificate can be marked as Paid. "
+                    "Current state: %s.", rec.state))
+            posted_bills = rec.payment_voucher_ids.filtered(
+                lambda bill: bill.state == 'posted')
+            if not posted_bills:
+                raise UserError(_(
+                    "Payment Certificate %s has no posted vendor bill yet. "
+                    "Create and post the bill before marking it paid.", rec.name))
+            rec.state = 'paid'
 
     def action_reset_to_draft(self) -> None:
-        for rec in self: rec.state = 'draft'
+        """H8: a Paid certificate is financial history - it cannot go back
+        to draft. Confirmed -> draft remains the correction path."""
+        for rec in self:
+            if rec.state == 'paid':
+                raise UserError(_(
+                    "Payment Certificate %s is Paid: it cannot be reset to draft.",
+                    rec.name))
+            rec.state = 'draft'
 
     def unlink(self) -> bool:
+        """H8: only Draft certificates can be deleted. Confirmed ones must
+        be reset to draft first; Paid ones are permanent financial records.
+        Blocks orphaned bills holding a stale Rice PC Amount."""
+        for rec in self:
+            if rec.payment_voucher_ids:
+                raise UserError(_(
+                    "You cannot delete Payment Certificate %s: vendor bills "
+                    "still reference it.", rec.name))
+            if rec.state != 'draft':
+                raise UserError(_(
+                    "You cannot delete Payment Certificate %s in state '%s'. "
+                    "Only Draft certificates can be deleted; reset a Confirmed "
+                    "one to draft first. Paid certificates are permanent.",
+                    rec.name, rec.state))
         return super().unlink()
 
     def _execute_post_approval(self):

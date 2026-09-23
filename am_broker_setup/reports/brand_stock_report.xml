@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="brand_stock_wizard_view_form" model="ir.ui.view">
+        <field name="name">brand.stock.wizard.view.form</field>
+        <field name="model">brand.stock.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Brand Stock">
+                <group>
+                    <group>
+                        <field name="date_as_at"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_view" string="View" type="object" class="btn-primary"/>
+                    <button name="action_print" string="Print" type="object" class="btn-secondary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_brand_stock_wizard" model="ir.actions.act_window">
+        <field name="name">Brand Stock</field>
+        <field name="res_model">brand.stock.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_brand_stock_report"
+              name="Brand Stock"
+              parent="stock.menu_warehouse_report"
+              action="action_brand_stock_wizard"
+              sequence="11"/>
+
+    <record id="action_report_brand_stock_html" model="ir.actions.report">
+        <field name="name">Brand Stock</field>
+        <field name="model">brand.stock.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">am_broker_setup.report_brand_stock</field>
+        <field name="report_file">am_broker_setup.report_brand_stock</field>
+    </record>
+
+    <record id="action_report_brand_stock_pdf" model="ir.actions.report">
+        <field name="name">Brand Stock</field>
+        <field name="model">brand.stock.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">am_broker_setup.report_brand_stock</field>
+        <field name="report_file">am_broker_setup.report_brand_stock</field>
+        <field name="print_report_name">'Brand Stock'</field>
+    </record>
+
+    <template id="report_brand_stock">
+        <t t-call="web.html_container">
+            <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: black; padding: 15px;">
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <div style="font-size: 14px; font-weight: bold;">Bulk Management (Pakistan) Pvt. Ltd.</div>
+                    <div style="font-size: 13px; font-weight: bold; margin-top: 4px;">Brand Stock</div>
+                    <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">
+                        As At: <t t-esc="data['date_as_at']"/>
+                    </div>
+                </div>
+
+                <t t-foreach="[data['raw_section'], data['process_section']]" t-as="section">
+                    <div style="font-size: 12px; font-weight: bold; margin: 12px 0 4px 0;">
+                        <t t-esc="section['title']"/>
+                    </div>
+                    <table class="table table-bordered" style="width: 100%; border: 1px solid black; border-collapse: collapse; font-size: 11px;">
+                        <thead style="background-color: #f2f2f2; font-weight: bold;">
+                            <tr>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: left;">Description</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 15%;">Opening (Mt)</th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 17%;">
+                                    <t t-esc="section['in_header']"/>
+                                </th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 17%;">
+                                    <t t-esc="section['out_header']"/>
+                                </th>
+                                <th style="border: 1px solid black; padding: 3px 6px; text-align: right; width: 15%;">Closing (Mt)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="section['lines']" t-as="line">
+                                <tr>
+                                    <td style="border: 1px solid black; padding: 2px 6px;">
+                                        <t t-esc="line['name']"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-if="line['opening']" t-esc="'{:,.3f}'.format(line['opening'])"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-if="line['movement_in']" t-esc="'{:,.3f}'.format(line['movement_in'])"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-if="line['movement_out']" t-esc="'{:,.3f}'.format(line['movement_out'])"/>
+                                    </td>
+                                    <td style="border: 1px solid black; padding: 2px 6px; text-align: right;">
+                                        <t t-esc="'{:,.3f}'.format(line['closing'])"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                <td style="border: 1px solid black; padding: 3px 6px;">TOTAL</td>
+                                <td style="border: 1px solid black; padding: 3px 6px; text-align: right;">
+                                    <t t-esc="'{:,.3f}'.format(section['totals']['opening'])"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 3px 6px; text-align: right;">
+                                    <t t-esc="'{:,.3f}'.format(section['totals']['movement_in'])"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 3px 6px; text-align: right;">
+                                    <t t-esc="'{:,.3f}'.format(section['totals']['movement_out'])"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 3px 6px; text-align: right;">
+                                    <t t-esc="'{:,.3f}'.format(section['totals']['closing'])"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

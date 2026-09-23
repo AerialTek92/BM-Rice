@@ -15,7 +15,7 @@
     <record id="action_report_stock_picking_detail" model="ir.actions.report">
         <field name="name">Good Receipt Detail</field>
         <field name="model">stock.picking</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">mr_rice_addons.report_stock_picking_template</field>
         <field name="report_file">mr_rice_addons.report_stock_picking_template</field>
         <field name="print_report_name">'Good Receipt Date Wise'</field>
@@ -29,7 +29,7 @@
 
                 <!-- Title Section -->
                 <div style="width: 100%; text-align: center; margin-bottom: 30px;">
-                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Goods Receipt Date Wise</h2>
+                    <h2 style="margin:0; font-weight: bold; font-size: 35px;">Goods Receipt Details</h2>
                     <p style="margin:0; font-size: 20px; font-weight: bold; margin-top: 10px;">
                         <span t-esc="date_from"/>
                         -

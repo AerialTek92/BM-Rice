@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from typing import Dict, Any, List, Tuple
 from datetime import timedelta
 
@@ -17,15 +17,30 @@ COMMAND_CREATE_NEW: int = 0
 class PurchaseOrder(models.Model):
     _inherit = ['purchase.order', 'smart.button.mixin']
 
-    rice_sales_contract_id = fields.Many2one('rice.sales.contract', string='Rice Sales Contract')
-    contract_type = fields.Selection(
-        related='rice_sales_contract_id.contract_type',
-        string='Contract Type',
-        readonly=True,
-        store=True
+    partner_id = fields.Many2one(
+        'res.partner',
+        domain=[('partner_assign_type', '=', 'vendor')],
+        context={'res_partner_search_mode': 'supplier'},
     )
-    broker_id = fields.Many2one('res.partner', string='Broker')
+    broker_id = fields.Many2one(
+        'res.partner',
+        string='Broker',
+        domain=[('partner_assign_type', '=', 'vendor')],
+    )
     buyer_id = fields.Many2one('hr.employee', string='Buyer')
+
+    # ==========================================================
+    # PURCHASE INDENT LINK (PI flow: PI -> PO -> GRN -> PC)
+    # ==========================================================
+    purchase_indent_id = fields.Many2one(
+        'purchase.indent', string='Purchase Indent', copy=False, index=True,
+        help="The Purchase Indent this order fulfills. Indent orders follow the direct "
+             "flow (PO -> GRN -> Payment Certificate) - no QC, Gate Pass or Weighbridge.")
+
+    material_issue_note_id = fields.Many2one(
+        'material.issue.note', string='Material Issue Note', copy=False, index=True)
+    is_indent_po = fields.Boolean(
+        string='From Purchase Indent', compute='_compute_is_indent_po', store=True)
 
     # NEW: Reference PO No. for old system references
     ref_po_no = fields.Char(string='Ref. PO No.')
@@ -44,8 +59,6 @@ class PurchaseOrder(models.Model):
     total_qty_remaining = fields.Float(string='Remaining Qty', compute='_compute_po_totals', store=True)
 
     total_available_tls = fields.Float(string='Avail. TLS', compute='_compute_po_totals', store=True)
-
-    # REMOVED dummy _compute_can_edit_rfq. The approval_matrix mixin handles it automatically.
 
     remarks = fields.Html(string='Remarks')
 
@@ -66,6 +79,11 @@ class PurchaseOrder(models.Model):
         compute="_compute_tls_values",
         store=False,
     )
+
+    @api.depends('purchase_indent_id')
+    def _compute_is_indent_po(self) -> None:
+        for order in self:
+            order.is_indent_po = bool(order.purchase_indent_id)
 
     @api.depends('order_line.no_of_trucks', 'order_line.available_tls')
     def _compute_tls_values(self):
@@ -88,6 +106,22 @@ class PurchaseOrder(models.Model):
         string='Third Party / Outsider',
         compute='_compute_is_third_party_po',
         store=True, )
+
+    @api.constrains('partner_id', 'broker_id')
+    def _check_partner_assign_types(self) -> None:
+        """Server twin of the picker domains: both the Vendor and Broker
+        fields draw from the merged Vendor / Broker pool."""
+        for order in self:
+            if order.partner_id and order.partner_id.partner_assign_type != 'vendor':
+                raise ValidationError(_(
+                    "The vendor on %s must be a Vendor / Broker-typed partner "
+                    "('%s' is currently '%s').",
+                    order.name, order.partner_id.name, order.partner_id.partner_assign_type))
+            if order.broker_id and order.broker_id.partner_assign_type != 'vendor':
+                raise ValidationError(_(
+                    "The broker on %s must be a Vendor / Broker-typed partner "
+                    "('%s' is currently '%s').",
+                    order.name, order.broker_id.name, order.broker_id.partner_assign_type))
 
     @api.depends('grn_inspection_ids.is_third_party')
     def _compute_is_third_party_po(self) -> None:
@@ -191,8 +225,29 @@ class PurchaseOrder(models.Model):
             }))
         return line_vals
 
+    def action_create_material_inspection(self) -> Dict[str, Any]:
+        """PO -> Material Inspection (indent flow only): opens a new
+        inspection prefilled from this order's lines."""
+        self.ensure_one()
+        if not self.purchase_indent_id:
+            raise UserError(_("Material Inspection is only used on Purchase Indent orders."))
+
+        inspection = self.env['material.inspection'].create({
+            'purchase_order_id': self.id,
+            'date': fields.Date.today(),
+            'supplier_id': self.partner_id.id,
+            'department': self.purchase_indent_id.department or False,
+        })
+        return self._open_form_view('material.inspection', inspection.id, 'Material Inspection')
+
     def action_create_grn_inspection(self) -> Dict[str, Any]:
         self.ensure_one()
+
+        if self.purchase_indent_id:
+            raise UserError(_(
+                "This Purchase Order comes from Purchase Indent %s: it follows the direct "
+                "flow (PO -> GRN -> Payment Certificate) and does not use GRN Inspections.",
+                self.purchase_indent_id.name))
 
         product_lines = self.order_line.filtered(lambda l: l.product_id)
         if not product_lines:
@@ -220,18 +275,34 @@ class PurchaseOrder(models.Model):
         return self._open_related_records('grn.inspection', 'purchase_order_id', 'GRN Inspection')
 
     def action_view_picking(self) -> Dict[str, Any]:
-        """Receipts smart button: open with the rice receipts list so the
-        purchase-flow columns (Trucks, Vehicle No., TLS values) are visible.
+        """Receipts smart button: RICE orders expose their GRN ONLY after
+        the Weighbridge confirmed (or the third-party inspection direct
+        flow took the picking over). The auto-created draft receipt is
+        internal machinery until then. Indent orders behave natively."""
+        self.ensure_one()
 
-        The smart button builds its own action around the generic Transfers
-        action with a PO domain - the act_window view attachment on the
-        Receipts menu action never reaches it - so the list mode is pointed
-        at the receipts view here, at the moment the button is clicked."""
+        if not self.is_indent_po:
+            ready_pickings = self.picking_ids.filtered(
+                lambda picking: picking.weighbridge_id or picking.grn_inspection_id)
+            if not ready_pickings:
+                raise UserError(_(
+                    "The GRN for this Purchase Order is not ready yet. "
+                    "It becomes available after the Weighbridge is confirmed "
+                    "(Confirm & View GRN on the Weighbridge ticket)."))
+
+            if len(ready_pickings) == 1:
+                return self._open_form_view('stock.picking', ready_pickings.id, 'GRN')
+
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('GRNs'),
+                'res_model': 'stock.picking',
+                'view_mode': 'list,form',
+                'domain': [('id', 'in', ready_pickings.ids)],
+            }
+
+        # Indent orders: native behavior + the rice receipts list styling.
         result = super().action_view_picking()
-
-        # Only restyle the multi-record list result. Native behavior is kept for:
-        # - single receipt: opens the form directly (res_id is set)
-        # - no receipts: closes or opens an empty list (nothing to restyle)
         is_receipts_list = (
             result.get('res_model') == 'stock.picking' and not result.get('res_id')
         )

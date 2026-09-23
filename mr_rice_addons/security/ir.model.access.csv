@@ -2,7 +2,9 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_purchase_order_wizard,purchase.order.wizard,model_purchase_order_wizard,base.group_user,1,1,1,1
 access_purchase_order_summary_wizard,purchase.order.summary.wizard,model_purchase_order_summary_wizard,base.group_user,1,1,1,1
 access_po_vs_grn_wizard,po.vs.grn.wizard,model_po_vs_grn_wizard,base.group_user,1,1,1,1
-access_corn_future_contract_wizard,corn.future.contract.wizard,model_corn_future_contract_wizard,base.group_user,1,1,1,1
+access_outstanding_arrival_wizard,outstanding.arrival.wizard,model_outstanding_arrival_wizard,base.group_user,1,1,1,1
+access_outstanding_corn_arrival_wizard,outstanding.corn.arrival.wizard,model_outstanding_corn_arrival_wizard,base.group_user,1,1,1,1
+
 
 access_stock_picking_detail_wizard,stock.picking.detail.wizard,model_stock_picking_detail_wizard,base.group_user,1,1,1,1
 access_stock_picking_product_wizard,stock.picking.product.wizard,model_stock_picking_product_wizard,base.group_user,1,1,1,1
@@ -16,4 +18,5 @@ access_sales_return_detail_wizard,sales.return.detail.wizard,model_sales_return_
 
 access_payment_certificate_wizard,payment.certificate.wizard,model_payment_certificate_wizard,base.group_user,1,1,1,1
 access_payment_certificate_date_wizard,payment.certificate.date.wizard,model_payment_certificate_date_wizard,base.group_user,1,1,1,1
+access_sale_memo_rice_wizard,sale.memo.rice.wizard,model_sale_memo_rice_wizard,base.group_user,1,1,1,1
 

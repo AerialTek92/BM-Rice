@@ -22,9 +22,9 @@ class StockPicking(models.Model):
     )
 
     # --- Document References ---
-    grn_inspection_id = fields.Many2one('grn.inspection', string='Inspection', readonly=True)
+    grn_inspection_id = fields.Many2one('grn.inspection', string='Inspection', readonly=True, copy=False)
     gate_pass_id = fields.Many2one('gate.pass', string='Gate Pass', readonly=True, copy=False)
-    weighbridge_id = fields.Many2one('weighbridge.ticket', string='Weighbridge', readonly=True)
+    weighbridge_id = fields.Many2one('weighbridge.ticket', string='Weighbridge', readonly=True, copy=False)
     rice_sales_contract_id = fields.Many2one('rice.sales.contract', string='Sales Contract', store=True, readonly=True)
     buyer_id = fields.Many2one('hr.employee', string='Buyer', related='purchase_id.buyer_id', store=True, readonly=True)
 
@@ -51,6 +51,27 @@ class StockPicking(models.Model):
         'stock.location',
         domain=[('usage', '=', 'internal')]
     )
+
+    # PI flow: the receipt's source indent, related through the Purchase Order.
+    purchase_indent_id = fields.Many2one(
+        'purchase.indent', related='purchase_id.purchase_indent_id',
+        string='Purchase Indent', store=True, readonly=True)
+
+    material_inspection_id = fields.Many2one('material.inspection', string='Material Inspection',
+                                             readonly=True, copy=False)
+
+    # RICE-FLOW GATE: True while the auto-created receipt of a rice PO is
+    # still waiting for its Weighbridge (or, third-party, its inspection
+    # direct flow). Pending receipts are hidden from the Receipts list and
+    # blocked from validation; the WB / inspection confirm sets the link
+    # and frees them.
+    is_pending_rice_receipt = fields.Boolean(
+        string='Pending Weighbridge',
+        compute='_compute_is_pending_rice_receipt',
+        search='_search_is_pending_rice_receipt',
+        help="True while a rice PO's auto-created receipt awaits its Weighbridge "
+             "confirmation. Hidden from the Receipts list and blocked from validation "
+             "until the Weighbridge (or the third-party inspection flow) takes it over.")
 
     # --- Header Details ---
     grn_date = fields.Date(string='GRN Date', default=fields.Date.today(), readonly=False)
@@ -111,16 +132,84 @@ class StockPicking(models.Model):
             else:
                 picking.price_unit = picking.price_unit or 0.0
 
+    @api.depends('purchase_id', 'picking_type_code', 'weighbridge_id', 'grn_inspection_id',
+                 'purchase_indent_id', 'material_inspection_id')
+    def _compute_is_pending_rice_receipt(self) -> None:
+        """Pending = a rice PO's incoming picking with no Weighbridge and no
+        inspection link yet. Indent and Material Inspection receipts are
+        exempt (their flows validate directly)."""
+        for picking in self:
+            picking.is_pending_rice_receipt = bool(
+                picking.picking_type_code == 'incoming'
+                and picking.purchase_id
+                and not picking.purchase_indent_id
+                and not picking.material_inspection_id
+                and not picking.weighbridge_id
+                and not picking.grn_inspection_id
+            )
+
+    def _search_is_pending_rice_receipt(self, operator: str, value: Any) -> List[Any]:
+        """Search twin: the Receipts-list action domain excludes pending
+        pickings (see stock_picking_views.xml)."""
+        exclude = (operator == '=' and not value) or (operator == '!=' and value)
+        if exclude:
+            return ['|', '|', '|', '|',
+                    ('picking_type_code', '!=', 'incoming'),
+                    ('purchase_id', '=', False),
+                    ('purchase_indent_id', '!=', False),
+                    ('weighbridge_id', '!=', False),
+                    ('grn_inspection_id', '!=', False)]
+        return ['&', '&', '&', '&',
+                ('picking_type_code', '=', 'incoming'),
+                ('purchase_id', '!=', False),
+                ('weighbridge_id', '=', False),
+                ('grn_inspection_id', '=', False)]
+
     @api.model_create_multi
-    def create(self, vals_list: List[Dict[str, Any]]) -> 'StockPicking':
-        """Protocol 2.1: Ensure rice_sales_contract_id is inherited from Sale Order upon creation (fixes Backorders)."""
+    def create(self, vals_list):
+        """Custom DO sequences:
+        - Export (RSC-linked): EXP/DO/YY/NNN — detected in vals (pre-create)
+        - Local (SM-linked): SM/DO/YY/NNN — detected on the record (post-create)
+        """
+        # Pre-create: Export DOs (rice_sales_contract_id is in the vals)
+        for vals in vals_list:
+            if (vals.get('name', _('New')) == _('New')
+                    and vals.get('rice_sales_contract_id')):
+                picking_type_id = vals.get('picking_type_id')
+                if picking_type_id:
+                    picking_type = self.env['stock.picking.type'].browse(picking_type_id)
+                    if picking_type.code == 'outgoing':
+                        vals['name'] = self.env['ir.sequence'].next_by_code('do.export')
+
         pickings = super().create(vals_list)
+
+        # Post-create: Local DOs (sale_id is a stored related field,
+        # computed from group_id — available on the RECORD after creation)
         for picking in pickings:
-            # If the picking doesn't have the contract set, try to pull it from the Sale Order
+            if (picking.picking_type_code == 'outgoing'
+                    and not picking.rice_sales_contract_id
+                    and picking.sale_id
+                    and not picking.name.startswith(('SM/DO/', 'EXP/DO/'))):
+                picking.name = self.env['ir.sequence'].next_by_code('do.local')
+
+            # Existing: inherit contract from the Sales Memo
             if not picking.rice_sales_contract_id and picking.sale_id:
                 if 'rice_sales_contract_id' in picking.sale_id._fields and picking.sale_id.rice_sales_contract_id:
                     picking.rice_sales_contract_id = picking.sale_id.rice_sales_contract_id.id
         return pickings
+
+    def _apply_local_delivery_sequence(self) -> None:
+        """Deterministic local-DO naming (SM/DO/YY/NNN). Called from the
+        Sales Memo's action_confirm AFTER the stock rule created and
+        natively named the pickings: whatever ordering quirks the picking
+        creation machinery has, this window runs last and wins. Already-
+        named pickings (SM/DO, EXP/DO) and contract-linked DOs are skipped,
+        so no sequence number is ever consumed twice."""
+        for picking in self:
+            if (picking.picking_type_code == PICKING_OUTGOING
+                    and not picking.rice_sales_contract_id
+                    and not (picking.name or '').startswith(('SM/DO/', 'EXP/DO/'))):
+                picking.name = self.env['ir.sequence'].next_by_code('do.local')
 
     # --- Fix: Name Search to allow searching STRICTLY by Vehicle No in Payment Certificate ---
     @api.model
@@ -268,6 +357,20 @@ class StockPicking(models.Model):
         return self._open_form_view('rice.sales.contract', self.rice_sales_contract_id.id, 'Sales Contract')
 
     def unlink(self) -> bool:
+        # H1: absolute protection - a GRN that produced Payment Certificates
+        # is part of the financial chain and can never be deleted (the
+        # certificates and any bills behind them would be orphaned). Runs
+        # even under the bypass context: only removing the certificates
+        # first can ever free the GRN.
+        for picking in self:
+            if picking.payment_certificate_ids:
+                raise UserError(_(
+                    "You cannot delete GRN %s: Payment Certificate(s) %s were "
+                    "issued against it. Cancel or delete the certificates first.",
+                    picking.name,
+                    ", ".join(picking.payment_certificate_ids.mapped('name')),
+                ))
+
         # Phase 3 Fix 4: Intercept native deletion to protect PO integrity
         # Allow deletion if explicitly bypassed by our custom action_delete_grn method
         if not self.env.context.get('bypass_grn_delete_check'):
@@ -286,18 +389,32 @@ class StockPicking(models.Model):
         return super().unlink()
 
     def button_validate(self) -> Dict[str, Any]:
+        # RICE-FLOW GATE: the auto-created receipt of a rice PO must not be
+        # validated until the Weighbridge confirms and takes it over (or the
+        # third-party inspection direct flow does). Fires regardless of how
+        # the user reaches the picking (Receipts menu, direct URL, list
+        # multi-validate, RPC).
+        for picking in self:
+            if picking.is_pending_rice_receipt:
+                raise UserError(_(
+                    "This receipt belongs to Purchase Order %s and cannot be validated "
+                    "yet. The GRN can only be validated after the Weighbridge is "
+                    "confirmed (Confirm & View GRN on the Weighbridge ticket).",
+                    picking.purchase_id.name or '',
+                ))
+
         # FIX: Gate Pass enforcement is scoped to SALES Delivery Orders (picking has a Sale Order).
         # Both local and export sales DOs carry sale_id, and in both flows the Gate Pass is
         # Marked as Exited before validation - so the enforcement is preserved for them.
         # Purchase returns and the Delete-GRN reversal return have no Sale Order and no Gate
         # Pass: they must validate freely (this check previously blocked them).
         for picking in self:
-            is_sales_delivery = (
+            is_local_sales_delivery = (
                 picking.picking_type_code == PICKING_OUTGOING
                 and picking.sale_id
                 and picking.state not in ('done', 'cancel')
             )
-            if is_sales_delivery:
+            if is_local_sales_delivery:
                 if not picking.gate_pass_id or picking.gate_pass_id.state != 'done':
                     raise UserError(_(
                         "You cannot validate this Delivery Order yet. "
@@ -342,6 +459,17 @@ class StockPicking(models.Model):
             elif picking.picking_type_code == PICKING_OUTGOING:
                 self._restore_tls_on_return(picking)
 
+            # 3. Purchase Indent receipts: the indent flow has no
+            # weighbridge - the received quantity IS the net weight (and
+            # the primary product the first received move), so the Payment
+            # Certificate's rate x net weight computes correctly.
+            if (picking.picking_type_code == PICKING_INCOMING
+                    and picking.purchase_indent_id):
+                picking.net_weight = sum(picking.move_ids.mapped('quantity'))
+                first_received = picking.move_ids.filtered(lambda move: move.quantity > 0)[:1]
+                if first_received:
+                    picking.product_id = first_received.product_id.id
+
         return res
 
     def _restore_tls_on_return(self, picking: 'stock.picking') -> None:
@@ -370,13 +498,96 @@ class StockPicking(models.Model):
                     # Add TLS back to the Purchase Order Line
                     po_line.available_tls += tls_to_restore
 
+    # ==========================================================
+    # DELETE GRN SUPPORT (C2: honest pre-flight + exact lots)
+    # ==========================================================
+
+    def _get_reversible_moves(self) -> 'stock.move':
+        """Protocol 4.1 (DRY): the moves that actually received stock and
+        therefore need reversing (done moves with a positive quantity)."""
+        self.ensure_one()
+        return self.move_ids.filtered(lambda move: move.state == 'done' and move.quantity > 0)
+
+    def _check_grn_reversal_lot_feasibility(self) -> None:
+        """C2 pre-flight: every tracked product's received quantity must
+        carry lot/serial information - the reversal re-creates those exact
+        lots. Raises BEFORE any reversal work exists, so the error stays
+        honest (the old version failed mid-savepoint and pointed users at
+        a return picking the rollback had just erased)."""
+        self.ensure_one()
+        for move in self._get_reversible_moves():
+            if move.product_id.tracking == 'none':
+                continue
+            lines_without_lot = move.move_line_ids.filtered(lambda line: not line.lot_id)
+            if not move.move_line_ids or lines_without_lot:
+                raise UserError(_(
+                    "GRN %s cannot be reversed automatically: product %s was "
+                    "received without Lot/Serial information. Create a manual "
+                    "stock return for this GRN instead.",
+                    self.name, move.product_id.display_name))
+
+    def _set_reversal_move_lines(self) -> None:
+        """C2 lot propagation: give every return move its done quantity
+        using the EXACT lots and quantities the original GRN received (one
+        move line per lot). Non-tracked products get a single full-quantity
+        line. Explicit lines replace reservation: reservation would GUESS
+        lots - the reversal must return what actually came in."""
+        self.ensure_one()
+        move_line_vals: List[Dict[str, Any]] = []
+        for return_move in self.move_ids:
+            source_move = return_move.origin_returned_move_id
+            if return_move.product_id.tracking != 'none' and source_move:
+                for source_line in source_move.move_line_ids:
+                    move_line_vals.append({
+                        'move_id': return_move.id,
+                        'picking_id': return_move.picking_id.id,
+                        'product_id': return_move.product_id.id,
+                        'product_uom_id': return_move.product_id.uom_id.id,
+                        'quantity': source_line.quantity,
+                        'lot_id': source_line.lot_id.id,
+                        # Reverse the original line's locations exactly.
+                        'location_id': source_line.location_dest_id.id,
+                        'location_dest_id': source_line.location_id.id,
+                    })
+            else:
+                move_line_vals.append({
+                    'move_id': return_move.id,
+                    'picking_id': return_move.picking_id.id,
+                    'product_id': return_move.product_id.id,
+                    'product_uom_id': return_move.product_id.uom_id.id,
+                    'quantity': return_move.product_uom_qty,
+                    'location_id': return_move.location_id.id,
+                    'location_dest_id': return_move.location_dest_id.id,
+                })
+        if move_line_vals:
+            self.env['stock.move.line'].create(move_line_vals)
+        for return_move in self.move_ids:
+            return_move.picked = True
+
     def action_delete_grn(self) -> Dict[str, Any]:
-        """Protocol 2.1: Mimics a full return (restoring TLS and stock), hard deletes the GRN, and redirects to receipts."""
+        """Protocol 2.1: Mimics a full return (restoring TLS and stock), hard
+        deletes the GRN, and redirects to receipts.
+
+        C2 rework: lot/serial feasibility is checked BEFORE anything is
+        created, and tracked products reverse the exact lots received."""
         self.ensure_one()
         picking = self
 
         if picking.state != 'done' or picking.picking_type_code != PICKING_INCOMING:
             return {'type': 'ir.actions.act_window_close'}
+
+        # H1: fail fast, before any reversal work - a GRN with Payment
+        # Certificates is part of the financial chain and cannot be deleted.
+        if picking.payment_certificate_ids:
+            raise UserError(_(
+                "You cannot delete GRN %s: Payment Certificate(s) %s were "
+                "issued against it. Cancel or delete the certificates first.",
+                picking.name,
+                ", ".join(picking.payment_certificate_ids.mapped('name')),
+            ))
+
+        # C2 pre-flight: honest failure before any work exists.
+        picking._check_grn_reversal_lot_feasibility()
 
         po_id = picking.purchase_id.id
 
@@ -391,10 +602,14 @@ class StockPicking(models.Model):
                             po_line.available_tls += insp_line.grn_insp_tls
                             insp_line.write({'grn_insp_tls': 0.0})
 
-            # 2. Generate Return Picking manually to deduct physical stock
-            return_picking_type = self.env['stock.picking.type'].search(
-                [('code', '=', PICKING_OUTGOING), ('company_id', '=', picking.company_id.id)], limit=1
-            )
+            # 2. Generate the Return Picking that reverses the physical stock
+            # H4: prefer the picking type's own return type over an
+            # arbitrary search hit.
+            return_picking_type = picking.picking_type_id.return_picking_type_id \
+                or self.env['stock.picking.type'].search(
+                    [('code', '=', PICKING_OUTGOING), ('company_id', '=', picking.company_id.id)], limit=1)
+            if not return_picking_type:
+                raise UserError(_("Please configure an outgoing operation type for returns."))
 
             return_picking = self.env['stock.picking'].create({
                 'partner_id': picking.partner_id.id,
@@ -404,37 +619,22 @@ class StockPicking(models.Model):
                 'location_dest_id': picking.location_id.id,
             })
 
-            move_lines_vals = []
-            for move in picking.move_ids:
-                move_lines_vals.append({
+            return_move_vals = []
+            for move in picking._get_reversible_moves():
+                return_move_vals.append({
                     'picking_id': return_picking.id,
                     'product_id': move.product_id.id,
                     'product_uom': move.product_uom.id,
                     'product_uom_qty': move.quantity,
-                    'quantity': move.quantity,
                     'location_id': picking.location_dest_id.id,
                     'location_dest_id': picking.location_id.id,
                     'origin_returned_move_id': move.id,  # Native Odoo link for returns
                 })
-
-            self.env['stock.move'].create(move_lines_vals)
-
-            # 3. Validate Return Picking safely
+            self.env['stock.move'].create(return_move_vals)
             return_picking.action_confirm()
-            return_picking.action_assign()
 
-            for move in return_picking.move_ids:
-                move.write({'quantity': move.product_uom_qty, 'picked': True})
-
-            # Phase 2 Fix: Check for missing lots before auto-validating the return
-            missing_lots = return_picking.move_line_ids.filtered(
-                lambda ml: ml.product_id.tracking != 'none' and not ml.lot_id
-            )
-            if missing_lots:
-                raise UserError(_(
-                    "Cannot automatically delete GRN because Lot/SN tracking is missing on the return picking. "
-                    "Please manually validate Return Picking %s to complete the stock reversal."
-                ) % return_picking.name)
+            # 3. Done quantities + the EXACT lots the GRN received.
+            return_picking._set_reversal_move_lines()
 
             validate_res = return_picking.button_validate()
             if isinstance(validate_res, dict) and validate_res.get('res_model') == 'stock.immediate.transfer':
